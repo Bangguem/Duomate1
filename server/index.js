@@ -26,6 +26,7 @@ const { generateToken, verifyToken } = require('./auth');
 const cookieParser = require('cookie-parser');
 app.use(cookieParser()); // 쿠키 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 요청 본문 파싱
+const nodemailer = require('nodemailer');
 
 connectToMongo().then(() => {
     app.listen(PORT, () => {
