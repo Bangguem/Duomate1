@@ -14,10 +14,6 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
-// 간단한 API 작성
-app.get('/api/message', (req, res) => {
-    res.json({ message: 'Hello from Node.js Server!' });
-});
 
 // 서버 실행
 
