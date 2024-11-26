@@ -64,6 +64,7 @@ export default {
   box-sizing: border-box;
 }
 
+
 html,
 body {
   margin: 0;
@@ -100,6 +101,7 @@ body {
   align-items: center;
   gap: 10px;
 }
+
 
 .circle {
   width: 20px;
