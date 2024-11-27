@@ -14,6 +14,7 @@
     </header>
 
     <main class="main-content">
+      <p>이미지 추가 예정</p>
       <!-- 라우팅된 화면 표시 -->
       <router-view></router-view>
 
