@@ -99,17 +99,21 @@ app.get('/logout', (req, res) => {
     res.status(200).json({ success: true, message: '로그아웃 성공' });
 });
 
-app.get('/auth/check-login', authenticateJWT, (req, res) => {
+app.get('/auth/check-login', authenticateJWT, async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ loggedIn: false, message: '로그인 상태가 아닙니다.' });
     }
 
     res.status(200).json({
         loggedIn: true,
-        username: req.user.username, // JWT에 저장된 사용자 정보 반환
         message: '로그인 상태입니다.',
     });
 });
+
+app.get('/getuserdata', authenticateJWT, async (req, res) => {
+    const user = await fetchUser(req.user.userid);
+
+})
 
 app.post('/login', async (req, res) => {
     const { userid, password } = req.body;
@@ -254,3 +258,29 @@ app.post('/reset-password', async (req, res) => {
         });
     }
 });
+
+app.post('/request-userid', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // 이메일로 사용자 확인
+        const user = await fetchUserByemail(email);
+        if (!user) {
+            return res.status(404).json({ success: false, message: '가입되지 않은 이메일입니다.' });
+        }
+
+        // 이메일 전송
+        await transporter.sendMail({
+            from: process.env.NODEMAILER_USER,
+            to: email,
+            subject: 'Duo-Mate 아이디 찾기',
+            text: `사용자님의 아이디는 : ${user.userid} 입니다`,
+        });
+
+        res.status(200).json({ success: true, message: '아이디가 이메일로 전송되었습니다.' });
+    } catch (error) {
+        console.error('Error requesting password reset:', error);
+        res.status(500).json({ success: false, message: '아이디 요청 중 오류가 발생했습니다.' });
+    }
+});
+

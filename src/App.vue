@@ -1,16 +1,35 @@
 <template>
   <div id="app">
-    <!-- 조건에 따라 헤더를 표시 -->
-    <header v-if="showHeader" class="header">
-      <div class="logo">
-        <div class="circle"></div>
-        <span>Welcome</span>
-      </div>
-      <nav class="nav-links">
-        <a href="#">공지</a>
-        <router-link to="/signup">회원가입</router-link>
-        <router-link to="/login">로그인</router-link>
-      </nav>
+    <!-- 조건에 따라 다른 헤더를 표시 -->
+    <header v-if="showHeader">
+      <template v-if="isLoggedIn">
+        <!-- 로그인 상태일 때의 헤더 -->
+        <div class="header">
+          <div class="logo">
+            <div class="circle"></div>
+            <span>안녕하세요, {{ nickname }}님!</span>
+          </div>
+          <nav class="nav-links">
+            <a href="#">마이페이지</a>
+            <a href="#">내 정보</a>
+            <router-link to="/" @click="logout">로그아웃</router-link>
+          </nav>
+        </div>
+      </template>
+      <template v-else>
+        <!-- 비로그인 상태일 때의 헤더 -->
+        <div class="header">
+          <div class="logo">
+            <div class="circle"></div>
+            <span>Welcome</span>
+          </div>
+          <nav class="nav-links">
+            <a href="#">공지</a>
+            <router-link to="/signup">회원가입</router-link>
+            <router-link to="/login">로그인</router-link>
+          </nav>
+        </div>
+      </template>
     </header>
 
     <main class="main-content">
@@ -36,6 +55,12 @@
 <script>
 export default {
   name: 'App',
+  data() {
+    return {
+      isLoggedIn: false, // 로그인 상태
+      username: '', // 로그인된 사용자 이름
+    };
+  },
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
@@ -53,6 +78,48 @@ export default {
       return !this.isAuthPage;
     },
   },
+  methods: {
+    async checkLoginStatus() {
+      try {
+        const response = await fetch('http://localhost:3000/auth/check-login', {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.isLoggedIn = data.loggedIn;
+          this.nickname = data.nickname;
+        } else {
+          this.isLoggedIn = false;
+          this.nickname = '';
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        this.isLoggedIn = false;
+        this.nickname = '';
+      }
+    },
+    async logout() {
+      try {
+        const response = await fetch('http://localhost:3000/logout', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          this.isLoggedIn = false;
+          this.nickname = '';
+          this.$router.push('/'); // 로그아웃 후 로그인 페이지로 이동
+        }
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
+    },
+  },
+  mounted() {
+    this.checkLoginStatus(); // 컴포넌트가 마운트될 때 로그인 상태 확인
+  },
 };
 </script>
 
@@ -63,7 +130,6 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
-
 
 html,
 body {
@@ -101,7 +167,6 @@ body {
   align-items: center;
   gap: 10px;
 }
-
 
 .circle {
   width: 20px;
