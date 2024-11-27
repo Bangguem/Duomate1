@@ -12,7 +12,7 @@
           <nav class="nav-links">
             <a href="#">마이페이지</a>
             <a href="#">내 정보</a>
-            <button @click="logout">로그아웃</button>
+            <router-link to = "/">로그아웃</router-link>
           </nav>
         </div>
       </template>

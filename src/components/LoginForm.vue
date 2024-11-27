@@ -63,8 +63,8 @@ export default {
                     window.location.href = '/';
                 } else {
                     // 에러 메시지 처리
-                    const errorText = await response.text();
-                    this.errorMessage = errorText;
+                    const errorText = await response.json();
+                    this.errorMessage = errorText.message;
                 }
             } catch (error) {
                 console.error('Login error:', error);
