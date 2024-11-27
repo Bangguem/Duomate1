@@ -17,12 +17,13 @@
           <h1 class="login-title">로그인 정보를 입력해주세요</h1>
           <form @submit.prevent="handleLogin">
             <div class="input-group">
-              <input type="text" v-model="userid" placeholder="아이디" required />
+              <input type="text" v-model="form.userid" placeholder="아이디" required />
             </div>
             <div class="input-group">
-              <input type="password" v-model="password" placeholder="비밀번호" required />
+              <input type="password" v-model="form.password" placeholder="비밀번호" required />
             </div>
             <button type="submit" class="login-button">로그인</button>
+            <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
           </form>
           <div class="actions">
             <a href="#" class="action-link">아이디 찾기</a>
@@ -213,5 +214,9 @@ input[type="password"] {
 
 .action-link:hover {
   text-decoration: underline;
+}
+.error-message{
+  color: red;
+  margin-top: 10px;
 }
 </style>

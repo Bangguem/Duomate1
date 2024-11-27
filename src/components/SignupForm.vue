@@ -256,7 +256,7 @@ body {
   border-radius: 4px;
   font-size: 14px;
   background-color: #FAFAFA;
-  color: white;
+  color: black;
 }
 .form-group select{
     width: 100%;
