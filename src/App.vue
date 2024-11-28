@@ -6,14 +6,54 @@
         <!-- 로그인 상태일 때의 헤더 -->
         <div class="header">
           <div class="logo">
-            <div class="circle"></div>
-            <span>안녕하세요, {{ username }}님!</span>
+            <div class="circle" @click="mypageopen == true"></div>
+            <div v-if="mypageopen == true" class="modal-overlay">
+          <div class="modal-content">
+            <!-- 프로필 이미지 -->
+          <div class="profile-image"></div>
+
+            <!-- 유저 정보 표시 -->
+          <div class="user-info-display">
+            <p><strong>닉네임:</strong> {{ this.nickname }}</p>
+            <p><strong>이메일:</strong> {{ this.email }}</p>
+            <p><strong>생년월일:</strong> {{ this.birthdate }}</p>
+            <p><strong>성별:</strong> {{ this.gender }}</p>
           </div>
-          <nav class="nav-links">
+
+          <!-- 수정 버튼 -->
+          <button type="button" class="edit-button">내 정보 수정</button>
+
+          <!-- 게임 정보 -->
+          <div class="gaming-info">
+            <h2>Gaming Information</h2>
+            <p>Your gaming details</p>
+            <div class="game-stats">
+              <div class="game-tier">
+                <img src="tier-icon.png" alt="Game Tier" />
+                <p>Game Tier</p>
+                <p>{{ userInfo.gameTier }}</p>
+              </div>
+              <div class="most-champions">
+              <p>Most Champion Top 3</p>
+              <div class="champion-icons">
+                <img v-for="(champion, index) in userInfo.topChampions" :key="index" :src="champion.image" :alt="champion.name" />
+              </div>
+              <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p>
+            </div>
+            </div>
+            </div>
+
+            <!-- 회원 탈퇴 버튼 -->
+            <button class="delete-button">회원탈퇴</button>
+            </div>
+            <span>안녕하세요, {{ username }}님!</span>
+            </div>
+            <nav class="nav-links">
             <a href="#">마이페이지</a>
             <a href="#">내 정보</a>
             <router-link to = "/">로그아웃</router-link>
-          </nav>
+            </nav>
+          </div>
         </div>
       </template>
       <template v-else>
@@ -57,6 +97,7 @@ export default {
   name: 'App',
   data() {
     return {
+      mypageopen: false,
       isLoggedIn: false, // 로그인 상태
       username: '', // 로그인된 사용자 이름
     };
@@ -223,5 +264,92 @@ body {
 
 .footer-links a:hover {
   text-decoration: underline;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2a2a2a;
+  color: white;
+  width: 80%;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.profile-image {
+  width: 100px;
+  height: 100px;
+  background-color: gray;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+}
+
+.user-info-display p {
+  margin: 10px 0;
+}
+
+.edit-button {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+.gaming-info {
+  margin-top: 20px;
+}
+
+.gaming-info h2 {
+  margin-bottom: 10px;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.game-tier img,
+.most-champions img {
+  width: 50px;
+  height: 50px;
+}
+
+.champion-icons img {
+  margin: 0 5px;
+}
+
+.delete-button {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: white;
+  color: black;
 }
 </style>
