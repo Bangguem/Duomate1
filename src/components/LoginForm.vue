@@ -78,142 +78,47 @@ export default {
 
 
 <style scoped>
-/* 전체 스타일 초기화 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.login-page {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    text-align: center;
 }
 
-html,body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+form div {
+    margin-bottom: 15px;
 }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-}
-#app {
-    width : 100vw;
-    height : 100vh;
-  }
-.login-container {
-  height: 100vh;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  flex-direction: column;
-  background-color: #1c1c1c;
-  color: #fff;
-  font-family: 'Arial', sans-serif;
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #424242;
-    color: #FAFAFA;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.circle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #15513775;
-}
-
-.nav {
-  display: flex;
-  gap: 10px;
-}
-
-.nav-link {
-    margin-left: 20px;
-  color: #FAFAFA;
-  text-decoration: none;
-  font-size: 10px;
-}
-
-.nav-link:hover {
-  text-decoration: underline;
-}
-
-.login-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-box {
-  background-color: #212121;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-}
-
-.login-title {
-  font-size: 20px;
-  margin-bottom: 20px;
-}
-
-.input-group {
-  margin-bottom: 15px;
-}
-
-input[type="text"],
-input[type="password"] {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.login-button {
-  width: 40%;
-  padding: 8px;
-  background-color: #15513775;
-  color: #fafafa;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.login-button:hover {
-  background-color: #15513775;
-}
-
-.actions {
-  margin-top: 15px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.action-link {
+input {
     width: 100%;
-  color: #fafafa;
-  text-decoration: none;
-  font-size: 12px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-.action-link:hover {
-  text-decoration: underline;
+button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: #45a049;
 }
 .error-message{
   color: red;

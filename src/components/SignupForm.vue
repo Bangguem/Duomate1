@@ -64,9 +64,7 @@
             </main>
         </div>
     </div>
-  </template>
-  
-  
+</template>
 
 <script>
 export default {
@@ -148,158 +146,36 @@ export default {
 </script>
 
 <style scoped>
-
-/* 전체 스타일 초기화 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* 기본 스타일 */
+form {
+    max-width: 400px;
+    margin: 0 auto;
 }
 
-html,body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+label {
+    display: block;
+    margin-top: 10px;
 }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #212121;
-}
-#app {
-    width : 120vw;
-    height : 120vh;
-    background-color: #212121;
-  }
-
-/* 전체 레이아웃 스타일 */
-.signup-container {
-  font-family: Arial, sans-serif;
-  background-color: #212121;
-  color: #FAFAFA;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: start;
-}
-
-/* 헤더 스타일 */
-.header {
-  width: 100%;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #424242;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.header nav a {
-  color: #FAFAFA;
-  text-decoration: none;
-  margin-left: 15px;
-  font-size: 10px;
-}
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.circle {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #15513775;
-}
-
-/* 폼 컨테이너 */
-.form-container {
-  background-color: #212121;
-  padding: 20px 20px;
-  border-radius: 8px;
-  max-width: 400px;
-  width: 200vw;
-}
-
-.form-container h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.form-container p {
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-
-/* 폼 그룹 스타일 */
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 5px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #FAFAFA;
-  color: black;
-}
-.form-group select{
+input,
+select,
+button {
+    margin-top: 5px;
+    display: block;
     width: 100%;
-    height: 40px;
-    padding: 10px;
-    background-color:  #FAFAFA;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #424242;
+    padding: 8px;
+    font-size: 16px;
+}
+
+button {
+    margin-top: 20px;
+    background-color: #4caf50;
+    color: white;
     border: none;
     cursor: pointer;
 }
 
-/* 버튼 스타일 */
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-
-.cancel-button,
-.signup-button {
-  padding: 10px 60px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.cancel-button {
-  background-color: #424242;
-  color: #FAFAFA;
-}
-
-.signup-button {
-  background-color: #15513775;
-  color: #FAFAFA;
-}
-
-.cancel-button:hover {
-  background-color: #727272;
-}
-
-.signup-button:hover {
-  background-color: #15513775;
+button:hover {
+    background-color: #45a049;
 }
 </style>
