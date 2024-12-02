@@ -26,7 +26,7 @@
           <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
         </form>
         <div class="actions-link">
-          <a href="#">아이디 찾기</a>
+          <a href="/find-id">아이디 찾기</a>
           <router-link to ="/find-password">비밀번호 찾기</router-link>
         </div>
           </div>
