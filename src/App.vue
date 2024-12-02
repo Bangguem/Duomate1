@@ -6,15 +6,20 @@
         <!-- 로그인 상태일 때의 헤더 -->
         <div class="header">
           <div class="logo">
-            <div class="circle" @click="mypageopen == true"></div>
+            <div class="circle"></div>
+            <span>안녕하세요, {{ username }}님!</span>
+          </div>
+            <nav class="nav-links">
+            <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
+            <a @click="mypageopen==true">마이페이지</a>
             <div v-if="mypageopen == true" class="modal-overlay">
-          <div class="modal-content">
+            <div class="modal-content">
             <!-- 프로필 이미지 -->
           <div class="profile-image"></div>
 
             <!-- 유저 정보 표시 -->
           <div class="user-info-display">
-            <p><strong>닉네임:</strong> {{ this.nickname }}</p>
+            <p><strong>닉네임:</strong> {{ this.userinfo.user.nickname }}</p>
             <p><strong>이메일:</strong> {{ this.email }}</p>
             <p><strong>생년월일:</strong> {{ this.birthdate }}</p>
             <p><strong>성별:</strong> {{ this.gender }}</p>
@@ -46,14 +51,10 @@
             <!-- 회원 탈퇴 버튼 -->
             <button class="delete-button">회원탈퇴</button>
             </div>
-            <span>안녕하세요, {{ username }}님!</span>
             </div>
-            <nav class="nav-links">
-            <a href="#">마이페이지</a>
             <a href="#">내 정보</a>
             <router-link to = "/">로그아웃</router-link>
             </nav>
-          </div>
         </div>
       </template>
       <template v-else>
@@ -99,13 +100,13 @@ export default {
     return {
       mypageopen: false,
       isLoggedIn: false, // 로그인 상태
-      username: '', // 로그인된 사용자 이름
+      userInfo: {},
     };
   },
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup'].includes(this.$route.path);
+      return ['/login', '/signup','/find-password'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
@@ -130,16 +131,20 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.isLoggedIn = data.loggedIn;
-          this.nickname = data.nickname;
+          if (data.loggedIn) {
+            this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
+          }
         } else {
-          this.isLoggedIn = false;
-          this.nickname = '';
+          this.resetUserData();
         }
       } catch (error) {
         console.error('Error checking login status:', error);
-        this.isLoggedIn = false;
-        this.nickname = '';
+        this.resetUserData();
       }
+    },
+    resetUserData() {
+      this.isLoggedIn = false;
+      this.userInfo = {}; // 사용자 정보 초기화
     },
     async logout() {
       try {

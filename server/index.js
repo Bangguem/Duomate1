@@ -102,12 +102,14 @@ app.get('/logout', (req, res) => {
 app.get('/auth/check-login', authenticateJWT, async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ loggedIn: false, message: '로그인 상태가 아닙니다.' });
+    } else {
+        const user = await fetchUser(req.user.userid);
+        res.status(200).json({
+            loggedIn: true,
+            message: '로그인 상태입니다.',
+            user,
+        });
     }
-
-    res.status(200).json({
-        loggedIn: true,
-        message: '로그인 상태입니다.',
-    });
 });
 
 app.get('/getuserdata', authenticateJWT, async (req, res) => {
