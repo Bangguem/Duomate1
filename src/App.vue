@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- 조건에 따라 다른 헤더를 표시 -->
-    <header v-if="showHeader" >
+    <header v-if="showHeader">
       <template v-if="isLoggedIn">
         <!-- 로그인 상태일 때의 헤더 -->
         <div class="header">
@@ -9,54 +9,55 @@
             <div class="circle"></div>
             <span>안녕하세요, {{ userInfo.nickname }}님!</span>
           </div>
-            <nav class="nav-links">
+          <nav class="nav-links">
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
-            <a @click="mypageopen=true">마이페이지</a>
-            <div class="modal-overlay" v-if="mypageopen == true" >
-            <div class="modal-content">
-            <!-- 프로필 이미지 -->
-          <div class="profile-image"></div>
+            <a @click="mypageopen = true">마이페이지</a>
+            <div class="modal-overlay" v-if="mypageopen == true">
+              <div class="modal-content">
+                <!-- 프로필 이미지 -->
+                <div class="profile-image"></div>
 
-            <!-- 유저 정보 표시 -->
-          <div class="user-info-display">
-            <p v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</p>
-            <p v-if="userInfo.email"><strong>이메일:</strong> {{ userInfo.email }}</p>
-            <p v-if="userInfo.birthdate"><strong>생년월일:</strong> {{ userInfo.birthdate }}</p>
-            <p v-if="userInfo.gender"><strong>성별:</strong> {{ userInfo.gender }}</p>
-          </div>
+                <!-- 유저 정보 표시 -->
+                <div class="user-info-display">
+                  <p v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</p>
+                  <p v-if="userInfo.email"><strong>이메일:</strong> {{ userInfo.email }}</p>
+                  <p v-if="userInfo.birthdate"><strong>생년월일:</strong> {{ userInfo.birthdate }}</p>
+                  <p v-if="userInfo.gender"><strong>성별:</strong> {{ userInfo.gender }}</p>
+                </div>
 
-          <!-- 수정 버튼 -->
-          <button type="button" class="edit-button" href="/mypage-edit">내 정보 수정</button>
+                <!-- 수정 버튼 -->
+                <button type="button" class="edit-button" href="/mypage-edit">내 정보 수정</button>
 
-          <!-- 게임 정보 -->
-          <div class="gaming-info">
-            <h2>Gaming Information</h2>
-            <p>Your gaming details</p>
-            <div class="game-stats">
-              <div class="game-tier">
-                <img src="tier-icon.png" alt="Game Tier" />
-                <p>Game Tier</p>
-                <p>{{ userInfo.gameTier }}</p>
+                <!-- 게임 정보 -->
+                <div class="gaming-info">
+                  <h2>Gaming Information</h2>
+                  <p>Your gaming details</p>
+                  <div class="game-stats">
+                    <div class="game-tier">
+                      <img src="tier-icon.png" alt="Game Tier" />
+                      <p>Game Tier</p>
+                      <p>{{ userInfo.gameTier }}</p>
+                    </div>
+                    <div class="most-champions">
+                      <p>Most Champion Top 3</p>
+                      <div class="champion-icons">
+                        <img v-for="(champion, index) in userInfo.topChampions" :key="index" :src="champion.image"
+                          :alt="champion.name" />
+                      </div>
+                      <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 회원 탈퇴 버튼 -->
+                <button class="delete-button" @click="withdraw(), mypageopen = false">회원탈퇴</button>
+
+                <button class="close-button" @click="mypageopen = false">닫기</button>
               </div>
-              <div class="most-champions">
-              <p>Most Champion Top 3</p>
-              <div class="champion-icons">
-                <img v-for="(champion, index) in userInfo.topChampions" :key="index" :src="champion.image" :alt="champion.name" />
-              </div>
-              <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
-            </div>
-            </div>
-            </div>
-
-            <!-- 회원 탈퇴 버튼 -->
-            <button class="delete-button">회원탈퇴</button>
-
-            <button class="close-button" @click="mypageopen=false">닫기</button>
-            </div>
             </div>
             <a href="/mypage-edit">내 정보 변경</a>
             <a @click="logout()">로그아웃</a>
-            </nav>
+          </nav>
         </div>
       </template>
       <template v-else>
@@ -108,7 +109,7 @@ export default {
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup','/find-password','/find-id','/mypage-edit'].includes(this.$route.path);
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
@@ -162,6 +163,28 @@ export default {
         }
       } catch (error) {
         console.error('Error logging out:', error);
+      }
+    },
+    async withdraw() {
+      const confirmation = confirm('정말로 회원탈퇴를 진행하시겠습니까?');
+      if (!confirmation) return;
+
+      try {
+        const response = await fetch('http://localhost:3000/withdraw', {
+          method: 'GET', // DELETE 메서드 사용 (백엔드 구현에 맞게 조정)
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          alert('회원탈퇴가 완료되었습니다.');
+          this.resetUserData();
+          this.$router.push('/'); // 기본 페이지로 이동
+        } else {
+          alert('회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+      } catch (error) {
+        console.error('Error withdrawing: ', error);
+        alert('회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
     },
   },
@@ -273,6 +296,7 @@ body {
 .footer-links a:hover {
   text-decoration: underline;
 }
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -360,6 +384,7 @@ body {
   background-color: white;
   color: black;
 }
+
 .close-button {
   margin-left: 30px;
   padding: 10px;
@@ -369,6 +394,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
+
 .close-button:hover {
   background-color: white;
   color: black;

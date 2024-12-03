@@ -168,7 +168,10 @@ app.get('/withdraw', authenticateJWT, async (req, res) => {
         const isDeleted = await removeUser(user.userid);
         if (isDeleted) {
             res.clearCookie('auth_token');
-
+            return res.status(200).json({
+                success: true,
+                message: 'Account successfully deleted',
+            });
         } else {
             return res.status(404).json({
                 success: false,
@@ -177,7 +180,7 @@ app.get('/withdraw', authenticateJWT, async (req, res) => {
         }
     } catch (error) {
         console.error('Error during withdrawal:', error);
-        return res.status(404).json({
+        return res.status(500).json({
             success: false,
             message: 'Error during account withdrawal',
         });
