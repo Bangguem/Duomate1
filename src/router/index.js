@@ -5,6 +5,7 @@ import RequestPasswordReset from '@/components/RequestPasswordReset.vue';
 import ResetPassword from '@/components/ResetPassword.vue';
 import FindPassword from '@/components/FindPassword.vue';
 import FindId from '@/components/FindId.vue';
+import MypageEdit from '@/components/MypageEdit.vue';
 
 const routes = [
     {
@@ -20,7 +21,8 @@ const routes = [
     { path: '/request-password-reset', component: RequestPasswordReset },
     { path: '/reset-password', component: ResetPassword },
     {path: '/find-password', component: FindPassword},
-    {path:'/find-id', component: FindId}
+    {path:'/find-id', component: FindId},
+    {path:'/mypage-edit', component: MypageEdit}
 ];
 
 const router = createRouter({

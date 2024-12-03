@@ -26,7 +26,7 @@
           </div>
 
           <!-- 수정 버튼 -->
-          <button type="button" class="edit-button">내 정보 수정</button>
+          <button type="button" class="edit-button" href="/mypage-edit">내 정보 수정</button>
 
           <!-- 게임 정보 -->
           <div class="gaming-info">
@@ -54,8 +54,8 @@
             <button class="close-button" @click="mypageopen=false">닫기</button>
             </div>
             </div>
-            <a href="#">내 정보</a>
-            <router-link to = "/">로그아웃</router-link>
+            <a href="/mypage-edit">내 정보 변경</a>
+            <a @click="logout()">로그아웃</a>
             </nav>
         </div>
       </template>
@@ -108,7 +108,7 @@ export default {
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup','/find-password','/find-id'].includes(this.$route.path);
+      return ['/login', '/signup','/find-password','/find-id','/mypage-edit'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
