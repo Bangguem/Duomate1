@@ -107,7 +107,7 @@ app.get('/auth/check-login', authenticateJWT, async (req, res) => {
         res.status(200).json({
             loggedIn: true,
             message: '로그인 상태입니다.',
-            nickname: user.userid,
+            user,
         });
     }
 });
@@ -282,3 +282,28 @@ app.post('/request-userid', async (req, res) => {
     }
 });
 
+function splitSummonerAndTag(input) {
+    const [summonerName, tag = 'kr1'] = input.split('#');
+    return { summonerName, tag };
+}
+//라이엇 정보 가져오기
+app.post('/summonerInfo', authenticateJWT, async (req, res) => {
+    const userData = req.user;
+    if (userData) {
+        const { summoner } = req.body;
+        const { summonerName, tag } = splitSummonerAndTag(summoner);
+        try {
+            const summonerprofile = {
+                userid: userData.userid,
+                summonerName,
+                tag,
+            };
+            await createSummoner(summonerprofile);
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
+        }
+    } else {
+        res.status(404).json({ success: false, message: 'user not found' });
+    }
+});
