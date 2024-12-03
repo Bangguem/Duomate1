@@ -7,22 +7,22 @@
         <div class="header">
           <div class="logo">
             <div class="circle"></div>
-            <span>안녕하세요, {{ username }}님!</span>
+            <span>안녕하세요, {{ userInfo.nickname }}님!</span>
           </div>
             <nav class="nav-links">
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
-            <a @click="mypageopen==true">마이페이지</a>
-            <div v-if="mypageopen == true" class="modal-overlay">
+            <a @click="mypageopen=true">마이페이지</a>
+            <div class="modal-overlay" v-if="mypageopen == true" >
             <div class="modal-content">
             <!-- 프로필 이미지 -->
           <div class="profile-image"></div>
 
             <!-- 유저 정보 표시 -->
           <div class="user-info-display">
-            <p><strong>닉네임:</strong> {{ this.userinfo.user.nickname }}</p>
-            <p><strong>이메일:</strong> {{ this.email }}</p>
-            <p><strong>생년월일:</strong> {{ this.birthdate }}</p>
-            <p><strong>성별:</strong> {{ this.gender }}</p>
+            <p v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</p>
+            <p v-if="userInfo.email"><strong>이메일:</strong> {{ userInfo.email }}</p>
+            <p v-if="userInfo.birthdate"><strong>생년월일:</strong> {{ userInfo.birthdate }}</p>
+            <p v-if="userInfo.gender"><strong>성별:</strong> {{ userInfo.gender }}</p>
           </div>
 
           <!-- 수정 버튼 -->
@@ -43,13 +43,15 @@
               <div class="champion-icons">
                 <img v-for="(champion, index) in userInfo.topChampions" :key="index" :src="champion.image" :alt="champion.name" />
               </div>
-              <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p>
+              <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
             </div>
             </div>
             </div>
 
             <!-- 회원 탈퇴 버튼 -->
             <button class="delete-button">회원탈퇴</button>
+
+            <button class="close-button" @click="mypageopen=false">닫기</button>
             </div>
             </div>
             <a href="#">내 정보</a>
@@ -310,7 +312,7 @@ body {
 .edit-button {
   margin-top: 20px;
   padding: 10px;
-  background-color: #4caf50;
+  background-color: #15513775;
   color: white;
   border: none;
   border-radius: 4px;
@@ -318,7 +320,7 @@ body {
 }
 
 .edit-button:hover {
-  background-color: #45a049;
+  background-color: #15513775;
 }
 
 .gaming-info {
@@ -345,7 +347,7 @@ body {
 }
 
 .delete-button {
-  margin-top: 20px;
+  margin-right: 30px;
   padding: 10px;
   background-color: transparent;
   border: 1px solid white;
@@ -355,6 +357,19 @@ body {
 }
 
 .delete-button:hover {
+  background-color: white;
+  color: black;
+}
+.close-button {
+  margin-left: 30px;
+  padding: 10px;
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.close-button:hover {
   background-color: white;
   color: black;
 }
