@@ -164,7 +164,10 @@ app.get('/withdraw', authenticateJWT, async (req, res) => {
         const isDeleted = await removeUser(user.userid);
         if (isDeleted) {
             res.clearCookie('auth_token');
-
+            return res.status(200).json({
+                success: true,
+                message: 'Account successfully deleted',
+            });
         } else {
             return res.status(404).json({
                 success: false,
@@ -173,7 +176,7 @@ app.get('/withdraw', authenticateJWT, async (req, res) => {
         }
     } catch (error) {
         console.error('Error during withdrawal:', error);
-        return res.status(404).json({
+        return res.status(500).json({
             success: false,
             message: 'Error during account withdrawal',
         });
@@ -299,11 +302,12 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
                 tag,
             };
             await createSummoner(summonerprofile);
+            res.status(200).json({ success: true, message: '소환사 정보 가져오기 성공' })
         } catch (error) {
             console.error('Error updating profile:', error);
             res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
         }
     } else {
-        res.status(404).json({ success: false, message: 'user not found' });
+        res.status(404).json({ success: false, message: 'User Not Found' });
     }
 });

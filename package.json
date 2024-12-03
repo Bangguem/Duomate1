@@ -9,12 +9,15 @@
     "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
     "start:server": "cd server && node index.js",
     "start:client": "npm run serve"
+
   },
   "dependencies": {
     "axios": "^1.7.7",
+    "concurrently": "^9.1.0",
     "core-js": "^3.8.3",
     "vue": "^3.2.13",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
