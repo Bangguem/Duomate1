@@ -12,6 +12,7 @@
           <nav class="nav-links">
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
             <a @click="mypageopen = true">마이페이지</a>
+            <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
             <div class="modal-overlay" v-if="mypageopen == true">
               <div class="modal-content">
                 <!-- 프로필 이미지 -->

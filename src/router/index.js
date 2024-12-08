@@ -6,6 +6,7 @@ import ResetPassword from '@/components/ResetPassword.vue';
 import FindPassword from '@/components/FindPassword.vue';
 import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
+import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
 
 const routes = [
     {
@@ -22,7 +23,12 @@ const routes = [
     { path: '/reset-password', component: ResetPassword },
     {path: '/find-password', component: FindPassword},
     {path:'/find-id', component: FindId},
-    {path:'/mypage-edit', component: MypageEdit}
+    {path:'/mypage-edit', component: MypageEdit},
+    {
+        path: '/board',
+        name: 'BoardForm',
+        component: BoardForm, // 게시판 페이지 추가
+    },
 ];
 
 const router = createRouter({
