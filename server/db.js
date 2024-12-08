@@ -15,6 +15,7 @@ const client = new MongoClient(url);
 // 데이터베이스와 컬렉션 이름을 정의합니다.
 const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
+const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -211,6 +212,33 @@ async function createSummoner(summonerprofile) {
     );
 }
 
+// 게시글 데이터 생성 함수
+async function createPost(postData) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const newPost = {
+        title: postData.title,
+        content: postData.content,
+        author: postData.author,
+        createdAt: new Date(),
+    };
+    return await collection.insertOne(newPost);  // 새 게시글 저장
+}
+
+// 게시글 목록 조회 함수
+async function fetchPosts() {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.find().toArray();  // 모든 게시글 가져오기
+}
+
+// 게시글 삭제 함수
+async function deletePost(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const result = await collection.deleteOne({ _id: postId });
+    return result.deletedCount > 0;
+}
 
 module.exports = {
     connectToMongo,
@@ -222,4 +250,7 @@ module.exports = {
     createSummoner,
     fetchUserByemail,
     updatePassword,
+    createPost,
+    fetchPosts,
+    deletePost,
 }
