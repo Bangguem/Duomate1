@@ -226,7 +226,7 @@ select {
   border: none;
   border-radius: 5px;
   background-color: #FAFAFA;
-  color: #fff;
+  color: #212121;
 }
 select {
   cursor: pointer;

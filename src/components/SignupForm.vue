@@ -37,7 +37,7 @@
           </div>
           <div class="form-group">
             <label for="email">이메일</label>
-            <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요" />
+            <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요(비밀번호 또는 아이디 찾기에 사용)" />
           </div>
           <div class="form-group">
             <label for="nickname">닉네임 <a style="color:red;">*</a></label>
@@ -52,7 +52,7 @@
             <select id="gender" v-model="form.gender" require>
               <option value="male">남성</option>
               <option value="female">여성</option>
-              <option selected value="other">기타</option>
+              <option value="other">기타</option>
             </select>
           </div>
           <div class="button-group">
@@ -79,7 +79,7 @@ export default {
               email: '',
               nickname: '',
               birthdate: '',
-              gender: 'male',
+              gender: 'other',
           },
           duplicateCheck: {
               message: '',
