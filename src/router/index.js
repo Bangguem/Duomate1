@@ -6,6 +6,7 @@ import ResetPassword from '@/components/ResetPassword.vue';
 import FindPassword from '@/components/FindPassword.vue';
 import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
+import axios from 'axios';
 
 const routes = [
     {
@@ -30,19 +31,33 @@ const router = createRouter({
     routes,
 });
 
-function isAuthenticated() {
-    // 실제 구현 시, JWT 토큰 유효성 검사나 로그인 상태 체크 함수로 대체하세요.
-    return !!localStorage.getItem('authToken');
-  }
-
-router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth && !isAuthenticated()) {
-      // 인증되지 않은 상태로 보호된 페이지 접근 시 로그인 페이지로 리다이렉트
-      next({ name: 'Login' });
-    } else {
-      // 정상적으로 이동
-      next();
+async function isLoggedIn() {
+    try {
+      const response = await axios.get('http://localhost:3000/auth/check-login', {
+        withCredentials: true, // 쿠키 포함 요청
+      });
+      return response.data.loggedIn;
+    } catch (error) {
+      console.error('Error checking login status:', error);
+      return false; // 오류 발생 시 비로그인 상태로 간주
     }
+  }
+  
+  // Navigation Guard 설정
+  router.beforeEach(async (to, from, next) => {
+    const requiresAuth = to.meta.requiresAuth;
+  
+    if (requiresAuth) {
+      // 인증이 필요한 페이지 접근 시 로그인 상태 확인
+      const loggedIn = await isLoggedIn();
+  
+      if (!loggedIn) {
+        // 로그인 상태가 아니면 로그인 페이지로 이동
+        return next({ name: 'Login', query: { redirect: to.fullPath } });
+      }
+    }
+  
+    next(); // 인증이 필요하지 않거나 로그인 상태라면 다음 라우트로 이동
   });
 
 export default router;
