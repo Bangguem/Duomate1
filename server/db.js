@@ -212,7 +212,7 @@ async function createSummoner(summonerprofile) {
     );
 }
 
-// 게시글 데이터 생성 함수
+// 게시글 생성 함수
 async function createPost(postData) {
     const db = client.db(DB_NAME);
     const collection = db.collection(POSTS_COLLECTION);
@@ -222,22 +222,30 @@ async function createPost(postData) {
         author: postData.author,
         createdAt: new Date(),
     };
-    return await collection.insertOne(newPost);  // 새 게시글 저장
+    const result = await collection.insertOne(newPost);
+    return { id: result.insertedId, ...newPost };
 }
 
-// 게시글 목록 조회 함수
+// 게시글 조회 함수(게시판에 모든 게시글을 나열하여 사용자에게 보여주기 위해 필요합니다.)
 async function fetchPosts() {
     const db = client.db(DB_NAME);
     const collection = db.collection(POSTS_COLLECTION);
-    return await collection.find().toArray();  // 모든 게시글 가져오기
+    return await collection.find().sort({ createdAt: -1 }).toArray();
 }
 
-// 게시글 삭제 함수
-async function deletePost(postId) {
+// 게시글 삭제 함수 (작성자 확인)
+async function deletePost(postId, authorNickname) {
     const db = client.db(DB_NAME);
     const collection = db.collection(POSTS_COLLECTION);
-    const result = await collection.deleteOne({ _id: postId });
+    const result = await collection.deleteOne({ _id: new ObjectId(postId), author: authorNickname });
     return result.deletedCount > 0;
+}
+
+// 특정 게시글 조회 함수(특정 게시글에 대한 상세 정보가 필요할 때, 예를 들어 게시글 삭제나 수정 권한을 확인하기 위해 필요합니다.)
+async function getPostById(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(postId) });
 }
 
 module.exports = {
@@ -253,4 +261,5 @@ module.exports = {
     createPost,
     fetchPosts,
     deletePost,
+    getPostById,
 }
