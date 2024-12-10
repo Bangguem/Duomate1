@@ -4,7 +4,7 @@ const { response } = require('express');
 const { MongoClient } = require("mongodb");
 const DDRAGON_VERSION = '14.22.1'; // 최신 버전으로 업데이트 필요
 const DDRAGON_LANGUAGE = 'en_US'; // 원하는 언어 설정
-
+const { ObjectId } = require('mongodb');  // MongoDB에서 ObjectId 가져오기
 
 // MongoDB 연결 URL을 환경 변수에서 가져옵니다.
 const url = process.env.MONGODB_URI;
