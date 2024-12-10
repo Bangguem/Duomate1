@@ -81,7 +81,22 @@
       <router-view></router-view>
 
       <!-- 메인 페이지 컨텐츠 (로그인/회원가입 페이지 제외) -->
-      <div v-if="showPlaceholder" class="placeholder"></div>
+      <div v-if="showPlaceholder" class="placeholder">
+        <!-- 비디오 추가 -->
+        <div class="background-video">
+          <video autoplay loop muted>
+            <source src="@/assets/Duomate.mp4" type="video/mp4">
+            <strong>Your browser does not support the video tag.</strong>
+          </video>
+          <div class="overlay-text">
+            <h1>Find your Duo Mate!</h1>
+            <p>Connect with gamers and build lasting friendships in our real-time chat platform designed for gamers!!!!
+            </p>
+            <button class="match-button">START</button>
+          </div>
+
+        </div>
+      </div>
     </main>
 
     <!-- 조건에 따라 푸터를 표시 -->
@@ -106,6 +121,7 @@ export default {
       userInfo: {},
     };
   },
+
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
@@ -122,8 +138,17 @@ export default {
     showPlaceholder() {
       return !this.isAuthPage;
     },
+    videoElement() {
+      return this.$refs.videoElement;
+    }
   },
   methods: {
+    playVideo() {
+      this.videoElement.play();
+    },
+    pauseVideo() {
+      this.videoElement.pause();
+    },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -228,7 +253,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 15px 20px;
   background-color: #424242;
   color: #FAFAFA;
 }
@@ -269,9 +294,9 @@ body {
 }
 
 .placeholder {
-  width: 80%;
+  width: 100%;
   height: 60%;
-  background-color: #757575;
+  background-color: #212121;
 }
 
 /* 푸터 스타일 */
@@ -399,4 +424,56 @@ body {
   background-color: white;
   color: black;
 }
+
+/* 비디오 스타일 */
+.background-video {
+  position: relative; /* 자식 요소를 기준으로 위치 설정 가능 */
+  width: 100%;
+  height: 100%;
+}
+
+.background-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 비디오 크기를 화면에 맞게 조절 */
+  position: relative; /* 비디오 위치 지정 */
+  z-index: 0; /* 기본값으로 설정 */
+}
+
+.overlay-text {
+  position: absolute; /* 비디오 위에 텍스트 겹치기 */
+  top: 30%; /* 화면의 중앙 */
+  left: 50%; /* 화면의 중앙 */
+  transform: translate(-50%, -50%); /* 정확히 중앙 정렬 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  color: white; /* 텍스트 색상 */
+  z-index: 1; /* 비디오보다 위에 표시 */
+}
+
+.overlay-text h1 {
+  font-size: 3rem; /* 원하는 크기로 조정 */
+  margin-bottom: 10px;
+}
+
+.overlay-text p {
+  font-size: 1.5rem;
+}
+.match-button {
+    position: absolute;
+    flex: 1;
+    width: 150px;
+    height: 50px;;
+    font-size: 14px;
+    background-color: #155137;
+    border: none;
+    color: #fff;
+    border-radius: 20px;
+    cursor: pointer;
+    text-align: center;
+    transform: translate(-50%, 140%);
+  }
+  .match-button :hover{
+    background-color: #15513775;
+  }
+
 </style>

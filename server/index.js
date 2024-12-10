@@ -73,7 +73,14 @@ app.post('/signup', async (req, res) => {
 
     // 비밀번호 해싱 및 사용자 생성
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { userid, password: hashedPassword, email, nickname, birthdate, gender };
+    const newUser = {
+        userid,
+        password: hashedPassword,
+        email: email || null, // 이메일이 없으면 null로 설정
+        nickname,
+        birthdate: birthdate || null, // 생년월일이 없으면 null로 설정
+        gender: gender || 'other', // 성별이 없으면 기본값을 'other'로 설정
+    };
     await createUser(newUser);
 
     // JWT 토큰 생성 및 쿠키에 저장

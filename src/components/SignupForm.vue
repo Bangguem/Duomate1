@@ -37,7 +37,7 @@
           </div>
           <div class="form-group">
             <label for="email">이메일</label>
-            <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요" />
+            <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요(비밀번호 또는 아이디 찾기에 사용)" />
           </div>
           <div class="form-group">
             <label for="nickname">닉네임 <a style="color:red;">*</a></label>
@@ -79,7 +79,7 @@ export default {
               email: '',
               nickname: '',
               birthdate: '',
-              gender: 'male',
+              gender: 'other',
           },
           duplicateCheck: {
               message: '',
@@ -119,6 +119,12 @@ export default {
           }
       },
       async handleSubmit() {
+        const { userid, password, passwordcheck, nickname } = this.form;
+
+    if (!userid || !password || !passwordcheck || !nickname) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
           if (this.form.password !== this.form.passwordcheck) {
               alert('비밀번호가 일치하지 않습니다.');
               return;
