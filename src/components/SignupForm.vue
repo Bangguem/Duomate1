@@ -119,6 +119,12 @@ export default {
           }
       },
       async handleSubmit() {
+        const { userid, password, passwordcheck, nickname } = this.form;
+
+    if (!userid || !password || !passwordcheck || !nickname) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+    }
           if (this.form.password !== this.form.passwordcheck) {
               alert('비밀번호가 일치하지 않습니다.');
               return;
