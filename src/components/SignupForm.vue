@@ -52,7 +52,7 @@
             <select id="gender" v-model="form.gender" require>
               <option value="male">남성</option>
               <option value="female">여성</option>
-              <option value="other">기타</option>
+              <option selected value="other">기타</option>
             </select>
           </div>
           <div class="button-group">
