@@ -24,7 +24,8 @@ const routes = [
   { path: '/reset-password', component: ResetPassword },
   { path: '/find-password', component: FindPassword },
   { path: '/find-id', component: FindId },
-  { path: '/mypage-edit', component: MypageEdit }
+  { path: '/mypage-edit', component: MypageEdit },
+  { path: '/board', component: BoardForm },
 ];
 
 const router = createRouter({
