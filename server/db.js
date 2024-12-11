@@ -4,7 +4,7 @@ const { response } = require('express');
 const { MongoClient } = require("mongodb");
 const DDRAGON_VERSION = '14.22.1'; // 최신 버전으로 업데이트 필요
 const DDRAGON_LANGUAGE = 'en_US'; // 원하는 언어 설정
-
+const { ObjectId } = require('mongodb');  // MongoDB에서 ObjectId 가져오기
 
 // MongoDB 연결 URL을 환경 변수에서 가져옵니다.
 const url = process.env.MONGODB_URI;
@@ -15,6 +15,7 @@ const client = new MongoClient(url);
 // 데이터베이스와 컬렉션 이름을 정의합니다.
 const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
+const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -211,6 +212,55 @@ async function createSummoner(summonerprofile) {
     );
 }
 
+// 게시글 생성 함수
+async function createPost(postData) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const newPost = {
+        title: postData.title,
+        content: postData.content,
+        author: postData.author,
+        createdAt: new Date(),
+    };
+    const result = await collection.insertOne(newPost);
+    return { id: result.insertedId, ...newPost };
+}
+
+// 게시글 조회 함수(게시판에 모든 게시글을 나열하여 사용자에게 보여주기 위해 필요합니다.)
+async function fetchPosts() {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.find().sort({ createdAt: -1 }).toArray();
+}
+
+// 게시글 삭제 함수 (작성자 확인)
+async function deletePost(postId, authorNickname) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const result = await collection.deleteOne({ _id: new ObjectId(postId), author: authorNickname });
+    return result.deletedCount > 0;
+}
+
+// 특정 게시글 조회 함수(특정 게시글에 대한 상세 정보가 필요할 때, 예를 들어 게시글 삭제나 수정 권한을 확인하기 위해 필요합니다.)
+async function getPostById(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(postId) });
+}
+
+// 게시글 수정 함수
+async function updatePost(postId, updatedFields) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    const result = await collection.findOneAndUpdate(
+        { _id: new ObjectId(postId) },
+        { $set: updatedFields },
+        { returnDocument: 'after' } // 수정 후의 문서를 반환
+    );
+
+    return result.value;
+}
 
 module.exports = {
     connectToMongo,
@@ -222,4 +272,9 @@ module.exports = {
     createSummoner,
     fetchUserByemail,
     updatePassword,
+    createPost,
+    fetchPosts,
+    deletePost,
+    getPostById,
+    updatePost,
 }

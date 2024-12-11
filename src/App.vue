@@ -12,6 +12,7 @@
           <nav class="nav-links">
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
             <a @click="mypageopen = true">마이페이지</a>
+            <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
             <div class="modal-overlay" v-if="mypageopen == true">
               <div class="modal-content">
                 <!-- 프로필 이미지 -->
@@ -427,7 +428,8 @@ body {
 
 /* 비디오 스타일 */
 .background-video {
-  position: relative; /* 자식 요소를 기준으로 위치 설정 가능 */
+  position: relative;
+  /* 자식 요소를 기준으로 위치 설정 가능 */
   width: 100%;
   height: 100%;
 }
@@ -435,45 +437,58 @@ body {
 .background-video video {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 비디오 크기를 화면에 맞게 조절 */
-  position: relative; /* 비디오 위치 지정 */
-  z-index: 0; /* 기본값으로 설정 */
+  object-fit: cover;
+  /* 비디오 크기를 화면에 맞게 조절 */
+  position: relative;
+  /* 비디오 위치 지정 */
+  z-index: 0;
+  /* 기본값으로 설정 */
 }
 
 .overlay-text {
-  position: absolute; /* 비디오 위에 텍스트 겹치기 */
-  top: 30%; /* 화면의 중앙 */
-  left: 50%; /* 화면의 중앙 */
-  transform: translate(-50%, -50%); /* 정확히 중앙 정렬 */
-  text-align: center; /* 텍스트 중앙 정렬 */
-  color: white; /* 텍스트 색상 */
-  z-index: 1; /* 비디오보다 위에 표시 */
+  position: absolute;
+  /* 비디오 위에 텍스트 겹치기 */
+  top: 30%;
+  /* 화면의 중앙 */
+  left: 50%;
+  /* 화면의 중앙 */
+  transform: translate(-50%, -50%);
+  /* 정확히 중앙 정렬 */
+  text-align: center;
+  /* 텍스트 중앙 정렬 */
+  color: white;
+  /* 텍스트 색상 */
+  z-index: 1;
+  /* 비디오보다 위에 표시 */
 }
 
 .overlay-text h1 {
-  font-size: 3rem; /* 원하는 크기로 조정 */
+  font-size: 3rem;
+  /* 원하는 크기로 조정 */
   margin-bottom: 10px;
 }
 
 .overlay-text p {
   font-size: 1.5rem;
 }
-.match-button {
-    position: absolute;
-    flex: 1;
-    width: 150px;
-    height: 50px;;
-    font-size: 14px;
-    background-color: #155137;
-    border: none;
-    color: #fff;
-    border-radius: 20px;
-    cursor: pointer;
-    text-align: center;
-    transform: translate(-50%, 140%);
-  }
-  .match-button :hover{
-    background-color: #15513775;
-  }
 
+.match-button {
+  position: absolute;
+  flex: 1;
+  width: 150px;
+  height: 50px;
+  ;
+  font-size: 14px;
+  background-color: #155137;
+  border: none;
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: center;
+  transform: translate(-50%, 140%);
+}
+
+.match-button :hover {
+  background-color: #15513775;
+}
 </style>
