@@ -27,6 +27,9 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser()); // 쿠키 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 요청 본문 파싱
 const nodemailer = require('nodemailer');
+const boardRouter = require('./routes/board');  // board 라우터 추가
+// /api/board 라우트 추가
+app.use('/api/board', boardRouter);
 
 connectToMongo().then(() => {
     app.listen(PORT, () => {
