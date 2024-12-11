@@ -318,3 +318,4 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
         res.status(404).json({ success: false, message: 'User Not Found' });
     }
 });
+
