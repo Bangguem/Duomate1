@@ -248,6 +248,20 @@ async function getPostById(postId) {
     return await collection.findOne({ _id: new ObjectId(postId) });
 }
 
+// 게시글 수정 함수
+async function updatePost(postId, updatedFields) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    const result = await collection.findOneAndUpdate(
+        { _id: new ObjectId(postId) },
+        { $set: updatedFields },
+        { returnDocument: 'after' } // 수정 후의 문서를 반환
+    );
+
+    return result.value;
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -262,4 +276,5 @@ module.exports = {
     fetchPosts,
     deletePost,
     getPostById,
+    updatePost,
 }

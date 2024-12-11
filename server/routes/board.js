@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser } = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost } = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -97,6 +97,36 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: '게시글 삭제에 실패했습니다.', error });
+    }
+});
+
+// 게시글 수정
+router.put('/:id', authenticateJWT, async (req, res) => {
+    const postId = req.params.id;
+    const { title, content } = req.body;
+
+    if (!ObjectId.isValid(postId)) {
+        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
+    }
+
+    if (!title || !content) {
+        return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
+    }
+
+    try {
+        const post = await getPostById(postId);
+        if (!post) {
+            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+
+        if (post.author !== req.user.nickname) {
+            return res.status(403).json({ message: '게시글 작성자만 수정할 수 있습니다.' });
+        }
+
+        const updatedPost = await updatePost(postId, { title, content });
+        res.status(200).json(updatedPost);
+    } catch (error) {
+        res.status(500).json({ message: '게시글 수정에 실패했습니다.', error });
     }
 });
 

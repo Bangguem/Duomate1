@@ -3,7 +3,7 @@
     <h1>게시판</h1>
 
     <!-- 게시글 작성 버튼 -->
-    <button @click="goToWritePage">게시글 작성</button>
+    <button @click="goToWritePage" v-if="currentPage === 'board'">게시글 작성</button>
 
     <!-- 게시글 목록 -->
     <div v-if="currentPage === 'board'">
@@ -14,7 +14,8 @@
           <h2>{{ post.title }}</h2>
           <p>{{ post.content }}</p>
           <small>{{ post.author }} - {{ formatDate(post.createdAt) }}</small>
-          <!-- 게시글 삭제 버튼 (작성자일 경우에만 표시) -->
+          <!-- 수정 및 삭제 버튼 -->
+          <button v-if="isAuthor(post)" @click="goToEditPage(post)">수정</button>
           <button v-if="isAuthor(post)" @click="deletePost(post._id)">삭제</button>
         </li>
       </ul>
@@ -36,6 +37,23 @@
         <button type="button" @click="goToBoardPage">취소</button>
       </form>
     </div>
+
+    <!-- 게시글 수정 폼 -->
+    <div v-if="currentPage === 'edit'">
+      <h2>게시글 수정</h2>
+      <form @submit.prevent="updatePost">
+        <div>
+          <label for="title">제목</label>
+          <input v-model="title" type="text" id="title" required />
+        </div>
+        <div>
+          <label for="content">내용</label>
+          <textarea v-model="content" id="content" required></textarea>
+        </div>
+        <button type="submit">수정 완료</button>
+        <button type="button" @click="goToBoardPage">취소</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -48,10 +66,11 @@ export default {
       posts: [],        // 게시글 목록
       loading: true,    // 로딩 상태
       error: false,     // 오류 상태
-      title: '',
-      content: '',
-      currentPage: 'board',  // 현재 페이지 상태: 'board' 또는 'write'
-      currentUser: null,     // 현재 로그인한 사용자 정보
+      title: '',        // 게시글 제목
+      content: '',      // 게시글 내용
+      currentPage: 'board', // 현재 페이지 상태 ('board', 'write', 'edit')
+      currentUser: null,    // 현재 로그인한 사용자 정보
+      editPostId: null      // 수정 중인 게시글 ID
     };
   },
   created() {
@@ -84,16 +103,15 @@ export default {
       }
     },
 
-    // 게시글 작성 후 서버로 전송
+    // 게시글 작성 요청
     async submitPost() {
       const postData = {
         title: this.title,
         content: this.content,
-        // author는 서버에서 자동으로 설정되므로 포함하지 않습니다.
       };
 
       try {
-        await axios.post('http://localhost:3000/api/board', postData, { withCredentials: true }); // 서버로 POST 요청
+        await axios.post('http://localhost:3000/api/board', postData, { withCredentials: true });
         this.currentPage = 'board'; // 게시글 작성 후 목록 페이지로 돌아가기
         this.title = '';
         this.content = '';
@@ -103,7 +121,7 @@ export default {
       }
     },
 
-    // 게시글 삭제
+    // 게시글 삭제 요청
     async deletePost(postId) {
       try {
         await axios.delete(`http://localhost:3000/api/board/${postId}`, { withCredentials: true });
@@ -113,14 +131,43 @@ export default {
       }
     },
 
-    // 게시글 작성 페이지로 이동
-    goToWritePage() {
-      this.currentPage = 'write'; // 'write' 페이지로 전환
+    // 게시글 수정 페이지로 이동
+    goToEditPage(post) {
+      this.editPostId = post._id;
+      this.title = post.title;
+      this.content = post.content;
+      this.currentPage = 'edit';
+    },
+
+    // 게시글 수정 요청
+    async updatePost() {
+      const postData = {
+        title: this.title,
+        content: this.content,
+      };
+
+      try {
+        await axios.put(`http://localhost:3000/api/board/${this.editPostId}`, postData, { withCredentials: true });
+        this.currentPage = 'board';
+        this.title = '';
+        this.content = '';
+        this.editPostId = null;
+        this.fetchPosts(); // 목록 갱신
+      } catch (error) {
+        console.error('게시글 수정 중 오류 발생:', error);
+      }
     },
 
     // 게시판 페이지로 이동
     goToBoardPage() {
-      this.currentPage = 'board'; // 'board' 페이지로 전환
+      this.currentPage = 'board';
+    },
+
+    // 게시글 작성 페이지로 이동
+    goToWritePage() {
+      this.currentPage = 'write';
+      this.title = '';
+      this.content = '';
     },
 
     // 현재 사용자가 게시글 작성자인지 확인
