@@ -7,6 +7,8 @@ import FindPassword from '@/components/FindPassword.vue';
 import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
 import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
+import MatchQueue from '@/components/MatchQueue.vue';
+import MatchRoom from '@/components/MatchRoom.vue';
 import axios from 'axios';
 
 const routes = [
@@ -26,6 +28,14 @@ const routes = [
   { path: '/find-id', component: FindId },
   { path: '/mypage-edit', component: MypageEdit },
   { path: '/board', component: BoardForm },
+  { path: '/matchqueue', component: MatchQueue },
+  {
+    path: '/matchroom', component: MatchRoom, props: route => ({
+      self: route.params.self,
+      partner: route.params.partner,
+      socket: route.params.socket,
+    }),
+  },
 ];
 
 const router = createRouter({

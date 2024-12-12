@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
+const http = require('http');
 const app = express();
 const PORT = 3000;
+const setupSocketIo = require('./setupSocketIo'); // Socket.IO 설정 가져오기
 
 // Middleware 설정
 app.use(cors({
@@ -15,6 +16,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
 
+
+const server = http.createServer(app);
+setupSocketIo(server);
 // 서버 실행
 
 
@@ -32,7 +36,7 @@ const boardRouter = require('./routes/board');  // board 라우터 추가
 app.use('/api/board', boardRouter);
 
 connectToMongo().then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
     });
 });
@@ -321,4 +325,3 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
         res.status(404).json({ success: false, message: 'User Not Found' });
     }
 });
-
