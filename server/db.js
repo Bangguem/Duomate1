@@ -221,6 +221,8 @@ async function createPost(postData) {
         content: postData.content,
         author: postData.author,
         createdAt: new Date(),
+        likes: 0, // 추가
+        dislikes: 0, // 추가
     };
     const result = await collection.insertOne(newPost);
     return { id: result.insertedId, ...newPost };
@@ -262,6 +264,17 @@ async function updatePost(postId, updatedFields) {
     return result.value;
 }
 
+async function updatePostLikes(postId, action) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const update = action === 'like' 
+        ? { $inc: { likes: 1 } } 
+        : { $inc: { dislikes: 1 } };
+    
+    const result = await collection.updateOne({ _id: new ObjectId(postId) }, update);
+    return result.matchedCount > 0;
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -277,4 +290,5 @@ module.exports = {
     deletePost,
     getPostById,
     updatePost,
+    updatePostLikes,
 }

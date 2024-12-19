@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost } = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -127,6 +127,31 @@ router.put('/:id', authenticateJWT, async (req, res) => {
         res.status(200).json(updatedPost);
     } catch (error) {
         res.status(500).json({ message: '게시글 수정에 실패했습니다.', error });
+    }
+});
+
+// 게시글 좋아요/싫어요 처리
+router.put('/:id/like', authenticateJWT, async (req, res) => {
+    const postId = req.params.id;
+    const { action } = req.body; // action: 'like' or 'dislike'
+
+    if (!ObjectId.isValid(postId)) {
+        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
+    }
+
+    if (!['like', 'dislike'].includes(action)) {
+        return res.status(400).json({ message: 'action 값은 "like" 또는 "dislike"여야 합니다.' });
+    }
+
+    try {
+        const success = await updatePostLikes(postId, action);
+        if (success) {
+            res.status(200).json({ message: `게시글 ${action} 처리 완료` });
+        } else {
+            res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: `게시글 ${action} 처리 중 오류 발생`, error });
     }
 });
 

@@ -14,6 +14,27 @@
           <h2>{{ post.title }}</h2>
           <p>{{ post.content }}</p>
           <small>{{ post.author }} - {{ formatDate(post.createdAt) }}</small>
+          <!-- 좋아요/싫어요 -->
+          <div>
+            <button 
+              v-if="currentUser" 
+              @click="likePost(post._id)"
+            >
+              좋아요 ({{ post.likes }})
+            </button>
+            <button 
+              v-if="currentUser" 
+              @click="dislikePost(post._id)"
+            >
+              싫어요 ({{ post.dislikes }})
+            </button>
+
+            <!-- 로그인하지 않은 경우 버튼 비활성화 -->
+            <div v-else>
+              좋아요 ({{ post.likes }}) | 싫어요 ({{ post.dislikes }})
+              <small>로그인 후 이용 가능합니다.</small>
+            </div>
+          </div>
           <!-- 수정 및 삭제 버튼 -->
           <button v-if="isAuthor(post)" @click="goToEditPage(post)">수정</button>
           <button v-if="isAuthor(post)" @click="deletePost(post._id)">삭제</button>
@@ -155,6 +176,34 @@ export default {
         this.fetchPosts(); // 목록 갱신
       } catch (error) {
         console.error('게시글 수정 중 오류 발생:', error);
+      }
+    },
+    
+    // 좋아요 처리
+    async likePost(postId) {
+      if (!this.currentUser) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      try {
+        await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'like' }, { withCredentials: true });
+        this.fetchPosts();
+      } catch (error) {
+        console.error('좋아요 처리 중 오류 발생:', error);
+      }
+    },
+
+    // 싫어요 처리
+    async dislikePost(postId) {
+      if (!this.currentUser) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      try {
+        await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'dislike' }, { withCredentials: true });
+        this.fetchPosts();
+      } catch (error) {
+        console.error('싫어요 처리 중 오류 발생:', error);
       }
     },
 
