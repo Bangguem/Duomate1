@@ -1,29 +1,17 @@
 // routes/board.js
 const express = require('express');
+const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-// ObjectId 유효성 검사
-function isValidObjectId(id) {
-    return ObjectId.isValid(id);
-}
-
-// 작성자 확인
-function isAuthor(post, user) {
-    return post.author === user.nickname;
-}
 
 // 공통 에러 처리 함수
 function handleError(res, status, message) {
     return res.status(status).json({ message });
 }
 
-// JWT 인증 미들웨어
+// JWT 인증 미들웨어 (auth.js의 verifyToken 활용)
 async function authenticateJWT(req, res, next) {
     const token = req.cookies.auth_token;
 
@@ -32,9 +20,14 @@ async function authenticateJWT(req, res, next) {
         return handleError(res, 401, '로그인이 필요합니다.');
     }
 
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+        res.clearCookie('auth_token'); // 유효하지 않은 토큰일 경우 쿠키 삭제
+        return handleError(res, 401, '세션이 만료되었거나 유효하지 않은 토큰입니다.');
+    }
+
     try {
-        // Access Token 검증
-        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await fetchUser(decoded.userid);
 
         if (!user) {
@@ -45,18 +38,13 @@ async function authenticateJWT(req, res, next) {
         req.user = { userid: user.userid, nickname: user.nickname };
         next();
     } catch (error) {
-        // Access Token 만료 시 로그아웃 처리
-        if (error.name === 'TokenExpiredError') {
-            res.clearCookie('auth_token'); // 쿠키 삭제
-            return handleError(res, 401, '세션이 만료되었습니다. 다시 로그인하세요.');
-        } else {
-            console.error('Token verification failed:', error);
-            req.user = null;
-            res.clearCookie('auth_token'); // 쿠키 삭제
-            return handleError(res, 401, '유효하지 않은 토큰입니다.');
-        }
+        console.error('Error fetching user:', error);
+        req.user = null;
+        res.clearCookie('auth_token'); // 쿠키 삭제
+        return handleError(res, 500, '서버 오류가 발생했습니다.');
     }
 }
+
 
 // 게시글 목록 조회
 router.get('/', async (req, res) => {
