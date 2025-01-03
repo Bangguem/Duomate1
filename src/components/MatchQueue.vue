@@ -41,7 +41,10 @@ export default {
         this.socket.on('matchSuccess', (data) => {
             this.isMatching = false; // 매칭 중 팝업 닫기
             alert(`매칭 성공! 상대방 닉네임: ${data.partner.nickname}`);
-            this.$router.push('/matchroom'); // 매칭 방으로 이동
+            this.$router.push({
+                path: '/chatroom',
+                params: { partner: data.partner },
+            });
         });
     },
 };
@@ -49,11 +52,13 @@ export default {
 
 <style scoped>
 .match-queue {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #2e2e2e;
+    color: white;
     text-align: center;
 }
 

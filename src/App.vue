@@ -127,7 +127,7 @@ export default {
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit'].includes(this.$route.path);
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
