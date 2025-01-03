@@ -32,8 +32,8 @@
           <h2>프로필 편집</h2>
           <p>Update your personal information</p>
           <form>
-            <input type="text" placeholder="닉네임을 입력하세요" />
-            <input type="email" placeholder="이메일을 입력하세요" />
+            <input id="nickname" type="text" :placeholder="userInfo.nickname || '닉네임을 입력하세요'" />
+            <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" />
             <select>
             <option value="" disabled selected>성별을 선택하세요</option>
             <option value="male">남성</option>
@@ -77,11 +77,28 @@
   <script>
   export default {
     name: 'MypageEdit',
-  data() {
+    data() {
     return {
-      userInfo: {},
+      userInfo: {
+        nickname: '', // 닉네임 초기값
+        email: '',
+      },
     };
-  }
+  },
+  mounted() {
+    this.fetchUserInfo();
+  },
+  methods: {
+    async fetchUserInfo() {
+      try {
+        const response = await fetch("https://api.example.com/user-info"); // API URL
+        const data = await response.json();
+        this.userInfo = data.user; 
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    },
+  },
 };
 </script>
   
