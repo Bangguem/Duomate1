@@ -8,38 +8,37 @@
     <!-- 게시글 목록 -->
     <div v-if="currentPage === 'board'">
       <div v-if="loading">로딩 중...</div>
-      <div v-if="error" class="error">게시글을 불러오는 데 실패했습니다.</div>
-      <ul v-if="posts.length">
+      <div v-else-if="error" class="error">게시글을 불러오는 데 실패했습니다.</div>
+      <ul v-else-if="posts.length">
         <li v-for="post in posts" :key="post._id">
           <h2>{{ post.title }}</h2>
           <p>{{ post.content }}</p>
           <small>{{ post.author }} - {{ formatDate(post.createdAt) }}</small>
           <!-- 좋아요/싫어요 -->
           <div>
-            <button 
-              v-if="currentUser" 
+            <button
               @click="likePost(post._id)"
+              :class="{ active: post.userActions?.[currentUser?.userid] === 'like' }"
             >
               좋아요 ({{ post.likes }})
             </button>
-            <button 
-              v-if="currentUser" 
+            <button
               @click="dislikePost(post._id)"
+              :class="{ active: post.userActions?.[currentUser?.userid] === 'dislike' }"
             >
               싫어요 ({{ post.dislikes }})
             </button>
-
-            <!-- 로그인하지 않은 경우 버튼 비활성화 -->
-            <div v-else>
-              좋아요 ({{ post.likes }}) | 싫어요 ({{ post.dislikes }})
-              <small>로그인 후 이용 가능합니다.</small>
-            </div>
           </div>
           <!-- 수정 및 삭제 버튼 -->
-          <button v-if="isAuthor(post)" @click="goToEditPage(post)">수정</button>
-          <button v-if="isAuthor(post)" @click="deletePost(post._id)">삭제</button>
+          <div v-if="isAuthor(post)">
+            <button @click="goToEditPage(post)">수정</button>
+            <button @click="deletePost(post._id)">삭제</button>
+          </div>
         </li>
       </ul>
+      <div v-else>
+        게시글이 없습니다.
+      </div>
     </div>
 
     <!-- 게시글 작성 폼 -->
@@ -84,21 +83,34 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      posts: [],        // 게시글 목록
-      loading: true,    // 로딩 상태
-      error: false,     // 오류 상태
-      title: '',        // 게시글 제목
-      content: '',      // 게시글 내용
+      posts: [], // 게시글 목록
+      loading: true, // 로딩 상태
+      error: false, // 오류 상태
+      title: '', // 게시글 제목
+      content: '', // 게시글 내용
       currentPage: 'board', // 현재 페이지 상태 ('board', 'write', 'edit')
-      currentUser: null,    // 현재 로그인한 사용자 정보
-      editPostId: null      // 수정 중인 게시글 ID
+      currentUser: null, // 현재 로그인한 사용자 정보
+      editPostId: null // 수정 중인 게시글 ID
     };
   },
   created() {
-    this.fetchPosts();      // 페이지가 생성될 때 게시글을 가져옵니다.
-    this.fetchCurrentUser(); // 현재 사용자의 정보를 가져옵니다.
+    this.initData(); // 초기 데이터 로드
   },
   methods: {
+    // 초기 데이터 로드
+    async initData() {
+      this.loading = true;
+      this.error = false;
+      try {
+        await Promise.all([this.fetchPosts(), this.fetchCurrentUser()]);
+      } catch (error) {
+        console.error('초기 데이터를 가져오는 중 오류 발생:', error);
+        this.error = true;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     // 현재 로그인한 사용자 정보 가져오기
     async fetchCurrentUser() {
       try {
@@ -115,28 +127,19 @@ export default {
     async fetchPosts() {
       try {
         const response = await axios.get('http://localhost:3000/api/board', { withCredentials: true });
-        this.posts = response.data; // 서버에서 받은 데이터로 posts 배열을 채웁니다.
+        this.posts = response.data;
       } catch (error) {
         console.error('게시글을 가져오는 중 오류 발생:', error);
         this.error = true;
-      } finally {
-        this.loading = false; // 로딩 끝
       }
     },
 
     // 게시글 작성 요청
     async submitPost() {
-      const postData = {
-        title: this.title,
-        content: this.content,
-      };
-
       try {
-        await axios.post('http://localhost:3000/api/board', postData, { withCredentials: true });
-        this.currentPage = 'board'; // 게시글 작성 후 목록 페이지로 돌아가기
-        this.title = '';
-        this.content = '';
-        this.fetchPosts(); // 목록 갱신
+        await axios.post('http://localhost:3000/api/board', { title: this.title, content: this.content }, { withCredentials: true });
+        this.goToBoardPage();
+        this.initData();
       } catch (error) {
         console.error('게시글 작성 중 오류 발생:', error);
       }
@@ -146,39 +149,23 @@ export default {
     async deletePost(postId) {
       try {
         await axios.delete(`http://localhost:3000/api/board/${postId}`, { withCredentials: true });
-        this.fetchPosts(); // 목록 갱신
+        this.initData();
       } catch (error) {
         console.error('게시글 삭제 중 오류 발생:', error);
       }
     },
 
-    // 게시글 수정 페이지로 이동
-    goToEditPage(post) {
-      this.editPostId = post._id;
-      this.title = post.title;
-      this.content = post.content;
-      this.currentPage = 'edit';
-    },
-
     // 게시글 수정 요청
     async updatePost() {
-      const postData = {
-        title: this.title,
-        content: this.content,
-      };
-
       try {
-        await axios.put(`http://localhost:3000/api/board/${this.editPostId}`, postData, { withCredentials: true });
-        this.currentPage = 'board';
-        this.title = '';
-        this.content = '';
-        this.editPostId = null;
-        this.fetchPosts(); // 목록 갱신
+        await axios.put(`http://localhost:3000/api/board/${this.editPostId}`, { title: this.title, content: this.content }, { withCredentials: true });
+        this.goToBoardPage();
+        this.initData();
       } catch (error) {
         console.error('게시글 수정 중 오류 발생:', error);
       }
     },
-    
+
     // 좋아요 처리
     async likePost(postId) {
       if (!this.currentUser) {
@@ -187,7 +174,7 @@ export default {
       }
       try {
         await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'like' }, { withCredentials: true });
-        this.fetchPosts();
+        this.initData();
       } catch (error) {
         console.error('좋아요 처리 중 오류 발생:', error);
       }
@@ -201,33 +188,42 @@ export default {
       }
       try {
         await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'dislike' }, { withCredentials: true });
-        this.fetchPosts();
+        this.initData();
       } catch (error) {
         console.error('싫어요 처리 중 오류 발생:', error);
       }
     },
 
-    // 게시판 페이지로 이동
+    // 페이지 이동 핸들러
     goToBoardPage() {
       this.currentPage = 'board';
-    },
-
-    // 게시글 작성 페이지로 이동
-    goToWritePage() {
-      this.currentPage = 'write';
       this.title = '';
       this.content = '';
+    },
+    goToWritePage() {
+      this.currentPage = 'write';
+    },
+    goToEditPage(post) {
+      this.editPostId = post._id;
+      this.title = post.title;
+      this.content = post.content;
+      this.currentPage = 'edit';
     },
 
     // 현재 사용자가 게시글 작성자인지 확인
     isAuthor(post) {
-      return this.currentUser && post.author === this.currentUser.nickname;
+      return this.currentUser?.nickname === post.author;
     },
 
     // 날짜 형식 변경
     formatDate(dateString) {
-      const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-      return new Date(dateString).toLocaleDateString(undefined, options);
+      return new Date(dateString).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   }
 };
@@ -239,5 +235,10 @@ export default {
 }
 button {
   margin: 5px;
+}
+button.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
 }
 </style>

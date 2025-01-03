@@ -8,34 +8,53 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// JWT 인증 미들웨어 정의
+// ObjectId 유효성 검사
+function isValidObjectId(id) {
+    return ObjectId.isValid(id);
+}
+
+// 작성자 확인
+function isAuthor(post, user) {
+    return post.author === user.nickname;
+}
+
+// 공통 에러 처리 함수
+function handleError(res, status, message) {
+    return res.status(status).json({ message });
+}
+
+// JWT 인증 미들웨어
 async function authenticateJWT(req, res, next) {
     const token = req.cookies.auth_token;
+
     if (!token) {
         req.user = null;
-        return next();
+        return handleError(res, 401, '로그인이 필요합니다.');
     }
 
     try {
+        // Access Token 검증
         const decoded = jwt.verify(token, JWT_SECRET);
-        if (!decoded || !decoded.userid) {
-            req.user = null;
-            return next();
-        }
-
-        // 사용자 정보 가져오기
         const user = await fetchUser(decoded.userid);
+
         if (!user) {
             req.user = null;
-            return next();
+            return handleError(res, 401, '사용자를 찾을 수 없습니다.');
         }
 
         req.user = { userid: user.userid, nickname: user.nickname };
         next();
     } catch (error) {
-        console.error('Token verification failed:', error);
-        req.user = null;
-        next();
+        // Access Token 만료 시 로그아웃 처리
+        if (error.name === 'TokenExpiredError') {
+            res.clearCookie('auth_token'); // 쿠키 삭제
+            return handleError(res, 401, '세션이 만료되었습니다. 다시 로그인하세요.');
+        } else {
+            console.error('Token verification failed:', error);
+            req.user = null;
+            res.clearCookie('auth_token'); // 쿠키 삭제
+            return handleError(res, 401, '유효하지 않은 토큰입니다.');
+        }
     }
 }
 
@@ -133,7 +152,7 @@ router.put('/:id', authenticateJWT, async (req, res) => {
 // 게시글 좋아요/싫어요 처리
 router.put('/:id/like', authenticateJWT, async (req, res) => {
     const postId = req.params.id;
-    const { action } = req.body; // action: 'like' or 'dislike'
+    const { action } = req.body; // 'like' 또는 'dislike'
 
     if (!ObjectId.isValid(postId)) {
         return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
@@ -143,8 +162,12 @@ router.put('/:id/like', authenticateJWT, async (req, res) => {
         return res.status(400).json({ message: 'action 값은 "like" 또는 "dislike"여야 합니다.' });
     }
 
+    if (!req.user || !req.user.userid) {
+        return res.status(401).json({ message: '로그인이 필요합니다.' });
+    }
+
     try {
-        const success = await updatePostLikes(postId, action);
+        const success = await updatePostLikes(postId, req.user.userid, action);
         if (success) {
             res.status(200).json({ message: `게시글 ${action} 처리 완료` });
         } else {
