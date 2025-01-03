@@ -82,20 +82,34 @@
       userInfo: {
         nickname: '', // 닉네임 초기값
         email: '',
+        gender: '',
+        birthdate: '',
       },
     };
   },
   mounted() {
-    this.fetchUserInfo();
+    this.checkLoginStatus();
   },
   methods: {
-    async fetchUserInfo() {
+    async checkLoginStatus() {
       try {
-        const response = await fetch("https://api.example.com/user-info"); // API URL
-        const data = await response.json();
-        this.userInfo = data.user; 
+        const response = await fetch('http://localhost:3000/auth/check-login', {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.isLoggedIn = data.loggedIn;
+          if (data.loggedIn) {
+            this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
+          }
+        } else {
+          this.resetUserData();
+        }
       } catch (error) {
-        console.error("Failed to fetch user info:", error);
+        console.error('Error checking login status:', error);
+        this.resetUserData();
       }
     },
   },
