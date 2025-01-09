@@ -11,29 +11,10 @@
       <div v-else-if="error" class="error">게시글을 불러오는 데 실패했습니다.</div>
       <ul v-else-if="posts.length">
         <li v-for="post in posts" :key="post._id">
-          <h2>{{ post.title }}</h2>
+          <h2 @click="goToDetailPage(post._id)">{{ post.title }}</h2>
           <p>{{ post.content }}</p>
-          <small>{{ post.author }} - {{ formatDate(post.createdAt) }}</small>
-          <!-- 좋아요/싫어요 -->
-          <div>
-            <button
-              @click="likePost(post._id)"
-              :class="{ active: post.userActions?.[currentUser?.userid] === 'like' }"
-            >
-              좋아요 ({{ post.likes }})
-            </button>
-            <button
-              @click="dislikePost(post._id)"
-              :class="{ active: post.userActions?.[currentUser?.userid] === 'dislike' }"
-            >
-              싫어요 ({{ post.dislikes }})
-            </button>
-          </div>
-          <!-- 수정 및 삭제 버튼 -->
-          <div v-if="isAuthor(post)">
-            <button @click="goToEditPage(post)">수정</button>
-            <button @click="deletePost(post._id)">삭제</button>
-          </div>
+          <!-- 작성자와 날짜 표시 -->
+          <small>{{ post.author || '작성자 없음' }} - {{ formatDate(post.createdAt) }}</small>
         </li>
       </ul>
       <div v-else>
@@ -57,23 +38,6 @@
         <button type="button" @click="goToBoardPage">취소</button>
       </form>
     </div>
-
-    <!-- 게시글 수정 폼 -->
-    <div v-if="currentPage === 'edit'">
-      <h2>게시글 수정</h2>
-      <form @submit.prevent="updatePost">
-        <div>
-          <label for="title">제목</label>
-          <input v-model="title" type="text" id="title" required />
-        </div>
-        <div>
-          <label for="content">내용</label>
-          <textarea v-model="content" id="content" required></textarea>
-        </div>
-        <button type="submit">수정 완료</button>
-        <button type="button" @click="goToBoardPage">취소</button>
-      </form>
-    </div>
   </div>
 </template>
 
@@ -88,9 +52,7 @@ export default {
       error: false, // 오류 상태
       title: '', // 게시글 제목
       content: '', // 게시글 내용
-      currentPage: 'board', // 현재 페이지 상태 ('board', 'write', 'edit')
-      currentUser: null, // 현재 로그인한 사용자 정보
-      editPostId: null // 수정 중인 게시글 ID
+      currentPage: 'board', // 현재 페이지 상태 ('board', 'write')
     };
   },
   created() {
@@ -102,7 +64,7 @@ export default {
       this.loading = true;
       this.error = false;
       try {
-        await Promise.all([this.fetchPosts(), this.fetchCurrentUser()]);
+        await this.fetchPosts();
       } catch (error) {
         console.error('초기 데이터를 가져오는 중 오류 발생:', error);
         this.error = true;
@@ -111,23 +73,12 @@ export default {
       }
     },
 
-    // 현재 로그인한 사용자 정보 가져오기
-    async fetchCurrentUser() {
-      try {
-        const response = await axios.get('http://localhost:3000/auth/check-login', { withCredentials: true });
-        if (response.data.loggedIn) {
-          this.currentUser = response.data.user;
-        }
-      } catch (error) {
-        console.error('현재 사용자 정보를 가져오는 데 실패했습니다:', error);
-      }
-    },
-
     // 게시글 목록 가져오기
     async fetchPosts() {
       try {
         const response = await axios.get('http://localhost:3000/api/board', { withCredentials: true });
         this.posts = response.data;
+        console.log('게시글 목록:', this.posts); // API에서 받은 데이터 확인
       } catch (error) {
         console.error('게시글을 가져오는 중 오류 발생:', error);
         this.error = true;
@@ -145,55 +96,6 @@ export default {
       }
     },
 
-    // 게시글 삭제 요청
-    async deletePost(postId) {
-      try {
-        await axios.delete(`http://localhost:3000/api/board/${postId}`, { withCredentials: true });
-        this.initData();
-      } catch (error) {
-        console.error('게시글 삭제 중 오류 발생:', error);
-      }
-    },
-
-    // 게시글 수정 요청
-    async updatePost() {
-      try {
-        await axios.put(`http://localhost:3000/api/board/${this.editPostId}`, { title: this.title, content: this.content }, { withCredentials: true });
-        this.goToBoardPage();
-        this.initData();
-      } catch (error) {
-        console.error('게시글 수정 중 오류 발생:', error);
-      }
-    },
-
-    // 좋아요 처리
-    async likePost(postId) {
-      if (!this.currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-      }
-      try {
-        await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'like' }, { withCredentials: true });
-        this.initData();
-      } catch (error) {
-        console.error('좋아요 처리 중 오류 발생:', error);
-      }
-    },
-
-    // 싫어요 처리
-    async dislikePost(postId) {
-      if (!this.currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-      }
-      try {
-        await axios.put(`http://localhost:3000/api/board/${postId}/like`, { action: 'dislike' }, { withCredentials: true });
-        this.initData();
-      } catch (error) {
-        console.error('싫어요 처리 중 오류 발생:', error);
-      }
-    },
-
     // 페이지 이동 핸들러
     goToBoardPage() {
       this.currentPage = 'board';
@@ -203,16 +105,8 @@ export default {
     goToWritePage() {
       this.currentPage = 'write';
     },
-    goToEditPage(post) {
-      this.editPostId = post._id;
-      this.title = post.title;
-      this.content = post.content;
-      this.currentPage = 'edit';
-    },
-
-    // 현재 사용자가 게시글 작성자인지 확인
-    isAuthor(post) {
-      return this.currentUser?.nickname === post.author;
+    goToDetailPage(postId) {
+      this.$router.push({ name: 'BoardDetail', params: { id: postId } });
     },
 
     // 날짜 형식 변경
@@ -235,10 +129,5 @@ export default {
 }
 button {
   margin: 5px;
-}
-button.active {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
 }
 </style>

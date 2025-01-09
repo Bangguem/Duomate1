@@ -166,4 +166,25 @@ router.put('/:id/like', authenticateJWT, async (req, res) => {
     }
 });
 
+//게시글 상세
+router.get('/:id', async (req, res) => {
+    const postId = req.params.id;
+
+    if (!ObjectId.isValid(postId)) {
+        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
+    }
+
+    try {
+        const post = await getPostById(postId); // 기존에 정의된 getPostById 함수 사용
+        if (!post) {
+            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+
+        res.status(200).json(post);
+    } catch (error) {
+        console.error('게시글 가져오기 중 오류 발생:', error);
+        res.status(500).json({ message: '게시글을 가져오는 중 오류가 발생했습니다.' });
+    }
+});
+
 module.exports = router;
