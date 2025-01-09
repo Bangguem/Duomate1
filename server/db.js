@@ -16,6 +16,7 @@ const client = new MongoClient(url);
 const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
 const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
+const COMMENTS_COLLECTION = 'comments'; // 댓글 컬렉션
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -298,6 +299,60 @@ async function updatePostLikes(postId, userId, action) {
     return true;
 }
 
+//댓글 추가 함수
+async function addComment(postId, comment) {
+    const db = client.db(DB_NAME); // 데이터베이스 연결
+    const collection = db.collection(COMMENTS_COLLECTION); // 댓글 컬렉션 선택
+
+    const newComment = {
+        postId: new ObjectId(postId), // 게시글 ID 참조
+        userId: comment.userId,       // 댓글 작성자 ID
+        nickname: comment.nickname,   // 댓글 작성자 닉네임
+        content: comment.content,     // 댓글 내용
+        createdAt: new Date()         // 댓글 작성 시간
+    };
+
+    const result = await collection.insertOne(newComment);
+    return result.insertedId ? newComment : null; // 삽입된 댓글 반환
+}
+
+//댓글 조회 함수
+async function getComments(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    return await collection
+        .find({ postId: new ObjectId(postId) }) // 게시글 ID로 필터링
+        .sort({ createdAt: 1 }) // 작성 시간순 정렬
+        .toArray(); // 배열로 반환
+}
+
+//댓글 삭제 함수
+async function deleteComment(commentId, userId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.deleteOne({
+        _id: new ObjectId(commentId), // 댓글 ID로 삭제
+        userId: userId                // 작성자 확인
+    });
+
+    return result.deletedCount > 0; // 삭제 성공 여부 반환
+}
+
+//댓글 수정 함수
+async function updateComment(commentId, userId, newContent) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.updateOne(
+        { _id: new ObjectId(commentId), userId: userId }, // 댓글 ID와 작성자 확인
+        { $set: { content: newContent, updatedAt: new Date() } } // 수정된 내용
+    );
+
+    return result.modifiedCount > 0; // 수정 성공 여부 반환
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -314,4 +369,8 @@ module.exports = {
     getPostById,
     updatePost,
     updatePostLikes,
+    addComment,
+    getComments,
+    deleteComment,
+    updateComment,
 }

@@ -2,7 +2,7 @@
 const express = require('express');
 const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes} = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -184,6 +184,85 @@ router.get('/:id', async (req, res) => {
     } catch (error) {
         console.error('게시글 가져오기 중 오류 발생:', error);
         res.status(500).json({ message: '게시글을 가져오는 중 오류가 발생했습니다.' });
+    }
+});
+
+//댓글 추가
+router.post('/:id/comments', authenticateJWT, async (req, res) => {
+    const postId = req.params.id;
+    const { content } = req.body;
+
+    if (!content) {
+        return res.status(400).json({ message: '댓글 내용을 입력해주세요.' });
+    }
+
+    try {
+        const newComment = await addComment(postId, {
+            userId: req.user.userid,
+            nickname: req.user.nickname,
+            content
+        });
+
+        if (newComment) {
+            res.status(201).json(newComment);
+        } else {
+            res.status(400).json({ message: '댓글 추가에 실패했습니다.' });
+        }
+    } catch (error) {
+        console.error('댓글 추가 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+//댓글 조회
+router.get('/:id/comments', async (req, res) => {
+    const postId = req.params.id;
+
+    try {
+        const comments = await getComments(postId);
+        res.status(200).json(comments);
+    } catch (error) {
+        console.error('댓글 조회 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+//댓글 삭제
+router.delete('/comments/:commentId', authenticateJWT, async (req, res) => {
+    const commentId = req.params.commentId;
+
+    try {
+        const success = await deleteComment(commentId, req.user.userid);
+        if (success) {
+            res.status(200).json({ message: '댓글이 성공적으로 삭제되었습니다.' });
+        } else {
+            res.status(403).json({ message: '댓글 삭제 권한이 없습니다.' });
+        }
+    } catch (error) {
+        console.error('댓글 삭제 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+//댓글 수정
+router.put('/comments/:commentId', authenticateJWT, async (req, res) => {
+    const commentId = req.params.commentId;
+    const { content } = req.body;
+
+    if (!content) {
+        return res.status(400).json({ message: '수정할 내용을 입력해주세요.' });
+    }
+
+    try {
+        const success = await updateComment(commentId, req.user.userid, content);
+        if (success) {
+            res.status(200).json({ message: '댓글이 성공적으로 수정되었습니다.' });
+        } else {
+            res.status(403).json({ message: '댓글 수정 권한이 없습니다.' });
+        }
+    } catch (error) {
+        console.error('댓글 수정 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
 });
 
