@@ -7,9 +7,9 @@
             <div class="circle"></div>
             내 정보 변경</div>
         <nav class="nav-links">
-          <a href="/" class="nav-links">Home</a>
-          <a href="#" class="nav-links">Profile</a>
-          <a href="#" class="nav-links">Settings</a>
+          <a href="/" class="nav-links">홈</a>
+          <a href="#" class="nav-links">공지</a>
+          <a href="#" class="nav-links">게시판</a>
         </nav>
       </header>
   
@@ -20,8 +20,7 @@
             <div class="add-icon">+</div>
           </div>
           <div class="profile-info">
-            <h2>{{ userInfo.ninkname }} 님</h2>
-            <span class="membership">Gold Member</span>
+            <h2>{{ userInfo.nickname }} 님</h2>
           </div>
         </div>
       </section>
@@ -32,16 +31,16 @@
           <h2>프로필 편집</h2>
           <p>Update your personal information</p>
           <form>
-            <input id="nickname" type="text" :placeholder="userInfo.nickname || '닉네임을 입력하세요'" />
-            <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" />
-            <select>
-            <option value="" disabled selected>성별을 선택하세요</option>
+            <input id="nickname" type="text" :placeholder="userInfo.nickname || '닉네임을 입력하세요'" v-model="userInfo.nickname" />
+            <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" v-model="userInfo.email" />
+            <select id="gender" v-model="userInfo.gender">
+            <option value="" disabled>성별을 선택하세요</option>
             <option value="male">남성</option>
             <option value="female">여성</option>
             <option value="other">기타</option>
           </select>
-            <input type="text" placeholder="새 비밀번호를 입력하세요" />
-            <input type="text" placeholder="새 비밀번호를 다시 입력하세요" />
+            <input type="text" placeholder="새 비밀번호를 입력하세요" required />
+            <input type="text" placeholder="새 비밀번호를 다시 입력하세요" v-model="userInfo.passwordcheck"/>
             <button type="submit" class="submit-btn">저장</button>
           </form>
         </div>
@@ -84,8 +83,14 @@
         email: '',
         gender: '',
         birthdate: '',
+        password: '',
+        passwordcheck: '',
       },
     };
+    // if (this.userInfo.password !== this.userInfo.passwordcheck) {
+    //           alert('비밀번호가 일치하지 않습니다.');
+    //           return;
+    //       }
   },
   mounted() {
     this.checkLoginStatus();
@@ -222,7 +227,7 @@ body {
     align-items: center;
     justify-content: center;
   }
-  .profile-info h2 {
+  .profile-info h2, .profile-info data {
     margin: 0;
     font-size: 24px;
     color: #212121;

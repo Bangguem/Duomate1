@@ -43,18 +43,18 @@
             <label for="nickname">닉네임 <a style="color:red;">*</a></label>
             <input id="nickname" type="text" placeholder="닉네임을 입력해주세요" v-model="form.nickname" required />
           </div>
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label for="birthdate">생년월일</label>
             <input id="birthdate" type="date" v-model="form.birthdate" placeholder="생년월일을 입력해주세요" />
-          </div>
-          <div class="form-group">
+          </div> -->
+          <!-- <div class="form-group">
             <label for="gender">성별</label>
             <select id="gender" v-model="form.gender" require>
               <option value="male">남성</option>
               <option value="female">여성</option>
               <option value="other">기타</option>
             </select>
-          </div>
+          </div> -->
           <div class="button-group">
             <button type="button" class="cancel-button">Cancel</button>
             <button type="submit" class="signup-button">Sign Up</button>
