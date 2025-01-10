@@ -2,7 +2,7 @@
 const express = require('express');
 const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment, deleteCommentsByPostId} = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment, deleteCommentsByPostId, updateCommentLikes } = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -271,6 +271,36 @@ router.put('/comments/:commentId', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('댓글 수정 중 오류 발생:', error);
         res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+// 댓글 좋아요/싫어요 처리
+router.put('/comments/:commentId/like', authenticateJWT, async (req, res) => {
+    const commentId = req.params.commentId;
+    const { action } = req.body; // 'like' 또는 'dislike'
+
+    if (!ObjectId.isValid(commentId)) {
+        return res.status(400).json({ message: '잘못된 댓글 ID 형식입니다.' });
+    }
+
+    if (!['like', 'dislike'].includes(action)) {
+        return res.status(400).json({ message: 'action 값은 "like" 또는 "dislike"여야 합니다.' });
+    }
+
+    if (!req.user || !req.user.userid) {
+        return res.status(401).json({ message: '로그인이 필요합니다.' });
+    }
+
+    try {
+        const success = await updateCommentLikes(commentId, req.user.userid, action);
+        if (success) {
+            res.status(200).json({ message: `댓글 ${action} 처리 완료` });
+        } else {
+            res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+        }
+    } catch (error) {
+        console.error('댓글 좋아요/싫어요 처리 중 오류 발생:', error);
+        res.status(500).json({ message: `댓글 ${action} 처리 중 오류 발생`, error });
     }
 });
 

@@ -67,6 +67,11 @@
             <div v-else>
               <p>{{ comment.content }}</p>
             </div>
+            <!-- 댓글 좋아요/싫어요 버튼 -->
+            <div>
+              <button @click="likeComment(comment._id)">좋아요 ({{ comment.likes || 0 }})</button>
+              <button @click="dislikeComment(comment._id)">싫어요 ({{ comment.dislikes || 0 }})</button>
+            </div>
           </li>
         </ul>
       </div>
@@ -280,6 +285,30 @@ export default {
       } catch (error) {
         console.error('댓글 작성 중 오류 발생:', error);
         alert('댓글 작성에 실패했습니다.');
+      }
+    },
+    async likeComment(commentId) {
+      try {
+        await axios.put(
+          `http://localhost:3000/api/board/comments/${commentId}/like`,
+          { action: 'like' },
+          { withCredentials: true }
+        );
+        await this.fetchComments(); // 댓글 데이터 새로고침
+      } catch (error) {
+        console.error('댓글 좋아요 처리 중 오류 발생:', error);
+      }
+    },
+    async dislikeComment(commentId) {
+      try {
+        await axios.put(
+          `http://localhost:3000/api/board/comments/${commentId}/like`,
+          { action: 'dislike' },
+          { withCredentials: true }
+        );
+        await this.fetchComments(); // 댓글 데이터 새로고침
+      } catch (error) {
+        console.error('댓글 싫어요 처리 중 오류 발생:', error);
       }
     },
   },

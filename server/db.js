@@ -362,6 +362,40 @@ async function updateComment(commentId, userId, newContent) {
     return result.modifiedCount > 0; // 수정 성공 여부 반환
 }
 
+// 댓글 좋아요/싫어요 처리 함수
+async function updateCommentLikes(commentId, userId, action) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    // 댓글 가져오기
+    const comment = await collection.findOne({ _id: new ObjectId(commentId) });
+    if (!comment) return false;
+
+    const userActions = comment.userActions || {}; // 사용자 액션 초기화
+    const currentAction = userActions[userId]; // 현재 사용자의 좋아요/싫어요 상태
+
+    // 업데이트 로직
+    if (action === currentAction) {
+        // 현재 상태와 같은 액션을 다시 누르면 취소
+        delete userActions[userId];
+        const update = currentAction === 'like' ? { $inc: { likes: -1 } } : { $inc: { dislikes: -1 } };
+        await collection.updateOne({ _id: new ObjectId(commentId) }, { ...update, $set: { userActions } });
+    } else {
+        // 상태 변경
+        if (currentAction === 'like') {
+            await collection.updateOne({ _id: new ObjectId(commentId) }, { $inc: { likes: -1 }, $set: { userActions } });
+        } else if (currentAction === 'dislike') {
+            await collection.updateOne({ _id: new ObjectId(commentId) }, { $inc: { dislikes: -1 }, $set: { userActions } });
+        }
+
+        userActions[userId] = action;
+        const update = action === 'like' ? { $inc: { likes: 1 } } : { $inc: { dislikes: 1 } };
+        await collection.updateOne({ _id: new ObjectId(commentId) }, { ...update, $set: { userActions } });
+    }
+
+    return true;
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -383,4 +417,5 @@ module.exports = {
     deleteComment,
     updateComment,
     deleteCommentsByPostId,
+    updateCommentLikes,
 }
