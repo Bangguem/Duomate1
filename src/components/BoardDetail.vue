@@ -198,6 +198,7 @@ export default {
     async deletePost() {
       try {
         await axios.delete(`http://localhost:3000/api/board/${this.id}`, { withCredentials: true });
+        alert('게시글이 삭제되었습니다.'); // 성공 메시지
         this.$router.push('/board');
       } catch (error) {
         console.error('게시글 삭제 중 오류 발생:', error);
@@ -263,6 +264,7 @@ export default {
       try {
         await axios.delete(`http://localhost:3000/api/board/comments/${commentId}`, { withCredentials: true });
         this.comments = this.comments.filter((comment) => comment._id !== commentId);
+        alert('댓글이 삭제되었습니다.'); // 메시지 추가
       } catch (error) {
         console.error('댓글 삭제 중 오류 발생:', error);
         alert('댓글 삭제에 실패했습니다.');
@@ -288,6 +290,11 @@ export default {
       }
     },
     async likeComment(commentId) {
+      if (!this.currentUser) {
+        // 로그인이 안 된 상태
+        alert('로그인이 필요합니다.');
+        return;
+      }
       try {
         await axios.put(
           `http://localhost:3000/api/board/comments/${commentId}/like`,
@@ -300,6 +307,11 @@ export default {
       }
     },
     async dislikeComment(commentId) {
+      if (!this.currentUser) {
+        // 로그인이 안 된 상태
+        alert('로그인이 필요합니다.');
+        return;
+      }
       try {
         await axios.put(
           `http://localhost:3000/api/board/comments/${commentId}/like`,

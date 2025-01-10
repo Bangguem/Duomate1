@@ -53,12 +53,24 @@ export default {
       title: '', // 게시글 제목
       content: '', // 게시글 내용
       currentPage: 'board', // 현재 페이지 상태 ('board', 'write')
+      currentUser: null, // 현재 로그인한 사용자 정보
     };
   },
   created() {
     this.initData(); // 초기 데이터 로드
+    this.checkLoginStatus(); // 로그인 상태 확인
   },
   methods: {
+    // 로그인 상태 확인
+    async checkLoginStatus() {
+      try {
+        const response = await axios.get('http://localhost:3000/auth/check-login', { withCredentials: true });
+        this.currentUser = response.data.user || null; // 로그인한 사용자 정보 저장
+      } catch (error) {
+        console.error('로그인 상태 확인 중 오류 발생:', error);
+        this.currentUser = null; // 로그아웃 상태
+      }
+    },
     // 초기 데이터 로드
     async initData() {
       this.loading = true;
@@ -103,6 +115,12 @@ export default {
       this.content = '';
     },
     goToWritePage() {
+      if (!this.currentUser) {
+        // 로그아웃 상태
+        alert('로그인이 필요합니다.'); // 메시지 띄우기
+        return; // 종료
+      }
+      // 로그인 상태일 경우 작성 페이지로 이동
       this.currentPage = 'write';
     },
     goToDetailPage(postId) {
