@@ -2,7 +2,7 @@
 const express = require('express');
 const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment} = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment, deleteCommentsByPostId} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -96,14 +96,22 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
             return res.status(403).json({ message: '게시글 작성자만 삭제할 수 있습니다.' });
         }
 
-        const success = await deletePost(postId, req.user.nickname);
-        if (success) {
-            res.status(200).json({ message: '게시글이 성공적으로 삭제되었습니다.' });
+        // 게시글 삭제
+        const postDeleted = await deletePost(postId, req.user.nickname);
+        if (postDeleted) {
+            // 댓글 삭제
+            const deletedCommentsCount = await deleteCommentsByPostId(postId);
+
+            return res.status(200).json({
+                message: '게시글 및 관련 댓글이 성공적으로 삭제되었습니다.',
+                deletedComments: deletedCommentsCount, // 삭제된 댓글 수 반환
+            });
         } else {
-            res.status(404).json({ message: '삭제할 게시글을 찾을 수 없습니다.' });
+            return res.status(404).json({ message: '삭제할 게시글을 찾을 수 없습니다.' });
         }
     } catch (error) {
-        res.status(500).json({ message: '게시글 삭제에 실패했습니다.', error });
+        console.error('게시글 삭제 중 오류 발생:', error);
+        return res.status(500).json({ message: '게시글 삭제에 실패했습니다.', error });
     }
 });
 

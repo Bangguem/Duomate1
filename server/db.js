@@ -340,6 +340,15 @@ async function deleteComment(commentId, userId) {
     return result.deletedCount > 0; // 삭제 성공 여부 반환
 }
 
+// 특정 게시글에 연결된 모든 댓글 삭제 함수
+async function deleteCommentsByPostId(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.deleteMany({ postId: new ObjectId(postId) });
+    return result.deletedCount; // 삭제된 댓글 수 반환
+}
+
 //댓글 수정 함수
 async function updateComment(commentId, userId, newContent) {
     const db = client.db(DB_NAME);
@@ -373,4 +382,5 @@ module.exports = {
     getComments,
     deleteComment,
     updateComment,
+    deleteCommentsByPostId,
 }
