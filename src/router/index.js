@@ -7,6 +7,7 @@ import FindPassword from '@/components/FindPassword.vue';
 import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
 import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
+import BoardDetail from '@/components/BoardDetail.vue'; //BoardDetail 컴포넌트 불러오기
 import axios from 'axios';
 
 const routes = [
@@ -26,6 +27,12 @@ const routes = [
   { path: '/find-id', component: FindId },
   { path: '/mypage-edit', component: MypageEdit },
   { path: '/board', component: BoardForm },
+  {
+    path: '/board/:id',
+    name: 'BoardDetail',
+    component: BoardDetail,
+    props: true, // 게시글 ID를 컴포넌트에 전달
+  },
 ];
 
 const router = createRouter({
