@@ -2,6 +2,15 @@
   <div>
     <h1>게시판</h1>
 
+    <!-- 정렬 옵션 -->
+    <div>
+      <label for="sort">정렬:</label>
+      <select id="sort" v-model="sortOrder" @change="sortPosts">
+        <option value="latest">최신순</option>
+        <option value="oldest">오래된순</option>
+      </select>
+    </div>
+
     <!-- 게시글 작성 버튼 -->
     <button @click="goToWritePage" v-if="currentPage === 'board'">게시글 작성</button>
 
@@ -9,12 +18,16 @@
     <div v-if="currentPage === 'board'">
       <div v-if="loading">로딩 중...</div>
       <div v-else-if="error" class="error">게시글을 불러오는 데 실패했습니다.</div>
-      <ul v-else-if="posts.length">
-        <li v-for="post in posts" :key="post._id">
+      <ul v-else-if="sortedPosts.length">
+        <li v-for="post in sortedPosts" :key="post._id">
           <h2 @click="goToDetailPage(post._id)">{{ post.title }}</h2>
           <p>{{ post.content }}</p>
           <!-- 작성자와 날짜 표시 -->
           <small>{{ post.author || '작성자 없음' }} - {{ formatDate(post.createdAt) }}</small>
+          <!-- 좋아요/싫어요 갯수 표시 -->
+          <div>
+            <span>👍 {{ post.likes || 0 }}</span> | <span>👎 {{ post.dislikes || 0 }}</span>
+          </div>
         </li>
       </ul>
       <div v-else>
@@ -54,7 +67,19 @@ export default {
       content: '', // 게시글 내용
       currentPage: 'board', // 현재 페이지 상태 ('board', 'write')
       currentUser: null, // 현재 로그인한 사용자 정보
+      sortOrder: 'latest', // 정렬 기준 ('latest' or 'oldest')
     };
+  },
+  computed: {
+    sortedPosts() {
+      return [...this.posts].sort((a, b) => {
+        if (this.sortOrder === 'latest') {
+          return new Date(b.createdAt) - new Date(a.createdAt); // 최신순
+        } else {
+          return new Date(a.createdAt) - new Date(b.createdAt); // 오래된순
+        }
+      });
+    }
   },
   created() {
     this.initData(); // 초기 데이터 로드
@@ -96,7 +121,9 @@ export default {
         this.error = true;
       }
     },
-
+    sortPosts() {
+      console.log(`정렬 기준이 ${this.sortOrder}로 변경되었습니다.`);
+    },
     // 게시글 작성 요청
     async submitPost() {
       try {
