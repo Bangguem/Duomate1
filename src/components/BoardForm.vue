@@ -8,6 +8,7 @@
       <select id="sort" v-model="sortOrder" @change="sortPosts">
         <option value="latest">최신순</option>
         <option value="oldest">오래된순</option>
+        <option value="likes">좋아요순</option> <!-- 좋아요순 추가 -->
       </select>
     </div>
 
@@ -75,8 +76,10 @@ export default {
       return [...this.posts].sort((a, b) => {
         if (this.sortOrder === 'latest') {
           return new Date(b.createdAt) - new Date(a.createdAt); // 최신순
-        } else {
+        } else if (this.sortOrder === 'oldest') {
           return new Date(a.createdAt) - new Date(b.createdAt); // 오래된순
+        } else if (this.sortOrder === 'likes') {
+          return (b.likes || 0) - (a.likes || 0); // 좋아요순
         }
       });
     }
