@@ -303,6 +303,5 @@ router.put('/comments/:commentId/like', authenticateJWT, async (req, res) => {
         res.status(500).json({ message: `댓글 ${action} 처리 중 오류 발생`, error });
     }
 });
-//테스트 
 
 module.exports = router;
