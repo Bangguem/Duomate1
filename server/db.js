@@ -224,6 +224,7 @@ async function createPost(postData) {
         createdAt: new Date(),
         likes: 0, // 추가
         dislikes: 0, // 추가
+        views: 0 // 조회수 초기화
     };
     const result = await collection.insertOne(newPost);
     return { id: result.insertedId, ...newPost };
@@ -396,6 +397,20 @@ async function updateCommentLikes(commentId, userId, action) {
     return true;
 }
 
+// 조회수 증가 함수
+async function incrementPostViews(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    // 게시글의 조회수 1 증가
+    const result = await collection.updateOne(
+        { _id: new ObjectId(postId) },
+        { $inc: { views: 1 } }
+    );
+
+    return result.modifiedCount > 0; // 성공 여부 반환
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -418,4 +433,5 @@ module.exports = {
     updateComment,
     deleteCommentsByPostId,
     updateCommentLikes,
+    incrementPostViews,
 }

@@ -2,7 +2,9 @@
 const express = require('express');
 const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment, deleteCommentsByPostId, updateCommentLikes } = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, 
+        updatePostLikes,addComment, getComments, deleteComment, updateComment,
+        deleteCommentsByPostId, updateCommentLikes, incrementPostViews} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -174,7 +176,7 @@ router.put('/:id/like', authenticateJWT, async (req, res) => {
     }
 });
 
-//게시글 상세
+//게시글 상세 조회 및 조회수 증가
 router.get('/:id', async (req, res) => {
     const postId = req.params.id;
 
@@ -183,6 +185,10 @@ router.get('/:id', async (req, res) => {
     }
 
     try {
+        //조회수 증가
+        await incrementPostViews(postId);
+
+        //게시글 데이터 가져오기
         const post = await getPostById(postId); // 기존에 정의된 getPostById 함수 사용
         if (!post) {
             return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });

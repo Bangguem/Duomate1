@@ -5,7 +5,7 @@ require('dotenv').config();
 // JWT 토큰 생성 함수
 function generateToken(payload) {
     // 토큰은 2분간 유효하도록 설정
-    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '2m' });
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
 // JWT 토큰 검증 함수

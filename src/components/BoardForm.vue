@@ -9,6 +9,7 @@
         <option value="latest">최신순</option>
         <option value="oldest">오래된순</option>
         <option value="likes">좋아요순</option> <!-- 좋아요순 추가 -->
+        <option value="views">조회수순</option> <!-- 조회수순 추가 -->
       </select>
     </div>
 
@@ -28,6 +29,10 @@
           <!-- 좋아요/싫어요 갯수 표시 -->
           <div>
             <span>👍 {{ post.likes || 0 }}</span> | <span>👎 {{ post.dislikes || 0 }}</span>
+          </div>
+          <!-- 조회수 표시 -->
+          <div>
+            조회수 : {{ post.views || 0 }}
           </div>
         </li>
       </ul>
@@ -80,6 +85,8 @@ export default {
           return new Date(a.createdAt) - new Date(b.createdAt); // 오래된순
         } else if (this.sortOrder === 'likes') {
           return (b.likes || 0) - (a.likes || 0); // 좋아요순
+        } else if (this.sortOrder === 'views') {
+          return (b.views || 0) - (a.views || 0); // 조회수순
         }
       });
     }

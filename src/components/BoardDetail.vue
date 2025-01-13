@@ -26,6 +26,8 @@
         <small>작성자: {{ post.author || '작성자 없음' }}</small>
         <br />
         <small>작성 시간: {{ formatDate(post.createdAt) }}</small>
+        <br />
+        <small>조회수 : {{ post.views || 0 }}</small> <!-- 조회수 추가 -->
 
         <!-- 좋아요/싫어요 버튼 -->
         <div>
