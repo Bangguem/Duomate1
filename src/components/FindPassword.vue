@@ -15,7 +15,7 @@
   
       <!-- 비밀번호 찾기 섹션 -->
       <main class="main-content">
-        <h1 class="title">비밀번호 찾기</h1>
+        <h1 class="title">비밀번호 재설정</h1>
         <form class="form">
           <div class="form-group">
             <label for="email" class="form-label">이메일</label>

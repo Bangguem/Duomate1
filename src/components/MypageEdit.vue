@@ -39,8 +39,8 @@
             <option value="female">여성</option>
             <option value="other">기타</option>
           </select>
-            <input type="text" placeholder="새 비밀번호를 입력하세요" v-model="userInfo.password" />
-            <input type="text" placeholder="새 비밀번호를 다시 입력하세요" v-model="userInfo.passwordcheck"/>
+            <input type="text" placeholder="새 비밀번호를 입력하세요" />
+            <input type="text" placeholder="새 비밀번호를 다시 입력하세요" />
             <button type="submit" class="submit-btn">저장</button>
           </form>
         </div>

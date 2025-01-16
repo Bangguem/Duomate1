@@ -15,19 +15,19 @@
     <main>
       <div class="form-container">
         <h2>계정 생성</h2>
-        <p>계정 생성에 필요한 정보를 입력해주세요. (<a style="color:red;">*</a>은 필수 항목입니다.)</p>
+        <p>계정 생성에 필요한 정보를 입력해주세요. </p>
         <form @submit.prevent="handleSubmit">
           <div class="form-group">
-            <label for="userid">아이디 <a style="color:red;">*</a></label>
+            <label for="userid">아이디</label>
             <input id="userid" type="text" placeholder="아이디를 입력해주세요" v-model="form.userid" @input="checkDuplicateUserId" required />
             <div :style="{ color: duplicateCheck.color }">{{ duplicateCheck.message }}</div>
           </div>
           <div class="form-group">
-            <label for="password">비밀번호 <a style="color:red;">*</a></label>
+            <label for="password">비밀번호</label>
             <input id="password" type="password" placeholder="비밀번호를 입력해주세요" v-model="form.password" required />
           </div>
           <div class="form-group">
-            <label for="passwordcheck">비밀번호 확인 <a style="color:red;">*</a></label>
+            <label for="passwordcheck">비밀번호 확인</label>
             <input
               id="passwordcheck"
               type="password"
@@ -40,7 +40,7 @@
             <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요(비밀번호 또는 아이디 찾기에 사용)" />
           </div>
           <div class="form-group">
-            <label for="nickname">닉네임 <a style="color:red;">*</a></label>
+            <label for="nickname">닉네임</label>
             <input id="nickname" type="text" placeholder="닉네임을 입력해주세요" v-model="form.nickname" required />
           </div>
           <!-- <div class="form-group">
@@ -119,10 +119,10 @@ export default {
           }
       },
       async handleSubmit() {
-        const { userid, password, passwordcheck, nickname } = this.form;
+        const { userid, password, passwordcheck, nickname, email } = this.form;
 
-    if (!userid || !password || !passwordcheck || !nickname) {
-        alert('모든 필수 항목을 입력해주세요.');
+    if (!userid || !password || !passwordcheck || !nickname || !email) {
+        alert('모든 항목을 입력해주세요.');
         return;
     }
           if (this.form.password !== this.form.passwordcheck) {
