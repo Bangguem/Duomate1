@@ -42,11 +42,21 @@
         </div>
       </div>
 
-      <!-- 댓글 리스트 -->
+      <!-- 댓글 정렬 옵션 -->
       <div v-if="comments.length > 0">
         <h3>댓글 ({{ comments.length }})</h3>
+        <div>
+          <label for="comment-sort">정렬 기준:</label>
+          <select id="comment-sort" v-model="sortOrder" @change="sortComments">
+            <option value="latest">최신순</option>
+            <option value="oldest">오래된순</option>
+            <option value="likes">좋아요순</option>
+          </select>
+        </div>
+
+        <!-- 댓글 리스트 -->
         <ul>
-          <li v-for="comment in comments" :key="comment._id" class="comment-item">
+          <li v-for="comment in sortedComments" :key="comment._id" class="comment-item">
             <div class="comment-header">
               <strong>{{ comment.nickname }}</strong>
               <small>{{ formatDate(comment.createdAt) }}</small>
@@ -114,11 +124,23 @@ export default {
       newComment: '', // 새 댓글 내용
       editingCommentId: null, // 수정 중인 댓글의 ID
       editingContent: '', // 수정 중인 댓글의 내용
+      sortOrder: 'latest', // 댓글 정렬 기준
     };
   },
   computed: {
     isAuthor() {
       return this.currentUser?.nickname === this.post?.author;
+    },
+    sortedComments() {
+      return [...this.comments].sort((a, b) => {
+        if (this.sortOrder === 'latest') {
+          return new Date(b.createdAt) - new Date(a.createdAt); // 최신순
+        } else if (this.sortOrder === 'oldest') {
+          return new Date(a.createdAt) - new Date(b.createdAt); // 오래된순
+        } else if (this.sortOrder === 'likes') {
+          return (b.likes || 0) - (a.likes || 0); // 좋아요순
+        }
+      });
     },
   },
   methods: {
@@ -324,6 +346,9 @@ export default {
       } catch (error) {
         console.error('댓글 싫어요 처리 중 오류 발생:', error);
       }
+    },
+    sortComments() {
+      console.log(`정렬 기준이 ${this.sortOrder}로 변경되었습니다.`);
     },
   },
   created() {
