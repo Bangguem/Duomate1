@@ -35,7 +35,7 @@
                 <label for="email">이메일: </label>
                 <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
             </div>
-            <button class="submit-button" type="submit">아이디 보내기</button>
+            <button class="submit-button" type="submit" :disabled="isButtonDisabled">아이디 보내기</button>
             <button class="cancel-button" @click="rqid=false">닫기</button>
         </form>
           </div>
@@ -50,7 +50,7 @@
                 <label for="email">이메일: </label>
                 <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
             </div>
-            <button class="submit-button" type="submit">비밀번호 재설정 링크 전송</button>
+            <button class="submit-button" type="submit" :disabled="isButtonDisabled">{{ isButtonDisabled ? `${timer}초 후 다시 요청` : '비밀번호 재설정 링크 전송' }}</button>
             <button class="cancel-button" @click="rqpassword=false">닫기</button>
         </form>
         <p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
@@ -74,6 +74,8 @@ export default {
           errorMessage: '',
           rqpassword: false,
           rqid: false,
+          isButtonDisabled: false, // 버튼 비활성화 여부
+          timer: 0, // 대기 시간 (초)
       };
   },
   methods: {
@@ -102,6 +104,18 @@ export default {
           }
       },
       async requestResetLink() {
+        if (this.isButtonDisabled) return; // 버튼이 비활성화된 상태면 요청 막기
+
+          this.isButtonDisabled = true; // 버튼 비활성화
+          this.timer = 180; // 10초 대기 시간 설정
+
+          const countdown = setInterval(() => {
+          this.timer -= 1;
+        if (this.timer <= 0) {
+          clearInterval(countdown);
+          this.isButtonDisabled = false; // 대기 시간 종료 시 버튼 활성화
+        }
+          }, 1000);
             try {
                 const response = await fetch('http://localhost:3000/request-password-reset', {
                     method: 'POST',
