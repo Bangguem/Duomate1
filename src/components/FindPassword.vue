@@ -18,26 +18,26 @@
         <h1 class="title">비밀번호 재설정</h1>
         <form class="form">
           <div class="form-group">
-            <label for="email" class="form-label">이메일</label>
+            <label for="newpassword" class="form-label">새 비밀번호</label>
             <input
-              type="email"
-              id="email"
+              type="password"
+              id="newpassword"
               class="form-input"
-              placeholder="이메일을 입력해주세요"
+              placeholder="새 비밀번호를 입력해주세요"
             />
           </div>
           <div class="form-group">
-            <label for="username" class="form-label">아이디</label>
+            <label for="newpasswordcheck" class="form-label">새 비밀번호 확인</label>
             <input
-              type="text"
-              id="username"
+              type="password"
+              id="newpasswordcheck"
               class="form-input"
-              placeholder="아이디를 입력해주세요"
+              placeholder="새 비밀번호를 다시 입력해주세요"
             />
           </div>
           <div class="button-group">
             <button type="button" class="cancel-button">취소</button>
-            <button type="submit" class="submit-button">인증메일 발송</button>
+            <button type="submit" class="submit-button">확인</button>
           </div>
         </form>
       </main>
@@ -48,6 +48,18 @@
 <script>
   export default {
     name: "FindPassword",
+    data() {
+      return {
+          form: {
+              newpassword:'',
+              newpasswordcheck: '',
+          },
+          duplicateCheck: {
+              message: '',
+              color: '',
+          },
+      };
+  },
   };
 </script>
   
