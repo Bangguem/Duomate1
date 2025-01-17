@@ -18,23 +18,26 @@
         <h1 class="title">비밀번호 재설정</h1>
         <form class="form">
           <div class="form-group">
-            <label for="newpassword" class="form-label">새 비밀번호</label>
+            <label for="newPassword" class="form-label">새 비밀번호</label>
             <input
               type="password"
-              id="newpassword"
+              id="newPassword"
               class="form-input"
+              v-model="newPassword"
               placeholder="새 비밀번호를 입력해주세요"
             />
           </div>
           <div class="form-group">
-            <label for="newpasswordcheck" class="form-label">새 비밀번호 확인</label>
+            <label for="confirmPassword" class="form-label">새 비밀번호 확인</label>
             <input
               type="password"
-              id="newpasswordcheck"
+              id="confirmPassword"
               class="form-input"
+              v-model="confirmPassword"
               placeholder="새 비밀번호를 다시 입력해주세요"
             />
           </div>
+          <p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
           <div class="button-group">
             <button type="button" class="cancel-button">취소</button>
             <button type="submit" class="submit-button">확인</button>
@@ -47,19 +50,46 @@
   
 <script>
   export default {
-    name: "FindPassword",
     data() {
-      return {
-          form: {
-              newpassword:'',
-              newpasswordcheck: '',
-          },
-          duplicateCheck: {
-              message: '',
-              color: '',
-          },
-      };
-  },
+        return {
+            newPassword: '',
+            confirmPassword: '',
+            message: '',
+            success: false,
+        };
+    },
+    methods: {
+        async resetPassword() {
+            const token = new URLSearchParams(window.location.search).get('token');
+            if (!token) {
+                this.success = false;
+                this.message = '유효하지 않은 요청입니다.';
+                return;
+            }
+
+            if (this.newPassword !== this.confirmPassword) {
+                this.success = false;
+                this.message = '비밀번호가 일치하지 않습니다.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, newPassword: this.newPassword }),
+                });
+
+                const result = await response.json();
+                this.success = result.success;
+                this.message = result.message;
+            } catch (error) {
+                console.error('Error resetting password:', error);
+                this.success = false;
+                this.message = '비밀번호 변경 중 오류가 발생했습니다.';
+            }
+        },
+    },
   };
 </script>
   
@@ -180,7 +210,7 @@ body {
     border: 1px solid #555;
     border-radius: 4px;
     background-color: #FFFFFF;
-    color: #fff;
+    color: #212121;;
   }
   
 .form-input::placeholder {
@@ -228,5 +258,11 @@ body {
 .submit-button:hover {
     background-color: #15513775;
   }
+  .success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
   </style>
-  

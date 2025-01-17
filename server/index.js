@@ -213,7 +213,7 @@ app.post('/request-password-reset', async (req, res) => {
         const token = generateToken({ email }, '15m');
 
         // 비밀번호 변경 링크 생성
-        const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+        const resetLink = `${process.env.CLIENT_URL}/find-password?token=${token}`;
 
         // 이메일 전송
         await transporter.sendMail({
