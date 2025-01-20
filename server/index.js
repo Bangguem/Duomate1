@@ -21,7 +21,7 @@ app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 const { connectToMongo, fetchUser, createUser, removeUser, closeMongoConnection,
-    createUserprofile, createSummoner, fetchUserByemail, updatePassword, } = require('./db');
+    ChangeUserprofile, createSummoner, fetchUserByemail, updatePassword, } = require('./db');
 const { generateToken, verifyToken } = require('./auth');
 const cookieParser = require('cookie-parser');
 app.use(cookieParser()); // 쿠키 파싱
@@ -313,6 +313,31 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
         } catch (error) {
             console.error('Error updating profile:', error);
             res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
+        }
+    } else {
+        res.status(404).json({ success: false, message: 'User Not Found' });
+    }
+});
+
+app.post('/change-userprofile', authenticateJWT, async (req, res) => {
+    const userData = req.user;
+
+    if (userData) {
+        const { nickname, birthdate, gender, email } = req.body;
+
+        try {
+            const userprofile = {
+                userid: userData.userid,
+                nickname,
+                birthdate,
+                gender,
+                email,
+            };
+            await ChangeUserprofile(userprofile);
+            res.status(200).json({ success: true, message: '내 정보 변경 성공' });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            res.status(500).json({ success: false, message: '내 정보 변경 실패' });
         }
     } else {
         res.status(404).json({ success: false, message: 'User Not Found' });

@@ -30,7 +30,7 @@
         <div class="form-container">
           <h2>프로필 편집</h2>
           <p>Update your personal information</p>
-          <form>
+          <form @submit.prevent="updateUserProfile">
             <input id="nickname" type="text" :placeholder="userInfo.nickname || '닉네임을 입력하세요'" v-model="userInfo.nickname" />
             <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" v-model="userInfo.email" />
             <select id="gender" v-model="userInfo.gender">
@@ -117,6 +117,39 @@
         this.resetUserData();
       }
     },
+
+    async updateUserProfile() {
+    try {
+      const response = await fetch('http://localhost:3000/change-userprofile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 쿠키를 포함한 요청
+        body: JSON.stringify({
+          nickname: this.userInfo.nickname,
+          //birthdate: this.userInfo.birthdate,  
+          gender: this.userInfo.gender,
+          email: this.userInfo.email,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          alert('내 정보가 성공적으로 업데이트되었습니다.');
+        } else {
+          alert(result.message || '내 정보 변경 실패');
+        }
+      } else {
+        console.error('Error updating profile:', response.statusText);
+        alert('서버 요청에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('알 수 없는 오류가 발생했습니다.');
+    }
+  },
   },
 };
 </script>
