@@ -39,6 +39,8 @@
             <option value="female">여성</option>
             <option value="other">기타</option>
           </select>
+          <label for="birthdate">생년월일</label>
+          <input id="birthdate" type="date" v-model="userInfo.birthdate" />
             <!-- <input type="text" placeholder="새 비밀번호를 입력하세요" />
             <input type="text" placeholder="새 비밀번호를 다시 입력하세요" /> -->
             <button type="submit" class="submit-btn">저장</button>
@@ -128,7 +130,7 @@
         credentials: 'include', // 쿠키를 포함한 요청
         body: JSON.stringify({
           nickname: this.userInfo.nickname,
-          //birthdate: this.userInfo.birthdate,  
+          birthdate: this.userInfo.birthdate,  
           gender: this.userInfo.gender,
           email: this.userInfo.email,
         }),
@@ -280,6 +282,10 @@ body {
     border-radius: 10px;
     color:#FAFAFA;
     margin: 20px 200px;
+  }
+  .form-container label{
+    color:#FAFAFA;
+    font-size:14px;
   }
   form {
     display: flex;
