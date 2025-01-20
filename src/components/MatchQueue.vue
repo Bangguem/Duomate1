@@ -58,9 +58,36 @@ export default {
             isMatching: false,
             matchFound: false,
             match: null, // 매칭된 상대방 정보
+            isLoggedIn: false, // 로그인 상태
+            userInfo: {},
         };
     },
     methods: {
+        async checkLoginStatus() {
+      try {
+        const response = await fetch('http://localhost:3000/auth/check-login', {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.isLoggedIn = data.loggedIn;
+          if (data.loggedIn) {
+            this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
+          }
+        } else {
+          this.resetUserData();
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        this.resetUserData();
+      }
+    },
+    resetUserData() {
+      this.isLoggedIn = false;
+      this.userInfo = {}; // 사용자 정보 초기화
+    },
         startMatching() {
             this.isMatching = true;
             this.socket.emit(
@@ -80,8 +107,13 @@ export default {
         acceptMatch() {
             this.socket.emit("accept match", { partner: this.match.partner });
             this.$router.push({
-                path: "/chatroom",
-                params: { partner: this.match.partner },
+            path: "/chatroom",
+            query: { 
+                roomName: this.match.roomName,
+                nickname: this.match.partner.nickname,
+                position: this.match.partner.position,
+                microphone: this.match.partner.microphone,
+                },
             });
         },
         rejectMatch() {

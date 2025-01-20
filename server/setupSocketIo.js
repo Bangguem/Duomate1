@@ -60,22 +60,6 @@ function setupSocketIo(server) {
         return allowedRanks ? allowedRanks.includes(targetKey) : false;
     }
 
-    function canMatchNormal(user1, user2) {
-        return user1.position === user2.position && user1.microphone === user2.microphone;
-    }
-
-    function canMatchRank(user1, user2) {
-        const rankMatch = canMatchByRank(
-            user1.summonerRank.tier,
-            user1.summonerRank.rank,
-            user2.summonerRank.tier,
-            user2.summonerRank.rank
-        );
-        const positionMatch = user1.position === user2.position;
-        const microphoneMatch = user1.microphone === user2.microphone;
-        return rankMatch && positionMatch && microphoneMatch;
-    }
-
     function recordMatchCancellation(user1, user2) {
         const key1 = `${user1.userid}-${user2.userid}`;
         const key2 = `${user2.userid}-${user1.userid}`;
@@ -87,58 +71,63 @@ function setupSocketIo(server) {
         }, MATCH_BLOCK_TIME);
     }
 
-    async function processNormalQueue() {
-        if (isProcessingNormalQueue) return;
-        isProcessingNormalQueue = true;
+    async function processQueue(queue, matchType) {
+        const isProcessing = matchType === "rank" ? isProcessingRankQueue : isProcessingNormalQueue;
+        if (isProcessing) return;
 
-        while (waitingNormalQueue.length >= 2) {
-            const match1 = waitingNormalQueue.shift();
-            const match2Index = waitingNormalQueue.findIndex(entry => canMatchNormal(match1.user, entry.user));
+        if (matchType === "rank") isProcessingRankQueue = true;
+        else isProcessingNormalQueue = true;
 
-            if (match2Index === -1) {
-                waitingNormalQueue.push(match1);
-                break;
-            }
+        while (queue.length >= 2) {
+            const match1 = queue.shift();
+            const match2 = queue.shift();
 
-            const match2 = waitingNormalQueue.splice(match2Index, 1)[0];
-            const roomName = `normal_room_${match1.socket.id}_${match2.socket.id}`;
+            const roomName = `${matchType}_room_${match1.socket.id}_${match2.socket.id}`;
             match1.socket.join(roomName);
             match2.socket.join(roomName);
 
-            match1.socket.emit('matchSuccess', { partner: match2.user });
-            match2.socket.emit('matchSuccess', { partner: match1.user });
+            const matchData1 = {
+                partner: {
+                    nickname: match2.user.nickname,
+                    position: match2.user.position,
+                    microphone: match2.user.microphone,
+                },
+                roomName,
+            };
+
+            const matchData2 = {
+                partner: {
+                    nickname: match1.user.nickname,
+                    position: match1.user.position,
+                    microphone: match1.user.microphone,
+                },
+                roomName,
+            };
+
+            match1.socket.emit('matchSuccess', matchData1);
+            match2.socket.emit('matchSuccess', matchData2);
         }
 
-        isProcessingNormalQueue = false;
-    }
-
-    async function processRankQueue() {
-        if (isProcessingRankQueue) return;
-        isProcessingRankQueue = true;
-
-        while (rankQueue.length >= 2) {
-            const match1 = rankQueue.shift();
-            const match2Index = rankQueue.findIndex(entry => canMatchRank(match1.user, entry.user));
-
-            if (match2Index === -1) {
-                rankQueue.push(match1);
-                break;
-            }
-
-            const match2 = rankQueue.splice(match2Index, 1)[0];
-            const roomName = `rank_room_${match1.socket.id}_${match2.socket.id}`;
-            match1.socket.join(roomName);
-            match2.socket.join(roomName);
-
-            match1.socket.emit('matchSuccess', { partner: match2.user });
-            match2.socket.emit('matchSuccess', { partner: match1.user });
-        }
-
-        isProcessingRankQueue = false;
+        if (matchType === "rank") isProcessingRankQueue = false;
+        else isProcessingNormalQueue = false;
     }
 
     io.on('connection', (socket) => {
         console.log(`New connection: ${socket.id}`);
+
+        socket.on('join room', ({ roomName }) => {
+            console.log(`${socket.id} joined room: ${roomName}`);
+            socket.join(roomName);
+        });
+
+        // 채팅 메시지 처리
+        socket.on('chat message', ({ roomName, message }) => {
+            console.log(`Message in ${roomName}: ${message}`);
+            io.to(roomName).emit('chat message', {
+                username: socket.user.nickname, // 닉네임 포함
+                message,
+            });
+        });
 
         socket.on('request normalmatch', async ({ position, microphone }) => {
             try {
@@ -152,7 +141,7 @@ function setupSocketIo(server) {
                 }
 
                 waitingNormalQueue.push({ user, socket });
-                processNormalQueue();
+                processQueue(waitingNormalQueue, "normal");
             } catch (error) {
                 console.error("Error in normal match request:", error);
                 socket.emit('matchError', { message: "일반 매칭 요청 중 오류가 발생했습니다." });
@@ -176,7 +165,7 @@ function setupSocketIo(server) {
                 }
 
                 rankQueue.push({ user, socket });
-                processRankQueue();
+                processQueue(rankQueue, "rank");
             } catch (error) {
                 console.error("Error in rank match request:", error);
                 socket.emit('matchError', { message: "랭크 매칭 요청 중 오류가 발생했습니다." });
