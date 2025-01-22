@@ -365,8 +365,11 @@ export default {
     
     async incrementViews() {
       try {
-        // 조회수 증가 요청
-        await axios.post(`http://localhost:3000/api/board/${this.id}/views`, {}, { withCredentials: true });
+        const response = await axios.post(`http://localhost:3000/api/board/${this.id}/views`, {}, { withCredentials: true });
+        if (response.status === 200) {
+          // 서버에서 조회수 증가가 성공하면 클라이언트 데이터 업데이트
+          this.post.views += 1;
+        }
       } catch (error) {
         console.error('조회수 증가 요청 중 오류 발생:', error);
       }
