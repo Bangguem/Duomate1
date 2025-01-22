@@ -234,10 +234,16 @@ export default {
         return;
       }
       try {
-        await axios.put(`http://localhost:3000/api/board/${this.id}/like`, { action: 'like' }, { withCredentials: true });
-        await this.fetchPost();
+        const response = await axios.put(
+          `http://localhost:3000/api/board/${this.id}/like`,
+          { action: 'like' },
+          { withCredentials: true }
+        );
+        this.post.likes = response.data.likes;
+        this.post.dislikes = response.data.dislikes;
       } catch (error) {
         console.error('좋아요 처리 중 오류 발생:', error);
+        alert('좋아요 처리에 실패했습니다.');
       }
     },
     async dislikePost() {
@@ -246,10 +252,16 @@ export default {
         return;
       }
       try {
-        await axios.put(`http://localhost:3000/api/board/${this.id}/like`, { action: 'dislike' }, { withCredentials: true });
-        await this.fetchPost();
+        const response = await axios.put(
+            `http://localhost:3000/api/board/${this.id}/like`,
+            { action: 'dislike' },
+            { withCredentials: true }
+        );
+        this.post.likes = response.data.likes;
+        this.post.dislikes = response.data.dislikes;
       } catch (error) {
         console.error('싫어요 처리 중 오류 발생:', error);
+        alert('싫어요 처리에 실패했습니다.');
       }
     },
     // 댓글 수정 관련 메서드
@@ -350,9 +362,20 @@ export default {
     sortComments() {
       console.log(`정렬 기준이 ${this.sortOrder}로 변경되었습니다.`);
     },
+    
+    async incrementViews() {
+      try {
+        // 조회수 증가 요청
+        await axios.post(`http://localhost:3000/api/board/${this.id}/views`, {}, { withCredentials: true });
+      } catch (error) {
+        console.error('조회수 증가 요청 중 오류 발생:', error);
+      }
+    },
   },
   created() {
-    this.loadData();
+    this.loadData().then(() => {
+      this.incrementViews();
+    });
   },
 };
 </script>
