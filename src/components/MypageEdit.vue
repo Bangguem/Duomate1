@@ -17,8 +17,17 @@
       <section class="profile-section">
         <div class="profile-header">
           <div class="profile-picture">
-            <div class="add-icon">+</div>
+            <div class="add-icon" @click="triggerFileUpload">+</div>
+            <img v-if="userInfo.profileImage" :src="userInfo.profileImage" alt="Profile Picture" />
           </div>
+          <input
+            type="file"
+            id="file-upload"
+            accept="image/*"
+            ref="fileInput"
+            @change="handleFileChange"
+            style="display: none;"
+          />
           <div class="profile-info">
             <h2>{{ userInfo.nickname }} 님</h2>
           </div>
@@ -29,10 +38,13 @@
       <section class="form-section">
         <div class="form-container">
           <h2>프로필 편집</h2>
-          <p>Update your personal information</p>
+          <p>Update your personal information</p><br />
           <form @submit.prevent="updateUserProfile">
+            <label for="birthdate">닉네임</label>
             <input id="nickname" type="text" :placeholder="userInfo.nickname || '닉네임을 입력하세요'" v-model="userInfo.nickname" />
+            <label for="birthdate">이메일</label>
             <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" v-model="userInfo.email" />
+            <label for="birthdate">성별</label>
             <select id="gender" v-model="userInfo.gender">
             <option value="" disabled>성별을 선택하세요</option>
             <option value="male">남성</option>
@@ -87,6 +99,7 @@
         birthdate: '',
         password: '',
         passwordcheck: '',
+        profileImage: '',
       },
     };
     // if (this.userInfo.password !== this.userInfo.passwordcheck) {
@@ -98,6 +111,48 @@
     this.checkLoginStatus();
   },
   methods: {
+    // 파일 업로드 트리거
+    triggerFileUpload() {
+      this.$refs.fileInput.click();
+    },
+     // 파일 변경 처리
+     handleFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.userInfo.profileImage = e.target.result; // 이미지 미리보기
+        };
+        reader.readAsDataURL(file);
+
+        // 여기에서 선택된 파일을 서버로 업로드하는 로직 추가 가능
+        this.uploadProfileImage(file);
+      }
+    },
+    // 서버로 이미지 업로드
+    async uploadProfileImage(file) {
+      const formData = new FormData();
+      formData.append("profileImage", file);
+
+      try {
+        const response = await fetch("http://localhost:3000/upload-profile-image", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log(result); // 서버로부터 받은 데이터를 콘솔에 출력
+          alert("프로필 사진이 업데이트되었습니다.");
+        } else {
+          console.error("Error uploading profile image:", response.statusText);
+          alert("이미지 업로드에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("Error uploading profile image:", error);
+        alert("알 수 없는 오류가 발생했습니다.");
+      }
+    },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -117,8 +172,8 @@
       } catch (error) {
         console.error('Error checking login status:', error);
         this.resetUserData();
-      }
-    },
+        }
+      },
 
     async updateUserProfile() {
     try {
@@ -249,6 +304,11 @@ body {
     position: relative;
     margin-left:240px;
   }
+  .profile-picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
   .add-icon {
     font-size: 24px;
     position: absolute;
