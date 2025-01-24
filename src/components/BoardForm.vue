@@ -2,8 +2,8 @@
   <div>
     <h1>게시판</h1>
 
-    <!-- 검색 필터 -->
-    <div>
+    <!-- 검색 필터 (게시글 작성 페이지에서는 보이지 않도록) -->
+    <div v-if="currentPage === 'board'">
       <label for="search">검색:</label>
       <input v-model="searchQuery" @keyup.enter="filterPosts" type="text" id="search" placeholder="검색어를 입력하세요" />
       
@@ -17,8 +17,8 @@
       <button @click="resetSearch">초기화</button> <!-- 초기화 버튼 추가 -->
     </div>
 
-    <!-- 정렬 옵션 -->
-    <div>
+    <!-- 정렬 옵션 (게시글 작성 페이지에서는 보이지 않도록) -->
+    <div v-if="currentPage === 'board'">
       <label for="sort">정렬:</label>
       <select id="sort" v-model="sortOrder" @change="sortPosts">
         <option value="latest">최신순</option>
