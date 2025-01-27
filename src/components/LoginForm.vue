@@ -30,14 +30,15 @@
           <div class="modal-overlay" v-if="rqid==true">
           <div class="modal-content">
             <h1>아이디 찾기</h1>
-            <form @submit.prevent="requestResetLink">
+            <form @submit.prevent="requestUserId">
             <div>
                 <label for="email">이메일: </label>
                 <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
             </div>
-            <button class="submit-button" type="submit" :disabled="isButtonDisabled">아이디 보내기</button>
+            <button class="submit-button" type="submit" :disabled="isButtonDisabledId">{{ isButtonDisabledId ? `${timerId}초 후 다시 요청` : '아이디 보내기' }}</button>
             <button class="cancel-button" @click="rqid=false">닫기</button>
         </form>
+        <br /><p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
           </div>
 
           </div>
@@ -50,10 +51,10 @@
                 <label for="email">이메일: </label>
                 <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
             </div>
-            <button class="submit-button" type="submit" :disabled="isButtonDisabled">{{ isButtonDisabled ? `${timer}초 후 다시 요청` : '비밀번호 재설정 링크 전송' }}</button>
+            <button class="submit-button" type="submit" :disabled="isButtonDisabledPassword">{{ isButtonDisabledPassword ? `${timerPassword}초 후 다시 요청` : '비밀번호 재설정 링크 전송' }}</button>
             <button class="cancel-button" @click="rqpassword=false">닫기</button>
         </form>
-        <p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
+       <br /> <p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
           </div>
           </div>        
           </div>
@@ -74,8 +75,10 @@ export default {
           errorMessage: '',
           rqpassword: false,
           rqid: false,
-          isButtonDisabled: false, // 버튼 비활성화 여부
-          timer: 0, // 대기 시간 (초)
+          isButtonDisabledId: false, // 아이디 찾기 버튼 비활성화 여부
+          isButtonDisabledPassword: false, // 비밀번호 재설정 버튼 비활성화 여부
+          timerId: 0, // 아이디 찾기 타이머
+          timerPassword: 0, // 비밀번호 재설정 타이머
       };
   },
   methods: {
@@ -103,17 +106,53 @@ export default {
               this.errorMessage = '로그인 중 오류가 발생했습니다. 다시 시도해주세요.';
           }
       },
-      async requestResetLink() {
-        if (this.isButtonDisabled) return; // 버튼이 비활성화된 상태면 요청 막기
+      async requestUserId() {
+        if (this.isButtonDisabledId) return;
 
-          this.isButtonDisabled = true; // 버튼 비활성화
-          this.timer = 180; // 10초 대기 시간 설정
+this.isButtonDisabledId = true;
+this.timerId = 180;
+
+const countdownId = setInterval(() => {
+    this.timerId -= 1;
+    if (this.timerId <= 0) {
+        clearInterval(countdownId);
+        this.isButtonDisabledId = false;
+    }
+}, 1000);
+
+try {
+    const response = await fetch('http://localhost:3000/request-userid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: this.email }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        this.success = true;
+        this.message = '아이디가 이메일로 전송되었습니다.';
+    } else {
+        this.success = false;
+        this.message = result.message;
+    }
+} catch (error) {
+    console.error('Error requesting user ID:', error);
+    this.success = false;
+    this.message = '아이디 요청 중 오류가 발생했습니다.';
+}
+  },
+      async requestResetLink() {
+        if (this.isButtonDisabledPassword) return; // 버튼이 비활성화된 상태면 요청 막기
+
+          this.isButtonDisabledPassword = true; // 버튼 비활성화
+          this.timerPassword = 180; // 10초 대기 시간 설정
 
           const countdown = setInterval(() => {
-          this.timer -= 1;
-        if (this.timer <= 0) {
+          this.timerPassword -= 1;
+        if (this.timerPassword <= 0) {
           clearInterval(countdown);
-          this.isButtonDisabled = false; // 대기 시간 종료 시 버튼 활성화
+          this.isButtonDisabledPassword = false; // 대기 시간 종료 시 버튼 활성화
         }
           }, 1000);
             try {
