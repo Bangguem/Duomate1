@@ -29,13 +29,12 @@
         <!-- 매칭 시작 버튼 -->
         <button @click="startMatching" :disabled="isMatching">매칭 시작</button>
 
-        <!-- 매칭 중 팝업 -->
+        <!-- 매칭 중 -->
         <div class="popup-overlay" v-if="isMatching">
             <div class="popup-content">
                 <h2>매칭 중...</h2>
                 <p>잠시만 기다려주세요.</p>
                 <div v-if="matchFound">
-                    <h3>상대방: {{ match.partner.nickname }}</h3>
                     <button @click="acceptMatch">수락</button>
                     <button @click="rejectMatch">거부</button>
                 </div>
@@ -57,37 +56,10 @@ export default {
             matchType: "일반",
             isMatching: false,
             matchFound: false,
-            match: null, // 매칭된 상대방 정보
-            isLoggedIn: false, // 로그인 상태
-            userInfo: {},
+            matchId: null,
         };
     },
     methods: {
-        async checkLoginStatus() {
-      try {
-        const response = await fetch('http://localhost:3000/auth/check-login', {
-          method: 'GET',
-          credentials: 'include', // 쿠키 포함
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          this.isLoggedIn = data.loggedIn;
-          if (data.loggedIn) {
-            this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
-          }
-        } else {
-          this.resetUserData();
-        }
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        this.resetUserData();
-      }
-    },
-    resetUserData() {
-      this.isLoggedIn = false;
-      this.userInfo = {}; // 사용자 정보 초기화
-    },
         startMatching() {
             this.isMatching = true;
             this.socket.emit(
@@ -95,30 +67,62 @@ export default {
                 { position: this.position, microphone: this.microphone }
             );
 
-            this.socket.on("matchSuccess", (data) => {
-                this.match = data;
-                this.matchFound = true;
+            this.socket.on("matchSuccess", async (data) => {
+                console.log("🔹 서버에서 받은 matchSuccess 데이터:", data);
+
+                if (!data.matchId) {
+                    console.error("❌ matchId가 없음! 서버 응답 오류");
+                    this.isMatching = false;
+                    return;
+                }
+
+                this.matchId = data.matchId;
+                this.matchFound = true; // 매칭 성공 UI 갱신
+
             });
         },
+
+        // MatchQueue.vue의 startMatching 메서드 수정
+        // MatchQueue.vue의 수정
+        async acceptMatch() {
+            console.log(`✅ 매칭 수락 시도: matchId=${this.matchId}`);
+            if (this.matchId) {
+                try {
+                    const response = await fetch(`http://localhost:3000/match/save`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            matchId: this.matchId
+                        }),
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log("✅ 매칭 저장 성공");
+                        this.$router.push(`/chatroom?matchId=${this.matchId}`);
+                    } else {
+                        console.error("❌ 매칭 저장 실패:", result.message);
+                        console.log("🔹 Available matches:", result.availableMatches);
+                    }
+                } catch (error) {
+                    console.error("❌ 매칭 저장 오류:", error);
+                }
+            } else {
+                console.error("❌ matchId가 존재하지 않습니다.");
+            }
+        },
+
+        rejectMatch() {
+            console.log("❌ 매칭 거부");
+            this.matchFound = false;
+            this.isMatching = false;
+        },
+
         cancelMatching() {
+            console.log("⛔ 매칭 취소");
             this.isMatching = false;
             this.socket.emit("cancel match");
-        },
-        acceptMatch() {
-            this.socket.emit("accept match", { partner: this.match.partner });
-            this.$router.push({
-            path: "/chatroom",
-            query: { 
-                roomName: this.match.roomName,
-                nickname: this.match.partner.nickname,
-                position: this.match.partner.position,
-                microphone: this.match.partner.microphone,
-                },
-            });
-        },
-        rejectMatch() {
-            this.matchFound = false;
-            this.socket.emit("reject match", { partner: this.match.partner });
         },
     },
     mounted() {

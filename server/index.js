@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const http = require('http');
 const app = express();
 const PORT = 3000;
-const setupSocketIo = require('./setupSocketIo'); // Socket.IO 설정 가져오기
+const { setupSocketIo, matchDataStore } = require('./setupSocketIo');// Socket.IO 설정 가져오기
 
 // Middleware 설정
 app.use(cors({
@@ -18,7 +18,7 @@ app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
 
 
 const server = http.createServer(app);
-setupSocketIo(server);
+const io = setupSocketIo(server);
 // 서버 실행
 
 
@@ -324,4 +324,42 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
     } else {
         res.status(404).json({ success: false, message: 'User Not Found' });
     }
+});
+
+// ✅ 매칭 정보 조회 API
+app.get("/match/get/:matchId", (req, res) => {
+    const matchId = req.params.matchId;
+
+    console.log(`📢 매칭 정보 요청: ${matchId}`);
+    console.log(`🔍 저장된 매칭 데이터:`, matchDataStore);
+
+    // ✅ `matchId`가 `matchDataStore`에 존재하는지 확인
+    if (!matchId || !matchDataStore[matchId]) {
+        console.error(`❌ matchId(${matchId})에 해당하는 매칭 정보를 찾을 수 없음`);
+        return res.status(404).json({ success: false, message: "매칭 정보 없음" });
+    }
+
+    res.json({ success: true, match: matchDataStore[matchId] });
+});
+
+// index.js의 /match/save 엔드포인트 수정
+app.post("/match/save", (req, res) => {
+    const { matchId } = req.body;
+    console.log("📢 매칭 저장 요청 받음. matchId:", matchId);
+    console.log("📢 현재 matchDataStore:", matchDataStore);
+
+    if (!matchId || !matchDataStore[matchId]) {
+        console.error(`❌ 유효하지 않은 매칭 데이터 (matchId: ${matchId})`);
+        return res.status(400).json({
+            success: false,
+            message: "유효하지 않은 매칭 데이터",
+            matchId: matchId,
+            availableMatches: Object.keys(matchDataStore)
+        });
+    }
+
+    console.log(`✅ 매칭 데이터 확인 성공: ${matchId}`);
+    console.log("🔹 저장된 매칭 데이터:", matchDataStore[matchId]);
+
+    res.json({ success: true, matchId });
 });

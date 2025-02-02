@@ -1,30 +1,25 @@
 <template>
     <div class="chat-room">
-        <!-- 상대방 정보 표시 -->
-        <div class="left-panel">
-            <h2>상대방 정보</h2>
-            <p><strong>닉네임:</strong> {{ partner.nickname }}</p>
-            <p><strong>포지션:</strong> {{ partner.position }}</p>
-            <p><strong>마이크:</strong> {{ partner.microphone }}</p>
+        <h1>채팅방</h1>
+
+        <div v-if="match && match.players">
+            <h2>상대방: {{ getOpponent.nickname }}</h2>
+            <p>포지션: {{ getOpponent.position }}</p>
+            <p>마이크: {{ getOpponent.microphone }}</p>
+        </div>
+        <div v-else>
+            <p>매칭된 상대방 정보를 불러오는 중...</p>
         </div>
 
-        <!-- 채팅방 -->
-        <div class="right-panel">
-            <h1>채팅방</h1>
-            <div class="chat-window">
-                <div v-for="(message, index) in messages" :key="index" class="chat-message">
-                    <strong>{{ message.username }}:</strong> {{ message.message }}
-                </div>
+        <div class="chat-window">
+            <div v-for="(message, index) in messages" :key="index">
+                <strong>{{ message.username }}:</strong> {{ message.message }}
             </div>
-            <div class="chat-input">
-                <input
-                    type="text"
-                    v-model="newMessage"
-                    placeholder="메시지를 입력하세요"
-                    @keyup.enter="sendMessage"
-                />
-                <button @click="sendMessage">전송</button>
-            </div>
+        </div>
+
+        <div class="chat-input">
+            <input v-model="newMessage" @keyup.enter="sendMessage" />
+            <button @click="sendMessage">전송</button>
         </div>
     </div>
 </template>
@@ -38,88 +33,92 @@ export default {
             socket: null,
             messages: [],
             newMessage: "",
-            roomName: this.$route.query.roomName || "알 수 없음",
-            partner: {
-                nickname: this.$route.query.nickname || "알 수 없음",
-                position: this.$route.query.position || "알 수 없음",
-                microphone: this.$route.query.microphone || "알 수 없음",
-            },
-            isLoggedIn: false, // 로그인 상태
-            userInfo: {},
+            match: null,
+            matchId: null,
+            userInfo: null  // userInfo 추가
         };
     },
-    methods: {
-        async checkLoginStatus() {
-      try {
-        const response = await fetch('http://localhost:3000/auth/check-login', {
-          method: 'GET',
-          credentials: 'include', // 쿠키 포함
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          this.isLoggedIn = data.loggedIn;
-          if (data.loggedIn) {
-            this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
-          }
-        } else {
-          this.resetUserData();
+    computed: {
+        getOpponent() {
+            if (!this.match || !this.match.players || !this.userInfo) return {};
+            // userInfo가 없으면 첫 번째 플레이어 정보 반환
+            return this.match.players.find(player => player.userid !== this.userInfo.userid) || this.match.players[0] || {};
         }
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        this.resetUserData();
-      }
     },
-    resetUserData() {
-      this.isLoggedIn = false;
-      this.userInfo = {}; // 사용자 정보 초기화
-    } ,
-        sendMessage() {
-            if (this.newMessage.trim() === "") return;
+    async mounted() {
+        // 사용자 정보 가져오기
+        try {
+            const userResponse = await fetch('http://localhost:3000/auth/check-login', {
+                credentials: 'include'
+            });
+            const userData = await userResponse.json();
 
-            // 메시지를 서버로 전송
-            this.socket.emit("chat message", {
-                roomName: this.roomName,
-                message: this.newMessage,
+            if (userData.loggedIn) {
+                this.userInfo = userData.user;
+            } else {
+                console.error("❌ 사용자 정보를 가져올 수 없습니다.");
+                return;
+            }
+        } catch (error) {
+            console.error("❌ 사용자 정보 조회 오류:", error);
+            return;
+        }
+
+        this.matchId = this.$route.query.matchId;
+        console.log("📢 ChatRoom에서 받은 matchId:", this.matchId);
+
+        if (!this.matchId) {
+            console.error("❌ matchId가 없음! 페이지 이동 오류");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/match/get/${this.matchId}`, {
+                method: "GET",
+                credentials: "include",
             });
 
-            // 입력창 초기화
-            this.newMessage = "";
-        },
-    },
-    mounted() {
-        // 소켓 연결
-        this.socket = io("http://localhost:3000", { withCredentials: true });
+            const data = await response.json();
+            console.log("🔹 서버에서 받은 매칭 데이터:", data);
 
-        // 채팅방 입장
-        this.socket.emit("join room", { roomName: this.roomName });
+            if (data.success) {
+                this.match = data.match;
+            } else {
+                console.error("❌ 매칭 정보를 찾을 수 없습니다.");
+            }
+        } catch (error) {
+            console.error("❌ 매칭 정보 가져오기 오류:", error);
+        }
 
-        // 채팅 메시지 수신
-        this.socket.on("chat message", (data) => {
-            this.messages.push(data);
-        });
+        if (this.match && this.match.roomName) {
+            this.socket = io("http://localhost:3000", { withCredentials: true });
+            this.socket.emit("join room", { roomName: this.match.roomName });
+
+            this.socket.on("chat message", (data) => {
+                this.messages.push(data);
+            });
+        }
     },
+    methods: {
+        sendMessage() {
+            if (this.newMessage.trim() && this.socket) {
+                this.socket.emit("chat message", {
+                    message: this.newMessage,
+                    username: this.userInfo?.nickname || 'Anonymous'
+                });
+                this.newMessage = "";
+            }
+        }
+    }
 };
 </script>
 
 <style scoped>
 .chat-room {
     display: flex;
-    height: 100vh;
-}
-
-.left-panel {
-    width: 30%;
-    background-color: #2e2e2e;
-    color: white;
-    padding: 20px;
-}
-
-.right-panel {
-    width: 70%;
-    display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100vh;
 }
 
 .chat-window {
@@ -134,7 +133,7 @@ export default {
 
 .chat-message {
     margin-bottom: 10px;
-    color: white; /* 메시지 텍스트 색상을 흰색으로 설정 */
+    color: white;
 }
 
 .chat-input {
