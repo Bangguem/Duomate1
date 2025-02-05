@@ -67,18 +67,30 @@
         <p>Your gaming details</p>
         <div class="gaming-details">
           <div class="detail-item">
-            <img src="tier-icon.png" alt="Game Tier" />
+            <img src="tier-icon.png" alt="" />
             <p>Game Tier</p>
-            <h3>Diamond I</h3>
+            <h3>{{ riotInfo.tier || "정보 없음" }}</h3>
           </div>
           <div class="detail-item">
-            <img src="level-icon.png" alt="In-game Level" />
+            <img src="level-icon.png" alt="" />
             <p>In-game Level</p>
-            <h3>45</h3>
+            <h3>{{ riotInfo.level || "정보 없음" }}</h3>
           </div>
-          <button class="riot-btn">Riot 연동</button>
+          <button class="riot-btn" @click="showRiotModal=true">Riot 연동</button>
         </div>
       </section>
+      <!-- Riot 연동 모달 -->
+      <div v-if="showRiotModal==true" class="modal">
+        <div class="modal-content">
+          <h2>Riot 연동</h2>
+          <label for="summoner">소환사 이름</label>
+          <input type="text" v-model="summonerName" placeholder="소환사 이름 입력" />
+          <label for="tag">태그</label>
+          <input type="text" v-model="tag" placeholder="태그 입력 (예: KR1)" />
+          <button @click="linkRiotAccount">연동하기</button>
+          <button @click="showRiotModal=false">닫기</button>
+        </div>
+      </div>
   
       <!-- Footer -->
       <footer>
@@ -101,6 +113,13 @@
         passwordcheck: '',
         profileImage: '',
       },
+      riotInfo: {
+        tier: "",
+        level: "",
+      },
+      showRiotModal: false,
+      summonerName: "",
+      tag: "",
     };
     // if (this.userInfo.password !== this.userInfo.passwordcheck) {
     //           alert('비밀번호가 일치하지 않습니다.');
@@ -208,6 +227,41 @@
     }
   },
   },
+    
+    async linkRiotAccount() {
+      if (!this.summonerName || !this.tag) {
+        alert("소환사 이름과 태그를 입력해주세요.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3000/summonerInfo", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            summoner: `${this.summonerName}#${this.tag}`,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert("라이엇 연동 성공!");
+          this.riotInfo = {
+            tier: result.tier || "정보 없음",
+            level: result.level || "정보 없음",
+          };
+          this.closeRiotModal();
+        } else {
+          alert("라이엇 연동 실패: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error linking Riot account:", error);
+        alert("연동 중 오류가 발생했습니다.");
+      }
+    },
 };
 </script>
   
@@ -423,5 +477,48 @@ select {
     border-radius: 5px;
     cursor: pointer;
   }
+  /* Riot 연동 모달 스타일 */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  border-radius: 10px;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content h2 {
+  margin-bottom: 10px;
+}
+
+.modal-content input {
+  margin: 5px 0;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.riot-btn {
+  background-color: #006400;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
   </style>
   
