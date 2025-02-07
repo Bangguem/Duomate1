@@ -483,11 +483,14 @@ select {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
+  background: #212121;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   border-radius: 10px;
+  color:#FAFAFA;
+  width: 400px;
+  height: 300px;
 }
 
 .modal-content {
@@ -512,6 +515,9 @@ select {
   padding: 8px;
   border: none;
   cursor: pointer;
+  background-color: #006400;
+  color:#FAFAFA;
+  border-radius: 5px;
 }
 
 .riot-btn {
