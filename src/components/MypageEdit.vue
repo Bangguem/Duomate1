@@ -17,7 +17,7 @@
       <section class="profile-section">
         <div class="profile-header">
           <div class="profile-picture">
-            <div class="add-icon" @click="triggerFileUpload">+</div>
+            <!-- <div class="add-icon" @click="triggerFileUpload">+</div> -->
             <img v-if="userInfo.profileImage" :src="userInfo.profileImage" alt="Profile Picture" />
           </div>
           <input
@@ -114,12 +114,12 @@
         profileImage: '',
       },
       riotInfo: {
-        tier: "",
-        level: "",
+        tier: '',
+        level: '',
       },
       showRiotModal: false,
-      summonerName: "",
-      tag: "",
+      summonerName: '',
+      tag: '',
     };
     // if (this.userInfo.password !== this.userInfo.passwordcheck) {
     //           alert('비밀번호가 일치하지 않습니다.');
