@@ -18,7 +18,9 @@
         <div class="profile-header">
           <div class="profile-picture">
             <!-- <div class="add-icon" @click="triggerFileUpload">+</div> -->
-            <img v-if="userInfo.profileImage" :src="userInfo.profileImage" alt="Profile Picture" />
+            <img v-if="riotInfo.profileIconId" 
+                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
+                 alt="Summoner Icon" />
           </div>
           <input
             type="file"
@@ -65,19 +67,44 @@
       <section class="gaming-info">
         <h2>Gaming Information</h2>
         <p>Your gaming details</p>
+        <br />
+        <p v-if="riotInfo.summonerName">{{ summonerName }}님</p>
+        <p v-else>연동이 필요합니다.</p>
+
         <div class="gaming-details">
+          <!-- <div class="detail-item">
+             <img v-if="riotInfo.profileIconId" 
+                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
+                 alt="Summoner Icon" /> 
+            <p>{{ summonerName || "연동이 필요합니다" }} 님</p>
+          </div> -->
+
           <div class="detail-item">
-            <img src="tier-icon.png" alt="" />
+            <img src="tier-icon.png" alt="Tier Icon" />
             <p>Game Tier</p>
             <h3>{{ riotInfo.tier || "정보 없음" }}</h3>
           </div>
+
           <div class="detail-item">
-            <img src="level-icon.png" alt="" />
+            <img src="level-icon.png" alt="Level Icon" />
             <p>In-game Level</p>
-            <h3>{{ riotInfo.level || "정보 없음" }}</h3>
+            <h3>{{ riotInfo.summonerLevel || "정보 없음" }}</h3>
           </div>
-          <button class="riot-btn" @click="showRiotModal=true">Riot 연동</button>
         </div>
+
+        <!-- Most Played Champions -->
+        <div class="champions-container">
+          <h2>Most Played Champions</h2>
+          <div class="champion-list">
+            <div class="champion-item" v-for="(champ, index) in riotInfo.top5Champions" :key="index">
+              <img :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/champion/${champ}.png`" 
+                   alt="Champion Image" />
+              <p>{{ champ }}</p>
+            </div>
+          </div>
+        </div>
+
+        <br /><br /><button class="riot-btn" @click="showRiotModal=true">Riot 연동</button>
       </section>
       <!-- Riot 연동 모달 -->
       <div v-if="showRiotModal==true" class="modal">
@@ -92,10 +119,6 @@
         </div>
       </div>
   
-      <!-- Footer -->
-      <footer>
-        <button class="logout-btn">로그아웃</button>
-      </footer>
         </div>
     </div>
   </template>
@@ -109,13 +132,12 @@
         email: '',
         gender: '',
         birthdate: '',
-        password: '',
-        passwordcheck: '',
-        profileImage: '',
       },
       riotInfo: {
         tier: '',
-        level: '',
+        summonerLevel: '',
+        profileIconId: '',
+        top5Champions: [],
       },
       showRiotModal: false,
       summonerName: '',
@@ -248,18 +270,37 @@
 
         const result = await response.json();
         if (result.success) {
-          alert("라이엇 연동 성공!");
+          alert("라이엇 연동 완료");
+          // Riot API 데이터 업데이트
           this.riotInfo = {
             tier: result.tier || "정보 없음",
-            level: result.level || "정보 없음",
+            summonerLevel: result.summonerLevel || "정보 없음",
+            profileIconId: result.profileIconId || '',
+            top5Champions: result.top5Champions || [],
           };
-          this.closeRiotModal();
+          this.showRiotModal = false;
         } else {
           alert("라이엇 연동 실패: " + result.message);
         }
       } catch (error) {
         console.error("Error linking Riot account:", error);
         alert("연동 중 오류가 발생했습니다.");
+      }
+    },
+    async logout() {
+      try {
+        const response = await fetch('http://localhost:3000/logout', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          this.isLoggedIn = false;
+          this.nickname = '';
+          this.$router.push('/'); // 로그아웃 후 로그인 페이지로 이동
+        }
+      } catch (error) {
+        console.error('Error logging out:', error);
       }
     },
 };
@@ -292,7 +333,7 @@ body {
   display: flex;
   flex-direction: column;
   width : 140vw;
-  height : 140vh;
+  height : 160vh;
   background-color: #212121;
 }
 
@@ -454,6 +495,9 @@ select {
     width: 80px;
     height: 80px;
   }
+  .detail-item p{
+    margin:0;
+  }
   .riot-btn {
     background-color: #006400;
     color: #fff;
@@ -461,7 +505,10 @@ select {
     padding: 10px;
     border-radius: 5px;
     cursor: pointer;
-    margin-right: 50px;
+    width: 200px;
+    height: 40px;
+    justify-content: center;
+    margin-left: 42%;
   }
   
   /* Footer */
@@ -520,11 +567,33 @@ select {
   border-radius: 5px;
 }
 
-.riot-btn {
+/* .riot-btn {
   background-color: #006400;
   color: white;
   padding: 10px;
   border-radius: 5px;
+  width: 200px;
+  height: 40px;
+} */
+/* Most Played Champions 스타일 */
+.champions-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.champion-list {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.champion-item {
+  text-align: center;
+}
+
+.champion-item img {
+  width: 80px;
+  height: 80px;
 }
   </style>
   
