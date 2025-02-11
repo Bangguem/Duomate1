@@ -300,8 +300,8 @@ function splitSummonerAndTag(input) {
 app.post('/summonerInfo', authenticateJWT, async (req, res) => {
     const userData = req.user;
     if (userData) {
-        const { summoner } = req.body;
-        const { summonerName, tag } = splitSummonerAndTag(summoner);
+        const { summonerName, tag } = req.body;
+        
         try {
             const summonerprofile = {
                 userid: userData.userid,

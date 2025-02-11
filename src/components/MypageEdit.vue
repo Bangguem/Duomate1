@@ -152,48 +152,6 @@
     this.checkLoginStatus();
   },
   methods: {
-    // 파일 업로드 트리거
-    triggerFileUpload() {
-      this.$refs.fileInput.click();
-    },
-     // 파일 변경 처리
-     handleFileChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.userInfo.profileImage = e.target.result; // 이미지 미리보기
-        };
-        reader.readAsDataURL(file);
-
-        // 여기에서 선택된 파일을 서버로 업로드하는 로직 추가 가능
-        this.uploadProfileImage(file);
-      }
-    },
-    // 서버로 이미지 업로드
-    async uploadProfileImage(file) {
-      const formData = new FormData();
-      formData.append("profileImage", file);
-
-      try {
-        const response = await fetch("http://localhost:3000/upload-profile-image", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log(result); // 서버로부터 받은 데이터를 콘솔에 출력
-          alert("프로필 사진이 업데이트되었습니다.");
-        } else {
-          console.error("Error uploading profile image:", response.statusText);
-          alert("이미지 업로드에 실패했습니다.");
-        }
-      } catch (error) {
-        console.error("Error uploading profile image:", error);
-        alert("알 수 없는 오류가 발생했습니다.");
-      }
-    },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -264,7 +222,8 @@
           },
           credentials: "include",
           body: JSON.stringify({
-            summoner: `${this.summonerName}#${this.tag}`,
+            summonerName: this.summonerName, 
+            tag: this.tag, 
           }),
         });
 
@@ -287,22 +246,7 @@
         alert("연동 중 오류가 발생했습니다.");
       }
     },
-    async logout() {
-      try {
-        const response = await fetch('http://localhost:3000/logout', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          this.isLoggedIn = false;
-          this.nickname = '';
-          this.$router.push('/'); // 로그아웃 후 로그인 페이지로 이동
-        }
-      } catch (error) {
-        console.error('Error logging out:', error);
-      }
-    },
+    
 };
 </script>
   
