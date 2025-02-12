@@ -114,7 +114,7 @@
           <input type="text" v-model="summonerName" placeholder="소환사 이름 입력" />
           <label for="tag">태그</label>
           <input type="text" v-model="tag" placeholder="태그 입력 (예: KR1)" />
-          <button @click="linkRiotAccount">연동하기</button>
+          <button type="button" @click="linkRiotAccount">연동하기</button>
           <button @click="showRiotModal=false">닫기</button>
         </div>
       </div>
@@ -206,15 +206,22 @@
       alert('알 수 없는 오류가 발생했습니다.');
     }
   },
-  },
+  
     
     async linkRiotAccount() {
+      console.log("연동하기 버튼 클릭됨"); // 디버깅 로그
+
       if (!this.summonerName || !this.tag) {
         alert("소환사 이름과 태그를 입력해주세요.");
         return;
       }
 
       try {
+
+        console.log("소환사 이름:", this.summonerName);
+        console.log("태그:", this.tag);
+
+        console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
         const response = await fetch("http://localhost:3000/summonerInfo", {
           method: "POST",
           headers: {
@@ -226,8 +233,10 @@
             tag: this.tag, 
           }),
         });
-
+        console.log("서버 응답 상태 코드:", response.status); // 응답 상태 확인
         const result = await response.json();
+        console.log("서버 응답 데이터:", result); // 응답 데이터 확인
+
         if (result.success) {
           alert("라이엇 연동 완료");
           // Riot API 데이터 업데이트
@@ -246,7 +255,7 @@
         alert("연동 중 오류가 발생했습니다.");
       }
     },
-    
+  },
 };
 </script>
   
