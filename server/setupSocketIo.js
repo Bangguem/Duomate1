@@ -59,14 +59,17 @@ const setupSocketIo = (server) => {
         }
     }
 
-    // ✅ 매칭 프로세스 (블랙리스트 로직 제거됨)
-    function processQueue(queue, matchType, restrictionsCheck) {
+    function processNormalQueue(queue) {
         while (queue.length >= 2) {
-            let match1 = queue.shift();  // 첫 번째 유저
-            let match2 = queue.shift();  // 두 번째 유저
+            // 랜덤하게 두 사용자 선택
+            const randomIndex1 = Math.floor(Math.random() * queue.length);
+            let match1 = queue.splice(randomIndex1, 1)[0];
+
+            const randomIndex2 = Math.floor(Math.random() * (queue.length));
+            let match2 = queue.splice(randomIndex2, 1)[0];
 
             const matchId = uuidv4();
-            const roomName = `${matchType}_room_${match1.socket.id}_${match2.socket.id}`;
+            const roomName = `normal_room_${match1.socket.id}_${match2.socket.id}`;
 
             const matchData = {
                 matchId,
@@ -96,6 +99,66 @@ const setupSocketIo = (server) => {
 
             match1.socket.emit('matchSuccess', { matchId });
             match2.socket.emit('matchSuccess', { matchId });
+        }
+    }
+
+    // ✅ 랭크 매칭 프로세스 - 티어 제한 고려
+    function processRankQueue(queue) {
+        if (queue.length < 2) return;
+
+        for (let i = 0; i < queue.length; i++) {
+            const user1 = queue[i];
+            if (!user1) continue;
+
+            // 매칭 가능한 상대방 찾기
+            const compatibleUsers = queue.filter((user2, index) => {
+                if (index === i || !user2) return false;
+                return canMatchByRank(user1.user, user2.user);
+            });
+
+            if (compatibleUsers.length > 0) {
+                // 매칭 가능한 상대방 중 랜덤으로 선택
+                const randomMatch = compatibleUsers[Math.floor(Math.random() * compatibleUsers.length)];
+
+                // 큐에서 두 사용자 제거
+                queue.splice(queue.indexOf(user1), 1);
+                queue.splice(queue.indexOf(randomMatch), 1);
+
+                const matchId = uuidv4();
+                const roomName = `rank_room_${user1.socket.id}_${randomMatch.socket.id}`;
+
+                const matchData = {
+                    matchId,
+                    roomName,
+                    players: [
+                        {
+                            userid: user1.user.userid,
+                            nickname: user1.user.nickname,
+                            position: user1.user.position,
+                            microphone: user1.user.microphone,
+                            socketId: user1.socket.id,
+                            accepted: false
+                        },
+                        {
+                            userid: randomMatch.user.userid,
+                            nickname: randomMatch.user.nickname,
+                            position: randomMatch.user.position,
+                            microphone: randomMatch.user.microphone,
+                            socketId: randomMatch.socket.id,
+                            accepted: false
+                        }
+                    ]
+                };
+
+                matchDataStore[matchId] = matchData;
+                pendingMatches.set(matchId, matchData);
+
+                user1.socket.emit('matchSuccess', { matchId });
+                randomMatch.socket.emit('matchSuccess', { matchId });
+
+                // 매칭이 성공했으므로 현재 반복 중단
+                break;
+            }
         }
     }
 
@@ -173,7 +236,7 @@ const setupSocketIo = (server) => {
                 console.log(`📢 일반 매칭 요청: ${user.nickname}`);
                 waitingNormalQueue.push({ user, socket });
 
-                processQueue(waitingNormalQueue, "normal", null);
+                processNormalQueue(waitingNormalQueue);
             } catch (error) {
                 console.error("❌ 일반 매칭 오류:", error);
                 socket.emit('matchError', { message: "일반 매칭 요청 중 오류 발생" });
@@ -189,12 +252,13 @@ const setupSocketIo = (server) => {
                 console.log(`📢 랭크 매칭 요청: ${user.nickname}`);
                 rankQueue.push({ user, socket });
 
-                processQueue(rankQueue, "rank", canMatchByRank);
+                processRankQueue(rankQueue);
             } catch (error) {
                 console.error("❌ 랭크 매칭 오류:", error);
                 socket.emit('matchError', { message: "랭크 매칭 요청 중 오류 발생" });
             }
         });
+
 
         // 매칭 수락 이벤트
         socket.on('acceptMatch', ({ matchId }) => {
