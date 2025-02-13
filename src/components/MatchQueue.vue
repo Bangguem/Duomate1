@@ -67,56 +67,54 @@ export default {
                 { position: this.position, microphone: this.microphone }
             );
 
-            this.socket.on("matchSuccess", async (data) => {
+            this.socket.on("matchSuccess", (data) => {
                 console.log("🔹 서버에서 받은 matchSuccess 데이터:", data);
-
-                if (!data.matchId) {
-                    console.error("❌ matchId가 없음! 서버 응답 오류");
-                    this.isMatching = false;
-                    return;
-                }
-
                 this.matchId = data.matchId;
-                this.matchFound = true; // 매칭 성공 UI 갱신
-
+                this.matchFound = true;
             });
-        },
 
-        // MatchQueue.vue의 startMatching 메서드 수정
-        // MatchQueue.vue의 수정
-        async acceptMatch() {
-            console.log(`✅ 매칭 수락 시도: matchId=${this.matchId}`);
-            if (this.matchId) {
+            // ✅ 매칭이 거부되었을 때 UI를 원래 상태로 복구
+            this.socket.on("matchCancelled", (data) => {
+                console.log("❌ 매칭 취소됨:", data.message);
+                this.matchFound = false;
+                this.isMatching = false;
+                alert("⚠️ 상대방이 매칭을 거부했습니다. 다시 시도해주세요!");
+            });
+
+            this.socket.on("matchConfirmed", async (data) => {
                 try {
                     const response = await fetch(`http://localhost:3000/match/save`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         credentials: "include",
                         body: JSON.stringify({
-                            matchId: this.matchId
+                            matchId: data.matchId
                         }),
                     });
 
                     const result = await response.json();
                     if (result.success) {
                         console.log("✅ 매칭 저장 성공");
-                        this.$router.push(`/chatroom?matchId=${this.matchId}`);
-                    } else {
-                        console.error("❌ 매칭 저장 실패:", result.message);
-                        console.log("🔹 Available matches:", result.availableMatches);
+                        this.$router.push(`/chatroom?matchId=${data.matchId}`);
                     }
                 } catch (error) {
                     console.error("❌ 매칭 저장 오류:", error);
                 }
-            } else {
-                console.error("❌ matchId가 존재하지 않습니다.");
+            });
+        },
+
+        acceptMatch() {
+            if (this.matchId) {
+                this.socket.emit("acceptMatch", { matchId: this.matchId });
             }
         },
 
         rejectMatch() {
-            console.log("❌ 매칭 거부");
-            this.matchFound = false;
-            this.isMatching = false;
+            if (this.matchId) {
+                this.socket.emit("rejectMatch", { matchId: this.matchId });
+                this.matchFound = false;
+                this.isMatching = false;
+            }
         },
 
         cancelMatching() {
@@ -127,6 +125,11 @@ export default {
     },
     mounted() {
         this.socket = io("http://localhost:3000", { withCredentials: true });
+        this.socket.on("disconnect", () => {
+            console.log("❌ 서버 연결 해제됨. 대기열에서 제거");
+            this.isMatching = false;
+            this.matchFound = false;
+        });
     },
 };
 </script>
