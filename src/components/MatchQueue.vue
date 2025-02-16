@@ -4,7 +4,7 @@
             <!-- 프로필 -->
             <div class="profile-section">
                 <div class="profile-picture"></div>
-                <span class="username">{{ username }}</span>
+                <span>안녕하세요, {{ userInfo.nickname }}님!</span>
             </div>
 
             <!-- 포지션 선택 -->
@@ -74,7 +74,8 @@ export default {
     data() {
         return {
             socket: null,
-            username: "",
+            isLoggedIn: false,
+            userInfo: {},
             selectedPositions: [],
             microphone: "미사용",
             matchType: "일반",
@@ -110,21 +111,47 @@ export default {
         };
     },
 
-    mounted() {
-        this.fetchUserInfo();
+
+    async mounted() {
+        await this.checkLoginStatus(); // 로그인 상태 확인
         this.initializeSocket();
     },
 
     methods: {
-        async fetchUserInfo() {
+        async checkLoginStatus() {
             try {
-                const response = await fetch("/api/user");
-                const data = await response.json();
-                this.username = data.username;
+                const response = await fetch('http://localhost:3000/auth/check-login', {
+                    method: 'GET',
+                    credentials: 'include', // 쿠키 포함
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.isLoggedIn = data.loggedIn;
+                    if (data.loggedIn) {
+                        this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
+                    } else {
+                        this.handleUnauthenticatedUser();
+                    }
+                } else {
+                    this.handleUnauthenticatedUser();
+                }
             } catch (error) {
-                console.error("사용자 정보를 불러오는 중 오류 발생:", error);
-                this.username = "알 수 없음";
+                console.error('❌ 로그인 상태 확인 오류:', error);
+                this.handleUnauthenticatedUser();
             }
+        },
+
+        handleUnauthenticatedUser() {
+            this.isLoggedIn = false;
+            this.userInfo = {}; // 사용자 정보 초기화
+            alert("로그인이 필요합니다. 메인 화면으로 이동합니다.");
+            this.$router.push("/"); // 메인 화면으로 이동
+        },
+
+        resetUserData() {
+            this.isLoggedIn = false;
+            this.userInfo = {}; // 사용자 정보 초기화
         },
 
         initializeSocket() {
