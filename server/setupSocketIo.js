@@ -13,9 +13,6 @@ const setupSocketIo = (server) => {
         },
     });
 
-    const waitingNormalQueue = [];
-    const rankQueue = [];
-    const pendingMatches = new Map(); // 수락 대기 중인 매칭 저장
 
     const duoRestrictions = {
         IRON: ["IRON", "BRONZE", "SILVER"],
@@ -36,6 +33,162 @@ const setupSocketIo = (server) => {
         CHALLENGER: ["GRANDMASTER", "CHALLENGER"],
     };
 
+    // 큐 관리를 위한 클래스
+    class MatchQueue {
+        constructor(queueType) {
+            this.queueType = queueType;
+            this.queue = [];
+            this.processingInterval = null;
+            this.BATCH_INTERVAL = 5000;
+        }
+
+        addToQueue(playerData) {
+            const queueEntry = {
+                ...playerData,
+                joinTime: Date.now()
+            };
+
+            // 이미 큐에 있는지 확인
+            const isAlreadyInQueue = this.queue.some(entry =>
+                entry.socket.id === playerData.socket.id ||
+                entry.user.userid === playerData.user.userid
+            );
+
+            if (!isAlreadyInQueue) {
+                this.queue.push(queueEntry);
+
+                if (this.queue.length === 1) {
+                    this.startProcessing();
+                }
+            }
+        }
+
+        removeFromQueue(socketId) {
+            this.queue = this.queue.filter(entry => entry.socket.id !== socketId);
+
+            if (this.queue.length === 0) {
+                this.stopProcessing();
+            }
+        }
+
+        findMatchablePlayers(player) {
+            if (this.queueType !== 'rank') {
+                return this.queue.filter(entry =>
+                    entry.socket.id !== player.socket.id &&
+                    entry.user.userid !== player.user.userid
+                );
+            }
+
+            return this.queue.filter(entry => {
+                // 자기 자신 제외
+                if (entry.socket.id === player.socket.id || entry.user.userid === player.user.userid) {
+                    return false;
+                }
+
+                const tier1 = player.user.summonerRank.tier;
+                const tier2 = entry.user.summonerRank.tier;
+
+                return duoRestrictions[tier1]?.includes(tier2) ||
+                    duoRestrictions[tier2]?.includes(tier1);
+            });
+        }
+
+        processBatch() {
+            this.queue.sort((a, b) => a.joinTime - b.joinTime);
+            const processed = new Set();
+
+            for (let i = 0; i < this.queue.length; i++) {
+                if (processed.has(i)) continue;
+
+                const player1 = this.queue[i];
+                if (!player1) continue;
+
+                // 매칭 가능한 플레이어 풀 찾기
+                const matchablePlayers = this.findMatchablePlayers(player1);
+                if (matchablePlayers.length === 0) continue;
+
+                // 매칭 가능한 플레이어들 중 랜덤 선택 (자기 자신 제외)
+                const validPlayers = matchablePlayers.filter(p =>
+                    p.socket.id !== player1.socket.id &&
+                    p.user.userid !== player1.user.userid
+                );
+
+                if (validPlayers.length === 0) continue;
+
+                const randomIndex = Math.floor(Math.random() * validPlayers.length);
+                const player2 = validPlayers[randomIndex];
+
+                // 매칭 성공한 플레이어들 제거
+                this.queue = this.queue.filter(p =>
+                    p.socket.id !== player1.socket.id &&
+                    p.socket.id !== player2.socket.id &&
+                    p.user.userid !== player1.user.userid &&
+                    p.user.userid !== player2.user.userid
+                );
+
+                // 매칭 데이터 생성 및 처리 로직
+                const matchId = uuidv4();
+                const roomName = `${this.queueType}_room_${matchId}`;
+
+                const matchData = {
+                    matchId,
+                    roomName,
+                    queueType: this.queueType,
+                    players: [
+                        {
+                            userid: player1.user.userid,
+                            nickname: player1.user.nickname,
+                            position: player1.user.position,
+                            microphone: player1.user.microphone,
+                            socketId: player1.socket.id,
+                            accepted: false,
+                            tier: player1.user.summonerRank.tier
+                        },
+                        {
+                            userid: player2.user.userid,
+                            nickname: player2.user.nickname,
+                            position: player2.user.position,
+                            microphone: player2.user.microphone,
+                            socketId: player2.socket.id,
+                            accepted: false,
+                            tier: player2.user.summonerRank.tier
+                        }
+                    ]
+                };
+
+                matchDataStore[matchId] = matchData;
+                pendingMatches.set(matchId, matchData);
+
+                player1.socket.emit('matchSuccess', { matchId });
+                player2.socket.emit('matchSuccess', { matchId });
+
+                console.log(`✅ 매칭 성공: ${player1.user.nickname}(${player1.user.summonerRank.tier}) - ${player2.user.nickname}(${player2.user.summonerRank.tier})`);
+
+                processed.add(i);
+                processed.add(this.queue.indexOf(player2));
+            }
+        }
+
+        startProcessing() {
+            if (!this.processingInterval) {
+                this.processingInterval = setInterval(() => {
+                    this.processBatch();
+                }, this.BATCH_INTERVAL);
+            }
+        }
+
+        stopProcessing() {
+            if (this.processingInterval) {
+                clearInterval(this.processingInterval);
+                this.processingInterval = null;
+            }
+        }
+    }
+
+    const normalQueue = new MatchQueue('normal');
+    const rankQueue = new MatchQueue('rank');
+    const pendingMatches = new Map();
+
     // ✅ 인증 미들웨어
     io.use((socket, next) => {
         const token = socket.handshake.headers.cookie
@@ -51,122 +204,6 @@ const setupSocketIo = (server) => {
         socket.user = decoded;
         next();
     });
-
-    function removeUserFromQueue(socketId, queue) {
-        const index = queue.findIndex(entry => entry.socket.id === socketId);
-        if (index !== -1) {
-            queue.splice(index, 1);
-        }
-    }
-
-    function processNormalQueue(queue) {
-        while (queue.length >= 2) {
-            // 랜덤하게 두 사용자 선택
-            const randomIndex1 = Math.floor(Math.random() * queue.length);
-            let match1 = queue.splice(randomIndex1, 1)[0];
-
-            const randomIndex2 = Math.floor(Math.random() * (queue.length));
-            let match2 = queue.splice(randomIndex2, 1)[0];
-
-            const matchId = uuidv4();
-            const roomName = `normal_room_${match1.socket.id}_${match2.socket.id}`;
-
-            const matchData = {
-                matchId,
-                roomName,
-                players: [
-                    {
-                        userid: match1.user.userid,
-                        nickname: match1.user.nickname,
-                        position: match1.user.position,
-                        microphone: match1.user.microphone,
-                        socketId: match1.socket.id,
-                        accepted: false
-                    },
-                    {
-                        userid: match2.user.userid,
-                        nickname: match2.user.nickname,
-                        position: match2.user.position,
-                        microphone: match2.user.microphone,
-                        socketId: match2.socket.id,
-                        accepted: false
-                    }
-                ]
-            };
-
-            matchDataStore[matchId] = matchData;
-            pendingMatches.set(matchId, matchData);
-
-            match1.socket.emit('matchSuccess', { matchId });
-            match2.socket.emit('matchSuccess', { matchId });
-        }
-    }
-
-    // ✅ 랭크 매칭 프로세스 - 티어 제한 고려
-    function processRankQueue(queue) {
-        if (queue.length < 2) return;
-
-        for (let i = 0; i < queue.length; i++) {
-            const user1 = queue[i];
-            if (!user1) continue;
-
-            // 매칭 가능한 상대방 찾기
-            const compatibleUsers = queue.filter((user2, index) => {
-                if (index === i || !user2) return false;
-                return canMatchByRank(user1.user, user2.user);
-            });
-
-            if (compatibleUsers.length > 0) {
-                // 매칭 가능한 상대방 중 랜덤으로 선택
-                const randomMatch = compatibleUsers[Math.floor(Math.random() * compatibleUsers.length)];
-
-                // 큐에서 두 사용자 제거
-                queue.splice(queue.indexOf(user1), 1);
-                queue.splice(queue.indexOf(randomMatch), 1);
-
-                const matchId = uuidv4();
-                const roomName = `rank_room_${user1.socket.id}_${randomMatch.socket.id}`;
-
-                const matchData = {
-                    matchId,
-                    roomName,
-                    players: [
-                        {
-                            userid: user1.user.userid,
-                            nickname: user1.user.nickname,
-                            position: user1.user.position,
-                            microphone: user1.user.microphone,
-                            socketId: user1.socket.id,
-                            accepted: false
-                        },
-                        {
-                            userid: randomMatch.user.userid,
-                            nickname: randomMatch.user.nickname,
-                            position: randomMatch.user.position,
-                            microphone: randomMatch.user.microphone,
-                            socketId: randomMatch.socket.id,
-                            accepted: false
-                        }
-                    ]
-                };
-
-                matchDataStore[matchId] = matchData;
-                pendingMatches.set(matchId, matchData);
-
-                user1.socket.emit('matchSuccess', { matchId });
-                randomMatch.socket.emit('matchSuccess', { matchId });
-
-                // 매칭이 성공했으므로 현재 반복 중단
-                break;
-            }
-        }
-    }
-
-    function canMatchByRank(user1, user2) {
-        const key1 = `${user1.summonerRank.tier} ${user1.summonerRank.rank}`;
-        const key2 = `${user2.summonerRank.tier} ${user2.summonerRank.rank}`;
-        return duoRestrictions[key1]?.includes(key2);
-    }
 
     io.on('connection', (socket) => {
         console.log(`✅ 새 연결: ${socket.id}`);
@@ -234,9 +271,7 @@ const setupSocketIo = (server) => {
                 user.microphone = microphone;
 
                 console.log(`📢 일반 매칭 요청: ${user.nickname}`);
-                waitingNormalQueue.push({ user, socket });
-
-                processNormalQueue(waitingNormalQueue);
+                normalQueue.addToQueue({ user, socket });
             } catch (error) {
                 console.error("❌ 일반 매칭 오류:", error);
                 socket.emit('matchError', { message: "일반 매칭 요청 중 오류 발생" });
@@ -250,9 +285,7 @@ const setupSocketIo = (server) => {
                 user.microphone = microphone;
 
                 console.log(`📢 랭크 매칭 요청: ${user.nickname}`);
-                rankQueue.push({ user, socket });
-
-                processRankQueue(rankQueue);
+                rankQueue.addToQueue({ user, socket });
             } catch (error) {
                 console.error("❌ 랭크 매칭 오류:", error);
                 socket.emit('matchError', { message: "랭크 매칭 요청 중 오류 발생" });
@@ -287,7 +320,7 @@ const setupSocketIo = (server) => {
 
             match.players.forEach(player => {
                 if (player.socketId !== socket.id) {
-                    io.to(player.socketId).emit('matchCancelled', {
+                    io.to(player.socketId).emit('matchRejected', {
                         message: "⚠️ 상대방이 매칭을 거부했습니다."
                     });
                 }
@@ -298,8 +331,8 @@ const setupSocketIo = (server) => {
         });
 
         socket.on('cancel match', () => {
-            removeUserFromQueue(socket.id, waitingNormalQueue);
-            removeUserFromQueue(socket.id, rankQueue);
+            normalQueue.removeFromQueue(socket.id);
+            rankQueue.removeFromQueue(socket.id);
             socket.emit('matchCancelled', { message: "매칭이 취소되었습니다." });
         });
 
@@ -326,6 +359,8 @@ const setupSocketIo = (server) => {
 
         socket.on('disconnect', () => {
             console.log(`❌ 연결 해제: ${socket.id}`);
+            normalQueue.removeFromQueue(socket.id);
+            rankQueue.removeFromQueue(socket.id);
             Object.values(matchDataStore).forEach(match => {
                 const player = match.players.find(p => p.socketId === socket.id);
                 if (player) {
@@ -336,8 +371,6 @@ const setupSocketIo = (server) => {
                     });
                 }
             });
-            removeUserFromQueue(socket.id, waitingNormalQueue);
-            removeUserFromQueue(socket.id, rankQueue);
         });
     });
 

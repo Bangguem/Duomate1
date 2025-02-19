@@ -172,7 +172,7 @@ export default {
                 this.matchFound = true;
             });
 
-            this.socket.on("matchCancelled", (data) => {
+            this.socket.on("matchRejected", (data) => {
                 console.log("❌ 매칭 취소됨:", data.message);
                 this.matchFound = false;
                 this.isMatching = false;
@@ -180,6 +180,15 @@ export default {
                     clearInterval(this.timer);
                 }
                 alert("⚠️ 상대방이 매칭을 거부했습니다. 다시 시도해주세요!");
+            });
+
+            this.socket.on("matchCancelled", (data) => {
+                console.log("❌ 매칭 취소됨:", data.message);
+                this.matchFound = false;
+                this.isMatching = false;
+                if (this.timer) {
+                    clearInterval(this.timer);
+                }
             });
 
             this.socket.on("matchConfirmed", async (data) => {
@@ -257,6 +266,7 @@ export default {
             }
             this.isMatching = false;
             this.socket.emit("cancel match");
+
         }
     },
 
