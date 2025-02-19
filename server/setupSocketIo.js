@@ -19,18 +19,18 @@ const setupSocketIo = (server) => {
         BRONZE: ["IRON", "BRONZE", "SILVER"],
         SILVER: ["IRON", "BRONZE", "SILVER", "GOLD"],
         GOLD: ["SILVER", "GOLD", "PLATINUM"],
-        PLATINUM: ["GOLD", "PLATINUM", "EMERALD"],
-        "EMERALD IV": ["PLATINUM", "EMERALD III"],
-        "EMERALD III": ["PLATINUM", "EMERALD II", "EMERALD IV"],
-        "EMERALD II": ["EMERALD I", "EMERALD III", "DIAMOND IV"],
-        "EMERALD I": ["DIAMOND IV", "EMERALD II", "DIAMOND III"],
-        "DIAMOND IV": ["EMERALD II", "DIAMOND III"],
-        "DIAMOND III": ["DIAMOND II", "DIAMOND IV", "DIAMOND I"],
-        "DIAMOND II": ["DIAMOND III", "DIAMOND I"],
-        "DIAMOND I": ["DIAMOND II", "MASTER"],
-        MASTER: ["DIAMOND I", "GRANDMASTER"],
-        GRANDMASTER: ["MASTER", "CHALLENGER"],
-        CHALLENGER: ["GRANDMASTER", "CHALLENGER"],
+        PLATINUM: ["GOLD", "PLATINUM", "EMERALD IV", "EMERALD III"],
+        "EMERALD IV": ["PLATINUM", "EMERALD III", "EMERALD IV"],
+        "EMERALD III": ["PLATINUM", "EMERALD II", "EMERALD III", "EMERALD IV"],
+        "EMERALD II": ["EMERALD I", "EMERALD II", "EMERALD III", "DIAMOND IV"],
+        "EMERALD I": ["EMERALD I", "EMERALD II", "DIAMOND IV", "DIAMOND III"],
+        "DIAMOND IV": ["EMERALD I", "EMERALD II", "DIAMOND III", "DIAMOND IV"],
+        "DIAMOND III": ["DIAMOND II", "DIAMOND III", "DIAMOND IV", "EMERALD I"],
+        "DIAMOND II": ["DIAMOND I", "DIAMOND II", "DIAMOND III"],
+        "DIAMOND I": ["MASTER", "DIAMOND I", "DIAMOND II"],
+        MASTER: ["GRANDMASTER", "MASTER", "DIAMOND I"],
+        GRANDMASTER: ["CHALLENGER", "GRANDMASTER", "MASTER"],
+        CHALLENGER: ["CHALLENGER", "GRANDMASTER"],
     };
 
     // 큐 관리를 위한 클래스
@@ -88,6 +88,15 @@ const setupSocketIo = (server) => {
                 const tier1 = player.user.summonerRank.tier;
                 const tier2 = entry.user.summonerRank.tier;
 
+
+                // 에메랄드나 다이아몬드인 경우
+                if (tier1.includes('EMERALD') || tier1.includes('DIAMOND') ||
+                    tier2.includes('EMERALD') || tier2.includes('DIAMOND')) {
+                    const key1 = `${tier1} ${player.user.summonerRank.rank}`;
+                    const key2 = `${tier2} ${entry.user.summonerRank.rank}`;
+                    return duoRestrictions[key1]?.includes(key2) || duoRestrictions[key2]?.includes(key1);
+                }
+
                 return duoRestrictions[tier1]?.includes(tier2) ||
                     duoRestrictions[tier2]?.includes(tier1);
             });
@@ -142,7 +151,9 @@ const setupSocketIo = (server) => {
                             microphone: player1.user.microphone,
                             socketId: player1.socket.id,
                             accepted: false,
-                            tier: player1.user.summonerRank.tier
+                            tier: player1.user.summonerRank.tier,
+                            summonerRank: player1.user.summonerRank,
+
                         },
                         {
                             userid: player2.user.userid,
@@ -151,7 +162,8 @@ const setupSocketIo = (server) => {
                             microphone: player2.user.microphone,
                             socketId: player2.socket.id,
                             accepted: false,
-                            tier: player2.user.summonerRank.tier
+                            tier: player2.user.summonerRank.tier,
+                            summonerRank: player2.user.summonerRank,
                         }
                     ]
                 };
