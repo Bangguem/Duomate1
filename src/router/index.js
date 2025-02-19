@@ -8,6 +8,7 @@ import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
 import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
 import BoardDetail from '@/components/BoardDetail.vue'; //BoardDetail 컴포넌트 불러오기
+import patchNotesDisplay from '@/components/patchNotesDisplay.vue'; // 새 컴포넌트 추가
 
 const routes = [
     {
@@ -35,6 +36,11 @@ const routes = [
         name: 'BoardDetail',
         component: BoardDetail,
         props: true, // 게시글 ID를 컴포넌트에 전달
+    },
+    {
+        path: '/patch-notes',
+        name: 'PatchNotesDisplay',
+        component: patchNotesDisplay,  // 새로운 컴포넌트 등록
     },
 ];
 
