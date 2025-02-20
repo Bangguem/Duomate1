@@ -1,38 +1,38 @@
 <template>
+    
+    <!-- 오른쪽에 채팅창 배치 -->
     <div class="chat-room">
-        <div class="chat-header">
-            <h1>채팅방</h1>
-            <button @click="leaveRoom" class="leave-button">
-                나가기
-            </button>
-        </div>
+           <div class="chat-header">
+               <h1>채팅방</h1>
+               <button @click="leaveRoom" class="leave-button">나가기</button>
+           </div>
 
-        <div v-if="match && match.players">
-            <h2>상대방: {{ getOpponent.nickname }}</h2>
-            <p>포지션: {{ getOpponent.position }}</p>
-            <p>마이크: {{ getOpponent.microphone }}</p>
-        </div>
-        <div v-else>
-            <p>매칭된 상대방 정보를 불러오는 중...</p>
-        </div>
+           <div class="opponent-info" v-if="getOpponent && getOpponent.nickname">
+   <h2>{{ getOpponent.nickname }}</h2>
+   <p>포지션: {{ getOpponent.position || '정보 없음' }}</p>
+   <p>마이크: {{ getOpponent.microphone || '정보 없음' }}</p>
+</div>
+       <div v-else>
+           <p>매칭된 상대방 정보를 불러오는 중...</p>
+       </div>
 
-        <div class="chat-window" ref="chatWindow">
-            <div v-for="(message, index) in messages" :key="index" class="chat-message" :class="{
-                'my-message': message.username === userInfo?.nickname,
-                'system-message': message.type === 'system'
-            }">
-                <div class="message-content" :class="{ 'system-content': message.type === 'system' }">
-                    <span v-if="message.type !== 'system'" class="username">{{ message.username }}</span>
-                    <span class="message-text">{{ message.message }}</span>
-                </div>
-            </div>
-        </div>
+       <div class="chat-window" ref="chatWindow">
+           <div v-for="(message, index) in messages" :key="index" class="chat-message" :class="{
+               'my-message': message.username === userInfo?.nickname,
+               'system-message': message.type === 'system'
+           }">
+               <div class="message-content" :class="{ 'system-content': message.type === 'system' }">
+                   <span v-if="message.type !== 'system'" class="username">{{ message.username }}</span>
+                   <span class="message-text">{{ message.message }}</span>
+               </div>
+           </div>
+       </div>
 
-        <div class="chat-input">
-            <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="메시지를 입력하세요..." ref="messageInput" />
-            <button @click="sendMessage">전송</button>
-        </div>
-    </div>
+       <div class="chat-input">
+           <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="메시지를 입력하세요..." ref="messageInput" />
+           <button @click="sendMessage">전송</button>
+       </div>
+   </div>
 </template>
 
 <script>
@@ -221,19 +221,43 @@ export default {
 </script>
 
 <style scoped>
+
+.chat-container {
+    display: flex;
+    flex-direction: row; /* 세로 정렬이 아니라 가로 정렬 */
+    height: 100vh;
+    background-color: rgb(33, 33, 33);
+}
+
+
+/* 왼쪽 상대방 정보 */
+.opponent-info {
+    width: 300px; /* 상대방 정보 영역 크기 */
+    padding: 20px;
+    background-color: rgb(25, 25, 25);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    border-right: 2px solid rgb(50, 50, 50);
+}
+
 .chat-room {
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100vh;
+    width: 300vw;
     padding: 20px;
-    background-color: #f5f5f5;
+    background-color: rgb(33, 33, 33);
+    color: white; /* 기본 글자색을 하얀색으로 설정 */
 }
 
 .chat-window {
     flex: 1;
     overflow-y: auto;
-    background-color: white;
+    background-color: rgb(33, 33, 33);
     padding: 20px;
     border-radius: 8px;
     width: 100%;
@@ -244,6 +268,7 @@ export default {
 
 .chat-message {
     margin-bottom: 15px;
+    color: white;
 }
 
 .message-content {
@@ -251,15 +276,16 @@ export default {
     max-width: 80%;
     padding: 10px 15px;
     border-radius: 15px;
-    background-color: #f0f0f0;
+    background-color: rgb(21, 81, 55);
 }
 
 .my-message {
     text-align: right;
+    color: white;
 }
 
 .my-message .message-content {
-    background-color: #007bff;
+    background-color: rgb(21, 81, 55);
     color: white;
 }
 
@@ -267,6 +293,7 @@ export default {
     font-weight: bold;
     margin-right: 8px;
     font-size: 0.9em;
+    color: white;
 }
 
 .message-text {
@@ -279,29 +306,31 @@ export default {
     max-width: 800px;
     gap: 10px;
     padding: 15px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: rgb(66, 66, 66);
+    border-radius: 45px;
+    box-shadow: 0 2px 4px rgb(33, 33, 33);
 }
 
 .chat-input input {
     flex: 1;
     padding: 12px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+    border-radius: 45px;
+    border: 1px solid rgb(66, 66, 66);
     font-size: 16px;
+    background-color: rgb(66, 66, 66);
+    color: white; /* 입력창 내 텍스트 색 */
 }
 
 .chat-input input:focus {
     outline: none;
-    border-color: #007bff;
+    border-color:  rgb(21, 81, 55);
 }
 
 .chat-input button {
     padding: 12px 24px;
-    border-radius: 5px;
+    border-radius: 45px;
     border: none;
-    background-color: #007bff;
+    background-color:  rgb(21, 81, 55);
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -309,7 +338,7 @@ export default {
 }
 
 .chat-input button:hover {
-    background-color: #0056b3;
+    background-color: rgb(21, 81, 55);
 }
 
 .chat-header {
@@ -323,16 +352,16 @@ export default {
 
 .leave-button {
     padding: 8px 16px;
-    background-color: #dc3545;
+    background-color: rgb(21, 81, 55); 
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 45px;
     cursor: pointer;
     transition: background-color 0.2s;
 }
 
 .leave-button:hover {
-    background-color: #c82333;
+    background-color: rgb(21, 81, 55);
 }
 
 .system-message {

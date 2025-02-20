@@ -1,71 +1,87 @@
 <template>
     <div class="match-queue">
         <div class="match-container">
-            <!-- 프로필 -->
-            <div class="profile-section">
-                <div class="profile-picture"></div>
-                <span>안녕하세요, {{ userInfo.nickname }}님!</span>
+            <!-- ✅ 프로필 & 티어 정보 & 전적 갱신 버튼을 한 줄로 배치 -->
+            <div class="profile-rank-container">
+                <!-- 프로필 -->
+                <div class="profile-section">
+                    <div class="profile-picture"></div>
+                    <span>안녕하세요, {{ userInfo.nickname }}님!</span>
+                    <!-- 티어 정보 & 전적 갱신 버튼 -->
+                <div class="user-rank-container">
+                    <div class="rank-info">
+                        <img :src="rankIconUrl" alt="티어 아이콘" class="rank-icon" />
+                        <span class="rank-text">{{ userInfo.rank }}</span>
+                    </div>
+                    <button class="refresh-button" @click="fetchLatestMatchData">전적 갱신</button>
+                </div>
+                </div>
+    
+                
             </div>
-
-            <!-- 포지션 선택 -->
-            <div class="selection-section">
-                <h2>포지션 (중복 2개 가능)</h2>
-                <div class="position-options">
-                    <div v-for="pos in positions" :key="pos.value"
-                        :class="{ selected: selectedPositions.includes(pos.value) }" @click="togglePosition(pos.value)">
-                        <img :src="pos.icon" :alt="pos.label" />
-                        <span>{{ pos.label }}</span>
+    
+                <!-- 포지션 선택 -->
+                <div class="selection-section">
+                    <h2>포지션 (중복 2개 가능)</h2>
+                    <div class="position-options">
+                        <div v-for="pos in positions" :key="pos.value"
+                            :class="{ selected: selectedPositions.includes(pos.value) }" @click="togglePosition(pos.value)">
+                            <img :src="pos.icon" :alt="pos.label" />
+                            <span>{{ pos.label }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 음성 채팅 사용 여부 -->
-            <div class="selection-section">
-                <h2>음성 채팅 사용 여부</h2>
-                <div class="voice-options">
-                    <div v-for="voice in voiceOptions" :key="voice.value"
-                        :class="{ active: microphone === voice.value }" @click="microphone = voice.value">
-                        <img :src="voice.icon" :alt="voice.label" />
-                        <span>{{ voice.label }}</span>
+    
+                <!-- 음성 채팅 사용 여부 -->
+                <div class="selection-section">
+                    <h2>음성 채팅 사용 여부</h2>
+                    <div class="voice-options">
+                        <div v-for="voice in voiceOptions" :key="voice.value"
+                            :class="{ active: microphone === voice.value }" @click="microphone = voice.value">
+                            <img :src="voice.icon" :alt="voice.label" />
+                            <span>{{ voice.label }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 일반/랭크 선택 -->
-            <div class="selection-section">
-                <h2>일반 / 랭크</h2>
-                <div class="game-mode-options">
-                    <div v-for="mode in gameModes" :key="mode.value" :class="{ active: matchType === mode.value }"
-                        @click="matchType = mode.value">
-                        <img :src="mode.icon" :alt="mode.label" />
-                        <span>{{ mode.label }}</span>
+    
+                <!-- 일반/랭크 선택 -->
+                <div class="selection-section">
+                    <h2>일반 / 랭크</h2>
+                    <div class="game-mode-options">
+                        <div v-for="mode in gameModes" :key="mode.value" :class="{ active: matchType === mode.value }"
+                            @click="matchType = mode.value">
+                            <img :src="mode.icon" :alt="mode.label" />
+                            <span>{{ mode.label }}</span>
+                        </div>
                     </div>
                 </div>
+    
+                <!-- 매칭 버튼 -->
+                <button @click="startMatching" :disabled="isMatching" class="match-button">매칭 시작</button>
             </div>
-
-            <!-- 매칭 버튼 -->
-            <button @click="startMatching" :disabled="isMatching" class="match-button">매칭 시작</button>
-        </div>
-
-        <!-- 매칭 진행 중 팝업 -->
-        <div class="popup-overlay" v-if="isMatching">
-            <div class="popup-content">
-                <!-- 로딩 아이콘 -->
-                <img src="/icons/loading.png" alt="Loading" class="loading-icon" />
-
-                <!-- 대기 시간 -->
-                <p class="waiting-time">{{ formattedTime }}</p>
-
-                <p>상대를 찾고 있습니다. 잠시만 기다려 주세요.</p>
-                <div v-if="matchFound">
-                    <button @click="acceptMatch">수락</button>
-                    <button @click="rejectMatch">거부</button>
-                </div>
-                <button v-else @click="cancelMatching">취소</button>
-            </div>
-        </div>
+    
+            <!-- ✅ 매칭 완료 화면 -->
+            <div class="match-confirmation" v-if="matchFound">
+    <div class="match-info">
+        <p class="match-text">매칭 완료!!</p>
     </div>
-</template>
+    <div class="match-buttons">
+        <button class="reject-button" @click="rejectMatch">거절</button>
+        <button class="accept-button" @click="acceptMatch">수락</button>
+    </div>
+</div>
+    
+            <!-- ✅ 기존 매칭 중 UI 유지 -->
+            <div class="popup-overlay" v-if="isMatching && !matchFound">
+                <div class="popup-content">
+                    <img src="/icons/loading.png" alt="Loading" class="loading-icon" />
+                    <p class="waiting-time">{{ formattedTime }}</p>
+                    <p>상대를 찾고 있습니다. 잠시만 기다려 주세요.</p>
+                    <button @click="cancelMatching">취소</button>
+                </div>
+            </div>
+        </div>
+    </template>
 
 <script>
 import { io } from "socket.io-client";
@@ -295,6 +311,7 @@ export default {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    width: 300vw;
     background-color: #1e1e1e;
 }
 
@@ -303,7 +320,54 @@ export default {
     padding: 20px;
     border-radius: 10px;
     color: white;
-    width: 400px;
+    width: 600px;  /* 🔹 기존 400px → 600px로 확대 */
+    max-width: 80%; /* 🔹 화면 크기에 맞게 유동적으로 조절 */
+}
+
+/* ✅ 프로필 + 티어 아이콘 + 전적 갱신 버튼을 한 줄로 정렬 */
+.profile-rank-container {
+    display: flex;
+    align-items: center;  /* 요소들을 수직 정렬 */
+    justify-content: space-between;  /* 양 끝으로 배치 */
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    gap: 20px; /* 프로필과 티어 정보 사이 여백 */
+}
+
+/* ✅ 티어 정보 & 전적 갱신 버튼을 한 줄 정렬 */
+.user-rank-container {
+    display: flex;
+    align-items: center;  /* 수직 정렬 */
+    gap: 10px; /* 티어 아이콘과 버튼 사이 여백 */
+}
+
+/* ✅ 티어 정보 스타일 */
+.rank-info {
+    display: flex;
+    flex-direction: column;  /* 아이콘 & 티어 이름 세로 배치 */
+    align-items: center;
+    text-align: center;
+}
+
+/* ✅ 아이콘 스타일 */
+.rank-icon {
+    width: 50px;
+    height: 50px;
+}
+
+/* ✅ 전적 갱신 버튼 크기 조정 */
+.refresh-button {
+    padding: 8px 12px;
+    background: rgb(21, 81, 55);
+    color: white;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.refresh-button:hover {
+    background: rgb(30, 100, 70);
 }
 
 /* 아이콘 선택 스타일 */
@@ -320,13 +384,27 @@ export default {
     /* 여러 줄로 자동 배치 */
 }
 
-.position-options img,
-.voice-options img,
-.game-mode-options img {
-    width: 60px;
-    height: 60px;
+/* 포지션 아이콘 크기 */
+.position-options img {
+    width: var(--position-icon-width, 80px);
+    height: var(--position-icon-height, 80px);
     transition: transform 0.2s;
 }
+
+/* 음성 채팅 아이콘 크기 */
+.voice-options img {
+    width: var(--voice-icon-width, 50px);
+    height: var(--voice-icon-height, 80px);
+    transition: transform 0.2s;
+}
+
+/* 게임 모드 아이콘 크기 */
+.game-mode-options img {
+    width: var(--game-mode-icon-width, 80px);
+    height: var(--game-mode-icon-height, 80px);
+    transition: transform 0.2s;
+}
+
 
 .position-options img:hover,
 .voice-options img:hover,
@@ -439,4 +517,67 @@ export default {
     font-size: 14px;
     color: white;
 }
+
+.match-confirmation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: fixed;  /* 화면에 고정 (팝업 역할) */
+    top: 50%;  /* 화면 중앙 위치 */
+    left: 50%;
+    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+    width: 400px;  /* 원하는 팝업 크기 */
+    height: 600px; /* 원하는 팝업 크기 */
+    background: #222; /* 팝업 배경 색 */
+    color: white;
+    border-radius: 15px; /* 팝업 모서리 둥글게 */
+    padding: 20px;
+    text-align: center;
+}
+
+.match-info {
+    text-align: center;
+}
+
+.opponent-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    background-color: #2c2c2c;
+    border-radius: 50%;
+}
+
+.match-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.reject-button, .accept-button {
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.reject-button {
+    background: none;
+    border: 2px solid white;
+    color: white;
+    border-radius: 45px;
+}
+
+.accept-button {
+    background: rgb(21, 81, 55);
+    color: white;
+    border-radius: 45px;
+}
+
+
 </style>

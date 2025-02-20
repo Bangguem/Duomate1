@@ -16,6 +16,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "vue": "^3.2.13",
+    "vue-cli-service": "^5.0.10",
     "vue-router": "^4.4.5",
     "vuex": "^4.1.0"
   },
