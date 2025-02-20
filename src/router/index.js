@@ -8,6 +8,8 @@ import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
 import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
 import BoardDetail from '@/components/BoardDetail.vue'; //BoardDetail 컴포넌트 불러오기
+import MatchQueue from '@/components/MatchQueue.vue';
+import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
 
 const routes = [
@@ -19,7 +21,7 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: LoginForm,
+    component: LoginForm
   },
   { path: '/request-password-reset', component: RequestPasswordReset },
   { path: '/reset-password', component: ResetPassword },
@@ -32,6 +34,13 @@ const routes = [
     name: 'BoardDetail',
     component: BoardDetail,
     props: true, // 게시글 ID를 컴포넌트에 전달
+  },
+  { path: '/matchqueue', component: MatchQueue },
+  {
+    path: '/chatroom',
+    name: 'ChatRoom',
+    component: ChatRoom,
+    props: true, // params를 컴포넌트 props로 전달
   },
 ];
 

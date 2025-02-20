@@ -93,7 +93,7 @@
             <h1>Find your Duo Mate!</h1>
             <p>Connect with gamers and build lasting friendships in our real-time chat platform designed for gamers!!!!
             </p>
-            <button class="match-button">START</button>
+            <button class="match-button" @click="enterMatchQueue">ENTER MATCH QUEUE</button>
           </div>
 
         </div>
@@ -123,10 +123,11 @@ export default {
     };
   },
 
+
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit'].includes(this.$route.path);
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
@@ -144,6 +145,9 @@ export default {
     }
   },
   methods: {
+    enterMatchQueue() {
+      this.$router.push('/matchqueue');
+    },
     playVideo() {
       this.videoElement.play();
     },
@@ -475,20 +479,19 @@ body {
 .match-button {
   position: absolute;
   flex: 1;
-  width: 150px;
+  width: 200px;
   height: 50px;
-  ;
-  font-size: 14px;
+  font-size: 16px;
   background-color: #155137;
   border: none;
   color: #fff;
-  border-radius: 20px;
+  border-radius: 25px;
   cursor: pointer;
   text-align: center;
   transform: translate(-50%, 140%);
 }
 
-.match-button :hover {
+.match-button:hover {
   background-color: #15513775;
 }
 </style>
