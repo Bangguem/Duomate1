@@ -213,6 +213,22 @@ async function createSummoner(summonerprofile) {
     );
 }
 
+async function ChangeUserprofile(userprofile) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+
+    return await collection.updateOne(
+        { userid: userprofile.userid }, // `userid`로 문서 찾기
+        {
+            $set: {
+                nickname: userprofile.nickname,
+                birthdate: userprofile.birthdate,
+                gender: userprofile.gender,
+                email: userprofile.email,
+            }
+        }
+    );
+}
 // 게시글 생성 함수
 async function createPost(postData) {
     const db = client.db(DB_NAME);
@@ -418,4 +434,5 @@ module.exports = {
     updateComment,
     deleteCommentsByPostId,
     updateCommentLikes,
+    ChangeUserprofile,
 }
