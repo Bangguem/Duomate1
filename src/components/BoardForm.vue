@@ -38,7 +38,7 @@
       <ul v-else-if="sortedPosts.length">
         <li v-for="post in sortedPosts" :key="post._id">
           <h2 @click="goToDetailPage(post._id)">{{ post.title }}</h2>
-          <p>{{ post.content }}</p>
+          <p v-html="convertNewLinesToBreaks(post.content)"></p>
           <small>{{ post.author || '작성자 없음' }} - {{ formatDate(post.createdAt) }}</small>
           <div>
             <span>👍 {{ post.likes || 0 }}</span> | <span>👎 {{ post.dislikes || 0 }}</span>
@@ -212,7 +212,10 @@ export default {
     resetSearch() {
       this.searchQuery = ''; // 검색어 초기화
       this.filteredPosts = [...this.posts]; // 모든 게시글 다시 표시
-    }
+    },
+    convertNewLinesToBreaks(text) {
+      return text.replace(/\n/g, '<br>');
+    },
   }
 };
 </script>

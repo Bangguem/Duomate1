@@ -22,7 +22,7 @@
       <!-- 게시글 보기 모드 -->
       <div v-else>
         <h1>{{ post.title }}</h1>
-        <p>{{ post.content }}</p>
+        <p v-html="convertNewLinesToBreaks(post.content)"></p>
         <small>작성자: {{ post.author || '작성자 없음' }}</small>
         <br />
         <small>작성 시간: {{ formatDate(post.createdAt) }}</small>
@@ -77,7 +77,7 @@
 
             <!-- 댓글 내용 -->
             <div v-else>
-              <p>{{ comment.content }}</p>
+              <p v-html="convertNewLinesToBreaks(comment.content)"></p>
             </div>
             <!-- 댓글 좋아요/싫어요 버튼 -->
             <div>
@@ -373,6 +373,9 @@ export default {
       } catch (error) {
         console.error('조회수 증가 요청 중 오류 발생:', error);
       }
+    },
+    convertNewLinesToBreaks(text) {
+      return text.replace(/\n/g, '<br>');
     },
   },
   created() {
