@@ -84,6 +84,7 @@ export default {
             matchId: null,
             waitingTime: 0,
             timer: null,
+            
 
             positionIconSize: 40,
             voiceIconWidth: 50,
