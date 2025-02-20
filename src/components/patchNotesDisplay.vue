@@ -1,120 +1,206 @@
 <template>
-    <div>
-      <h1>롤 패치 노트</h1>
-      <div v-if="patchNotes.length === 0">
-        <p>패치 노트를 불러오는 중...</p>
-      </div>
-      <ul v-else>
-        <li v-for="(note, index) in patchNotes" :key="index">
-          <a :href="note.link" target="_blank">{{ note.title }}</a>
-        </li>
-      </ul>
-  
-      <!-- 더보기 버튼 추가 -->
+  <div class="contents">  <!-- 전체 콘텐츠 컨테이너 -->
+      <section class="contents-header">
+          <div class="header-right">
+              <div class="search-box">
+                  <input v-model="searchQuery" type="text" placeholder="검색" class="search-input">
+                  <span class="search-icon">🔍</span>
+              </div>
+          </div>
+      </section>
+
+      <section class="patch-list">
+          <div v-if="patchNotes.length === 0">
+              <p>패치 노트를 불러오는 중...</p>
+          </div>
+          <div class="patch-item" v-for="(patch, index) in filteredPatchNotes" :key="index">
+              <img src="@/assets/icon_lol.png" alt="패치 아이콘" class="patch-icon" />
+              <div class="patch-info">
+                  <a :href="patch.link" target="_blank" class="patch-title">{{ patch.title }}</a>
+                  <p class="patch-date">{{ patch.date }}</p>
+              </div>
+          </div>
+      </section>
+
       <button v-if="canLoadMore" @click="loadMore">더보기</button>
-    </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
       return {
-        patchNotes: [],     // 패치 노트 데이터
-        skip: 0,            // 데이터 건너뛰기 (페이지네이션)
-        limit: 12,          // 한 번에 불러올 데이터 개수
-        canLoadMore: true,  // 더보기 버튼이 활성화될지 여부
+          patchNotes: [],
+          skip: 0,
+          limit: 12,
+          canLoadMore: true,
+          searchQuery: '',
       };
-    },
-    mounted() {
-      this.fetchPatchNotes();  // 컴포넌트가 마운트되면 API 호출
-    },
-    methods: {
+  },
+  computed: {
+      filteredPatchNotes() {
+          return this.patchNotes.filter(patch =>
+              patch.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+          );
+      }
+  },
+  mounted() {
+      this.fetchPatchNotes();
+  },
+  methods: {
       async fetchPatchNotes() {
-        try {
-          const response = await fetch('http://localhost:3000/api/patch-notes/patch-notes', {
-            method: 'GET',
-            credentials: 'include', // 쿠키 포함
-          });
-  
-          if (response.ok) {
-            const data = await response.json();
-            this.patchNotes = data;  // 서버에서 받은 패치 노트를 화면에 표시
-          } else {
-            console.error('Error fetching patch notes');
+          try {
+              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}`, {
+                  method: 'GET',
+                  credentials: 'include',
+              });
+
+              if (response.ok) {
+                  const data = await response.json();
+                  this.patchNotes = data;
+              } else {
+                  console.error('Error fetching patch notes');
+              }
+          } catch (error) {
+              console.error('Error fetching patch notes:', error);
           }
-        } catch (error) {
-          console.error('Error fetching patch notes:', error);
-        }
       },
-  
-      // "더보기" 버튼 클릭 시 추가 데이터 로드
       async loadMore() {
-        try {
-          const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}`, {
-            method: 'GET',
-            credentials: 'include', // 쿠키 포함
-          });
-  
-          if (response.ok) {
-            const data = await response.json();
-            
-            // 더보기 버튼 클릭 시 기존 패치 노트에 새로운 패치 노트 추가
-            this.patchNotes = [...this.patchNotes, ...data];
-            
-            // 더 이상 로드할 데이터가 없으면 더보기 버튼 비활성화
-            if (data.length < this.limit) {
-              this.canLoadMore = false;
-            }
-  
-            // skip 값을 갱신하여 더 많은 데이터를 요청
-            this.skip += this.limit;
-          } else {
-            console.error('Error fetching patch notes');
+          try {
+              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}`, {
+                  method: 'GET',
+                  credentials: 'include',
+              });
+
+              if (response.ok) {
+                  const data = await response.json();
+                  this.patchNotes = [...this.patchNotes, ...data];
+                  if (data.length < this.limit) {
+                      this.canLoadMore = false;
+                  }
+                  this.skip += this.limit;
+              } else {
+                  console.error('Error fetching patch notes');
+              }
+          } catch (error) {
+              console.error('Error fetching patch notes:', error);
           }
-        } catch (error) {
-          console.error('Error fetching patch notes:', error);
-        }
       },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  /* 스타일링 */
-  h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: white; /* 글씨 색깔을 하얀색으로 변경 */
+      sortBy(type) {
+          if (type === 'latest') {
+              this.patchNotes.sort((a, b) => new Date(b.date) - new Date(a.date));
+          } else if (type === 'popular') {
+              // 인기순 정렬 (예: 좋아요 개수 기준, 데이터 형식에 맞게 수정 필요)
+          }
+      }
   }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  li {
-    margin-bottom: 10px;
-  }
-  
-  a {
-    color: white; /* 글씨 색깔을 하얀색으로 변경 */
-    text-decoration: none;
-  }
-  
-  a:hover {
-    text-decoration: underline;
-  }
-  
-  button {
-    background-color: #008cba;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-  
-  button:hover {
-    background-color: #0077a3;
-  }
-  </style>
+};
+</script>
+
+<style scoped>
+.contents {
+  width: 100%;
+  max-width: 1260px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 50px;
+  border-radius: 0.5rem;
+}
+
+.contents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #424242;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-button {
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: black;
+  border-radius: 20px;
+  padding: 5px 10px;
+}
+
+.search-input {
+  background: none;
+  border: none;
+  color: white;
+  outline: none;
+}
+
+.patch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.patch-item {
+  display: flex;
+  align-items: center;
+  background-color: #333;
+  padding: 15px;
+  border-radius: 8px;
+  gap: 15px;
+}
+
+.patch-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.patch-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: white;
+}
+
+.patch-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+.patch-title:hover {
+  text-decoration: underline;
+}
+
+.patch-date {
+  font-size: 14px;
+  color: gray;
+}
+
+button {
+  background-color: #008cba;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 20px;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0077a3;
+}
+</style>
