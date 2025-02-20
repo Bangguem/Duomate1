@@ -2,7 +2,9 @@
 const express = require('express');
 const { verifyToken } = require('../auth'); // auth.js에서 함수 가져오기
 const router = express.Router();
-const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, updatePostLikes,addComment, getComments, deleteComment, updateComment, deleteCommentsByPostId, updateCommentLikes } = require('../db');
+const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost, 
+        updatePostLikes,addComment, getComments, deleteComment, updateComment,
+        deleteCommentsByPostId, updateCommentLikes, incrementPostViews} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -148,33 +150,29 @@ router.put('/:id', authenticateJWT, async (req, res) => {
 // 게시글 좋아요/싫어요 처리
 router.put('/:id/like', authenticateJWT, async (req, res) => {
     const postId = req.params.id;
-    const { action } = req.body; // 'like' 또는 'dislike'
-
-    if (!ObjectId.isValid(postId)) {
-        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
-    }
+    const { action } = req.body;
 
     if (!['like', 'dislike'].includes(action)) {
         return res.status(400).json({ message: 'action 값은 "like" 또는 "dislike"여야 합니다.' });
     }
 
-    if (!req.user || !req.user.userid) {
-        return res.status(401).json({ message: '로그인이 필요합니다.' });
-    }
-
     try {
         const success = await updatePostLikes(postId, req.user.userid, action);
         if (success) {
-            res.status(200).json({ message: `게시글 ${action} 처리 완료` });
+            // 최신 좋아요/싫어요 수를 반환
+            const post = await getPostById(postId);
+            res.status(200).json({ likes: post.likes, dislikes: post.dislikes });
         } else {
             res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
         }
     } catch (error) {
-        res.status(500).json({ message: `게시글 ${action} 처리 중 오류 발생`, error });
+        console.error('좋아요/싫어요 처리 중 오류 발생:', error);
+        res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
 });
 
-//게시글 상세
+
+//게시글 상세 조회
 router.get('/:id', async (req, res) => {
     const postId = req.params.id;
 
@@ -183,6 +181,7 @@ router.get('/:id', async (req, res) => {
     }
 
     try {
+        //게시글 데이터 가져오기
         const post = await getPostById(postId); // 기존에 정의된 getPostById 함수 사용
         if (!post) {
             return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
@@ -301,6 +300,29 @@ router.put('/comments/:commentId/like', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('댓글 좋아요/싫어요 처리 중 오류 발생:', error);
         res.status(500).json({ message: `댓글 ${action} 처리 중 오류 발생`, error });
+    }
+});
+
+//게시글 조회수 증가
+router.post('/:id/views', async (req, res) => {
+    const postId = req.params.id;
+
+    if (!ObjectId.isValid(postId)) {
+        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
+    }
+
+    try {
+        // 조회수 증가 함수 호출
+        const success = await incrementPostViews(postId);
+
+        if (success) {
+            return res.status(200).json({ message: '조회수가 성공적으로 증가했습니다.' });
+        } else {
+            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+    } catch (error) {
+        console.error('조회수 증가 처리 중 오류 발생:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
 });
 

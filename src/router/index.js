@@ -8,6 +8,7 @@ import FindId from '@/components/FindId.vue';
 import MypageEdit from '@/components/MypageEdit.vue';
 import BoardForm from '@/components/BoardForm.vue'; // BoardForm 컴포넌트 불러오기
 import BoardDetail from '@/components/BoardDetail.vue'; //BoardDetail 컴포넌트 불러오기
+import patchNotesDisplay from '@/components/patchNotesDisplay.vue'; // 새 컴포넌트 추가
 import MatchQueue from '@/components/MatchQueue.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
@@ -21,14 +22,18 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: LoginForm
+    component: LoginForm,
   },
   { path: '/request-password-reset', component: RequestPasswordReset },
   { path: '/reset-password', component: ResetPassword },
   { path: '/find-password', component: FindPassword },
   { path: '/find-id', component: FindId },
   { path: '/mypage-edit', component: MypageEdit },
-  { path: '/board', component: BoardForm },
+  {
+    path: '/board',
+    name: 'BoardForm',
+    component: BoardForm, // 게시판 페이지 추가
+  },
   {
     path: '/board/:id',
     name: 'BoardDetail',
@@ -42,6 +47,12 @@ const routes = [
     component: ChatRoom,
     props: true, // params를 컴포넌트 props로 전달
   },
+  {
+    path: '/patch-notes',
+    name: 'PatchNotesDisplay',
+    component: patchNotesDisplay,  // 새로운 컴포넌트 등록
+  },
+
 ];
 
 const router = createRouter({

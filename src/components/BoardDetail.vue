@@ -22,10 +22,12 @@
       <!-- 게시글 보기 모드 -->
       <div v-else>
         <h1>{{ post.title }}</h1>
-        <p>{{ post.content }}</p>
+        <p v-html="convertNewLinesToBreaks(post.content)"></p>
         <small>작성자: {{ post.author || '작성자 없음' }}</small>
         <br />
         <small>작성 시간: {{ formatDate(post.createdAt) }}</small>
+        <br />
+        <small>조회수 : {{ post.views || 0 }}</small> <!-- 조회수 추가 -->
 
         <!-- 좋아요/싫어요 버튼 -->
         <div>
@@ -40,11 +42,21 @@
         </div>
       </div>
 
-      <!-- 댓글 리스트 -->
+      <!-- 댓글 정렬 옵션 -->
       <div v-if="comments.length > 0">
         <h3>댓글 ({{ comments.length }})</h3>
+        <div>
+          <label for="comment-sort">정렬 기준:</label>
+          <select id="comment-sort" v-model="sortOrder" @change="sortComments">
+            <option value="latest">최신순</option>
+            <option value="oldest">오래된순</option>
+            <option value="likes">좋아요순</option>
+          </select>
+        </div>
+
+        <!-- 댓글 리스트 -->
         <ul>
-          <li v-for="comment in comments" :key="comment._id" class="comment-item">
+          <li v-for="comment in sortedComments" :key="comment._id" class="comment-item">
             <div class="comment-header">
               <strong>{{ comment.nickname }}</strong>
               <small>{{ formatDate(comment.createdAt) }}</small>
@@ -65,7 +77,7 @@
 
             <!-- 댓글 내용 -->
             <div v-else>
-              <p>{{ comment.content }}</p>
+              <p v-html="convertNewLinesToBreaks(comment.content)"></p>
             </div>
             <!-- 댓글 좋아요/싫어요 버튼 -->
             <div>
@@ -112,11 +124,23 @@ export default {
       newComment: '', // 새 댓글 내용
       editingCommentId: null, // 수정 중인 댓글의 ID
       editingContent: '', // 수정 중인 댓글의 내용
+      sortOrder: 'latest', // 댓글 정렬 기준
     };
   },
   computed: {
     isAuthor() {
       return this.currentUser?.nickname === this.post?.author;
+    },
+    sortedComments() {
+      return [...this.comments].sort((a, b) => {
+        if (this.sortOrder === 'latest') {
+          return new Date(b.createdAt) - new Date(a.createdAt); // 최신순
+        } else if (this.sortOrder === 'oldest') {
+          return new Date(a.createdAt) - new Date(b.createdAt); // 오래된순
+        } else if (this.sortOrder === 'likes') {
+          return (b.likes || 0) - (a.likes || 0); // 좋아요순
+        }
+      });
     },
   },
   methods: {
@@ -210,10 +234,16 @@ export default {
         return;
       }
       try {
-        await axios.put(`http://localhost:3000/api/board/${this.id}/like`, { action: 'like' }, { withCredentials: true });
-        await this.fetchPost();
+        const response = await axios.put(
+          `http://localhost:3000/api/board/${this.id}/like`,
+          { action: 'like' },
+          { withCredentials: true }
+        );
+        this.post.likes = response.data.likes;
+        this.post.dislikes = response.data.dislikes;
       } catch (error) {
         console.error('좋아요 처리 중 오류 발생:', error);
+        alert('좋아요 처리에 실패했습니다.');
       }
     },
     async dislikePost() {
@@ -222,10 +252,16 @@ export default {
         return;
       }
       try {
-        await axios.put(`http://localhost:3000/api/board/${this.id}/like`, { action: 'dislike' }, { withCredentials: true });
-        await this.fetchPost();
+        const response = await axios.put(
+            `http://localhost:3000/api/board/${this.id}/like`,
+            { action: 'dislike' },
+            { withCredentials: true }
+        );
+        this.post.likes = response.data.likes;
+        this.post.dislikes = response.data.dislikes;
       } catch (error) {
         console.error('싫어요 처리 중 오류 발생:', error);
+        alert('싫어요 처리에 실패했습니다.');
       }
     },
     // 댓글 수정 관련 메서드
@@ -323,9 +359,29 @@ export default {
         console.error('댓글 싫어요 처리 중 오류 발생:', error);
       }
     },
+    sortComments() {
+      console.log(`정렬 기준이 ${this.sortOrder}로 변경되었습니다.`);
+    },
+    
+    async incrementViews() {
+      try {
+        const response = await axios.post(`http://localhost:3000/api/board/${this.id}/views`, {}, { withCredentials: true });
+        if (response.status === 200) {
+          // 서버에서 조회수 증가가 성공하면 클라이언트 데이터 업데이트
+          this.post.views += 1;
+        }
+      } catch (error) {
+        console.error('조회수 증가 요청 중 오류 발생:', error);
+      }
+    },
+    convertNewLinesToBreaks(text) {
+      return text.replace(/\n/g, '<br>');
+    },
   },
   created() {
-    this.loadData();
+    this.loadData().then(() => {
+      this.incrementViews();
+    });
   },
 };
 </script>
