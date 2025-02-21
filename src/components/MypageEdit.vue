@@ -82,13 +82,13 @@
           <div class="detail-item">
             <img src="tier-icon.png" alt="Tier Icon" />
             <p>Game Tier</p>
-            <h3>{{ riotInfo.tier || "정보 없음" }}</h3>
+            <h3>{{ riotInfo.summonerRank.tier || "정보 없음" }}</h3>
           </div>
 
           <div class="detail-item">
             <img src="level-icon.png" alt="Level Icon" />
             <p>In-game Level</p>
-            <h3>{{ riotInfo.summonerLevel || "정보 없음" }}</h3>
+            <h3>{{ riotInfo.summonerInfo.summonerLevel || "정보 없음" }}</h3>
           </div>
         </div>
 
@@ -134,9 +134,14 @@
         birthdate: '',
       },
       riotInfo: {
+        summonerRank: {
         tier: '',
-        summonerLevel: '',
-        profileIconId: '',
+        rank: '',
+        },
+        summonerInfo:{
+          summonerLevel: '',
+          profileIconId: '',
+        },
         top5Champions: [],
       },
       showRiotModal: false,
@@ -255,7 +260,7 @@
         alert("연동 중 오류가 발생했습니다.");
       }
     },
-  },
+  }
 };
 </script>
   

@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
+const http = require('http');
 const app = express();
 const PORT = 3000;
+const { setupSocketIo, matchDataStore } = require('./setupSocketIo');// Socket.IO 설정 가져오기
 
 // Middleware 설정
 app.use(cors({
@@ -15,6 +16,9 @@ app.use(cors({
 app.use(bodyParser.json());
 app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
 
+
+const server = http.createServer(app);
+const io = setupSocketIo(server);
 // 서버 실행
 
 
@@ -27,9 +31,13 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser()); // 쿠키 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 요청 본문 파싱
 const nodemailer = require('nodemailer');
+const boardRouter = require('./routes/board');  // board 라우터 추가
+const patchNotesFetcherRouter = require('./routes/patchNotesFetcher'); // patchNotesFetcher 라우터 추가
+app.use('/api/board', boardRouter);  // /api/board 라우트 추가
+app.use('/api/patch-notes', patchNotesFetcherRouter);  // /api/patch-notes 라우터 연결
 
 connectToMongo().then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
     });
 });
@@ -301,7 +309,7 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
     const userData = req.user;
     if (userData) {
         const { summonerName, tag } = req.body;
-        
+
         try {
             const summonerprofile = {
                 userid: userData.userid,
@@ -319,6 +327,43 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
     }
 });
 
+// ✅ 매칭 정보 조회 API
+app.get("/match/get/:matchId", (req, res) => {
+    const matchId = req.params.matchId;
+
+    console.log(`📢 매칭 정보 요청: ${matchId}`);
+    console.log(`🔍 저장된 매칭 데이터:`, matchDataStore);
+
+    // ✅ `matchId`가 `matchDataStore`에 존재하는지 확인
+    if (!matchId || !matchDataStore[matchId]) {
+        console.error(`❌ matchId(${matchId})에 해당하는 매칭 정보를 찾을 수 없음`);
+        return res.status(404).json({ success: false, message: "매칭 정보 없음" });
+    }
+
+    res.json({ success: true, match: matchDataStore[matchId] });
+});
+
+// index.js의 /match/save 엔드포인트 수정
+app.post("/match/save", (req, res) => {
+    const { matchId } = req.body;
+    console.log("📢 매칭 저장 요청 받음. matchId:", matchId);
+    console.log("📢 현재 matchDataStore:", matchDataStore);
+
+    if (!matchId || !matchDataStore[matchId]) {
+        console.error(`❌ 유효하지 않은 매칭 데이터 (matchId: ${matchId})`);
+        return res.status(400).json({
+            success: false,
+            message: "유효하지 않은 매칭 데이터",
+            matchId: matchId,
+            availableMatches: Object.keys(matchDataStore)
+        });
+    }
+
+    console.log(`✅ 매칭 데이터 확인 성공: ${matchId}`);
+    console.log("🔹 저장된 매칭 데이터:", matchDataStore[matchId]);
+
+    res.json({ success: true, matchId });
+});
 app.post('/change-userprofile', authenticateJWT, async (req, res) => {
     const userData = req.user;
 

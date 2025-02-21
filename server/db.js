@@ -4,7 +4,7 @@ const { response } = require('express');
 const { MongoClient } = require("mongodb");
 const DDRAGON_VERSION = '14.22.1'; // 최신 버전으로 업데이트 필요
 const DDRAGON_LANGUAGE = 'en_US'; // 원하는 언어 설정
-
+const { ObjectId } = require('mongodb');  // MongoDB에서 ObjectId 가져오기
 
 // MongoDB 연결 URL을 환경 변수에서 가져옵니다.
 const url = process.env.MONGODB_URI;
@@ -15,6 +15,8 @@ const client = new MongoClient(url);
 // 데이터베이스와 컬렉션 이름을 정의합니다.
 const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
+const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
+const COMMENTS_COLLECTION = 'comments'; // 댓글 컬렉션
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -227,6 +229,203 @@ async function ChangeUserprofile(userprofile) {
         }
     );
 }
+// 게시글 생성 함수
+async function createPost(postData) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const newPost = {
+        title: postData.title,
+        content: postData.content,
+        author: postData.author,
+        createdAt: new Date(),
+        likes: 0, // 추가
+        dislikes: 0, // 추가
+        views: 0 // 조회수 초기화
+    };
+    const result = await collection.insertOne(newPost);
+    return { id: result.insertedId, ...newPost };
+}
+
+// 게시글 조회 함수(게시판에 모든 게시글을 나열하여 사용자에게 보여주기 위해 필요합니다.)
+async function fetchPosts() {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.find().sort({ createdAt: -1 }).toArray();
+}
+
+// 게시글 삭제 함수 (작성자 확인)
+async function deletePost(postId, authorNickname) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    const result = await collection.deleteOne({ _id: new ObjectId(postId), author: authorNickname });
+    return result.deletedCount > 0;
+}
+
+// 특정 게시글 조회 함수(특정 게시글에 대한 상세 정보가 필요할 때, 예를 들어 게시글 삭제나 수정 권한을 확인하기 위해 필요합니다.)
+async function getPostById(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(postId) });
+}
+
+// 게시글 수정 함수
+async function updatePost(postId, updatedFields) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    const result = await collection.findOneAndUpdate(
+        { _id: new ObjectId(postId) },
+        { $set: updatedFields },
+        { returnDocument: 'after' } // 수정 후의 문서를 반환
+    );
+
+    return result.value;
+}
+
+//좋아요&싫어요 기능 함수
+async function updatePostLikes(postId, userId, action) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    // 게시글 가져오기
+    const post = await collection.findOne({ _id: new ObjectId(postId) });
+    if (!post) return false;
+
+    const userActions = post.userActions || {}; // 사용자 액션 초기화
+    const currentAction = userActions[userId]; // 현재 사용자의 좋아요/싫어요 상태
+
+    // 업데이트 로직
+    if (action === currentAction) {
+        // 현재 상태와 같은 액션을 다시 누르면 취소
+        delete userActions[userId];
+        const update = currentAction === 'like' ? { $inc: { likes: -1 } } : { $inc: { dislikes: -1 } };
+        await collection.updateOne({ _id: new ObjectId(postId) }, { ...update, $set: { userActions } });
+    } else {
+        // 상태 변경
+        if (currentAction === 'like') {
+            await collection.updateOne({ _id: new ObjectId(postId) }, { $inc: { likes: -1 }, $set: { userActions } });
+        } else if (currentAction === 'dislike') {
+            await collection.updateOne({ _id: new ObjectId(postId) }, { $inc: { dislikes: -1 }, $set: { userActions } });
+        }
+
+        userActions[userId] = action;
+        const update = action === 'like' ? { $inc: { likes: 1 } } : { $inc: { dislikes: 1 } };
+        await collection.updateOne({ _id: new ObjectId(postId) }, { ...update, $set: { userActions } });
+    }
+
+    return true;
+}
+
+//댓글 추가 함수
+async function addComment(postId, comment) {
+    const db = client.db(DB_NAME); // 데이터베이스 연결
+    const collection = db.collection(COMMENTS_COLLECTION); // 댓글 컬렉션 선택
+
+    const newComment = {
+        postId: new ObjectId(postId), // 게시글 ID 참조
+        userId: comment.userId,       // 댓글 작성자 ID
+        nickname: comment.nickname,   // 댓글 작성자 닉네임
+        content: comment.content,     // 댓글 내용
+        createdAt: new Date()         // 댓글 작성 시간
+    };
+
+    const result = await collection.insertOne(newComment);
+    return result.insertedId ? newComment : null; // 삽입된 댓글 반환
+}
+
+//댓글 조회 함수
+async function getComments(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    return await collection
+        .find({ postId: new ObjectId(postId) }) // 게시글 ID로 필터링
+        .sort({ createdAt: 1 }) // 작성 시간순 정렬
+        .toArray(); // 배열로 반환
+}
+
+//댓글 삭제 함수
+async function deleteComment(commentId, userId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.deleteOne({
+        _id: new ObjectId(commentId), // 댓글 ID로 삭제
+        userId: userId                // 작성자 확인
+    });
+
+    return result.deletedCount > 0; // 삭제 성공 여부 반환
+}
+
+// 특정 게시글에 연결된 모든 댓글 삭제 함수
+async function deleteCommentsByPostId(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.deleteMany({ postId: new ObjectId(postId) });
+    return result.deletedCount; // 삭제된 댓글 수 반환
+}
+
+//댓글 수정 함수
+async function updateComment(commentId, userId, newContent) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    const result = await collection.updateOne(
+        { _id: new ObjectId(commentId), userId: userId }, // 댓글 ID와 작성자 확인
+        { $set: { content: newContent, updatedAt: new Date() } } // 수정된 내용
+    );
+
+    return result.modifiedCount > 0; // 수정 성공 여부 반환
+}
+
+// 댓글 좋아요/싫어요 처리 함수
+async function updateCommentLikes(commentId, userId, action) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(COMMENTS_COLLECTION);
+
+    // 댓글 가져오기
+    const comment = await collection.findOne({ _id: new ObjectId(commentId) });
+    if (!comment) return false;
+
+    const userActions = comment.userActions || {}; // 사용자 액션 초기화
+    const currentAction = userActions[userId]; // 현재 사용자의 좋아요/싫어요 상태
+
+    // 업데이트 로직
+    if (action === currentAction) {
+        // 현재 상태와 같은 액션을 다시 누르면 취소
+        delete userActions[userId];
+        const update = currentAction === 'like' ? { $inc: { likes: -1 } } : { $inc: { dislikes: -1 } };
+        await collection.updateOne({ _id: new ObjectId(commentId) }, { ...update, $set: { userActions } });
+    } else {
+        // 상태 변경
+        if (currentAction === 'like') {
+            await collection.updateOne({ _id: new ObjectId(commentId) }, { $inc: { likes: -1 }, $set: { userActions } });
+        } else if (currentAction === 'dislike') {
+            await collection.updateOne({ _id: new ObjectId(commentId) }, { $inc: { dislikes: -1 }, $set: { userActions } });
+        }
+
+        userActions[userId] = action;
+        const update = action === 'like' ? { $inc: { likes: 1 } } : { $inc: { dislikes: 1 } };
+        await collection.updateOne({ _id: new ObjectId(commentId) }, { ...update, $set: { userActions } });
+    }
+
+    return true;
+}
+
+// 조회수 증가 함수
+async function incrementPostViews(postId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(POSTS_COLLECTION);
+
+    // 게시글의 조회수 1 증가
+    const result = await collection.updateOne(
+        { _id: new ObjectId(postId) },
+        { $inc: { views: 1 } }
+    );
+
+    return result.modifiedCount > 0; // 성공 여부 반환
+}
 
 module.exports = {
     connectToMongo,
@@ -238,5 +437,18 @@ module.exports = {
     createSummoner,
     fetchUserByemail,
     updatePassword,
+    createPost,
+    fetchPosts,
+    deletePost,
+    getPostById,
+    updatePost,
+    updatePostLikes,
+    addComment,
+    getComments,
+    deleteComment,
+    updateComment,
+    deleteCommentsByPostId,
+    updateCommentLikes,
     ChangeUserprofile,
+    incrementPostViews,
 }
