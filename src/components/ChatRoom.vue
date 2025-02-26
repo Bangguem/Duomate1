@@ -11,6 +11,7 @@
    <h2>{{ getOpponent.nickname }}</h2>
    <p>포지션: {{ getOpponent.position || '정보 없음' }}</p>
    <p>마이크: {{ getOpponent.microphone || '정보 없음' }}</p>
+   <p>티어: {{ getOpponent.summonerRank.tier || '정보 없음' }}</p>
 </div>
        <div v-else>
            <p>매칭된 상대방 정보를 불러오는 중...</p>
