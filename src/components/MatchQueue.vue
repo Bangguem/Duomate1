@@ -5,13 +5,16 @@
             <div class="profile-rank-container">
                 <!-- 프로필 -->
                 <div class="profile-section">
-                    <div class="profile-picture"></div>
+                    <div class="profile-picture">
+                        <!-- 🔹 소환사 아이콘 추가 -->
+                        <img :src="`http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`" alt="소환사 아이콘" class="summoner-icon" />
+                    </div>
                     <span>안녕하세요, {{ userInfo.nickname }}님!</span>
                     <!-- 티어 정보 & 전적 갱신 버튼 -->
                 <div class="user-rank-container">
                     <div class="rank-info">
-                        <img :src="rankIconUrl" alt="티어 아이콘" class="rank-icon" />
-                        <span class="rank-text">{{ userInfo.rank }}</span>
+                        <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${userInfo.summonerRank?.tier.toLowerCase()}.png`" alt="티어 아이콘" class="rank-icon" />
+                        <span class="rank-text">{{ userInfo.summonerRank?.tier }}</span>
                     </div>
                     <button class="refresh-button" @click="fetchLatestMatchData">전적 갱신</button>
                 </div>
@@ -146,6 +149,7 @@ export default {
                     this.isLoggedIn = data.loggedIn;
                     if (data.loggedIn) {
                         this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
+                        console.log("📢 userInfo:", this.userInfo);
                     } else {
                         this.handleUnauthenticatedUser();
                     }
@@ -322,6 +326,39 @@ export default {
     color: white;
     width: 600px;  /* 🔹 기존 400px → 600px로 확대 */
     max-width: 80%; /* 🔹 화면 크기에 맞게 유동적으로 조절 */
+}
+/* ✅ 프로필 영역 (소환사 아이콘 + 닉네임) */
+.profile-section {
+    display: flex;
+    align-items: center;  /* 요소들을 수직 정렬 */
+    gap: 15px; /* 아이콘과 닉네임 사이 여백 */
+}
+
+/* ✅ 프로필 사진 (소환사 아이콘 포함) */
+.profile-picture {
+    width: 80px;  /* 아이콘 크기 조정 */
+    height: 80px;
+    background-color: #2c2c2c;
+    border-radius: 50%;
+    overflow: hidden; /* 이미지가 둥글게 표시되도록 설정 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ✅ 소환사 아이콘 스타일 */
+.summoner-icon {
+    width: 100%;  /* 부모 요소 크기에 맞춤 */
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* ✅ 닉네임 텍스트 스타일 */
+.profile-section span {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
 }
 
 /* ✅ 프로필 + 티어 아이콘 + 전적 갱신 버튼을 한 줄로 정렬 */
