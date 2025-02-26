@@ -361,52 +361,76 @@ export default {
     color: white;
 }
 
-/* ✅ 프로필 + 티어 아이콘 + 전적 갱신 버튼을 한 줄로 정렬 */
+/* ✅ 프로필 & 티어 정보 컨테이너 */
 .profile-rank-container {
+    position: relative;  /* 🔹 내부 요소의 위치 기준 */
     display: flex;
-    align-items: center;  /* 요소들을 수직 정렬 */
-    justify-content: space-between;  /* 양 끝으로 배치 */
+    align-items: center; 
+    justify-content: space-between;  
     width: 100%;
     max-width: 600px;
     margin-bottom: 20px;
-    gap: 20px; /* 프로필과 티어 정보 사이 여백 */
 }
 
-/* ✅ 티어 정보 & 전적 갱신 버튼을 한 줄 정렬 */
-.user-rank-container {
+/* ✅ 프로필 섹션 (왼쪽) */
+.profile-section {
     display: flex;
-    align-items: center;  /* 수직 정렬 */
-    gap: 10px; /* 티어 아이콘과 버튼 사이 여백 */
+    align-items: center;
+    gap: 15px; 
 }
 
-/* ✅ 티어 정보 스타일 */
+/* ✅ 티어 정보 & 전적 갱신 버튼 (오른쪽 상단 고정) */
+.user-rank-container {
+    position: absolute;  /* 🔹 절대 위치 설정 */
+    top: 0;  /* 상단 고정 */
+    right: 0; /* 오른쪽 고정 */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ✅ 티어 정보 (아이콘 + 텍스트 세로 배치) */
 .rank-info {
     display: flex;
-    flex-direction: column;  /* 아이콘 & 티어 이름 세로 배치 */
+    flex-direction: column;  /* 🔹 세로 배치 (아이콘 → 텍스트) */
     align-items: center;
     text-align: center;
+    gap: 5px;  /* 🔹 아이콘과 텍스트 사이 간격 */
 }
 
-/* ✅ 아이콘 스타일 */
+/* ✅ 티어 아이콘 */
 .rank-icon {
-    width: 50px;
-    height: 50px;
+    width: 80px;  /* 🔹 기존보다 확대 */
+    height: 80px;
+    object-fit: contain;
 }
 
-/* ✅ 전적 갱신 버튼 크기 조정 */
+/* ✅ 티어 텍스트 */
+.rank-text {
+    font-size: 18px;  
+    font-weight: bold;
+    color: white;
+    margin-top: -5px;  /* 🔹 아이콘과 너무 붙지 않도록 조정 */
+}
+
+/* ✅ 전적 갱신 버튼 스타일 */
 .refresh-button {
-    padding: 8px 12px;
+    padding: 10px 15px; 
     background: rgb(21, 81, 55);
     color: white;
-    font-size: 14px;
+    font-size: 14px;  
+    font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;  
     cursor: pointer;
-}
-.refresh-button:hover {
-    background: rgb(30, 100, 70);
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
+/* ✅ 마우스 호버 효과 추가 */
+.refresh-button:hover {
+    background: rgb(30, 100, 70);
+    transform: scale(1.05); 
+}
 /* 아이콘 선택 스타일 */
 .position-options,
 .voice-options,
