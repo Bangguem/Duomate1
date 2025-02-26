@@ -12,6 +12,7 @@ import patchNotesDisplay from '@/components/patchNotesDisplay.vue'; // 새 컴�
 import MatchQueue from '@/components/MatchQueue.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
+import NoticePage from '../components/NoticePage.vue'; // 공지사항 페이지 컴포넌트
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
     path: '/patch-notes',
     name: 'PatchNotesDisplay',
     component: patchNotesDisplay,  // 새로운 컴포넌트 등록
+  },
+  {
+    path: '/notices',
+    name: 'Notices',
+    component: NoticePage, // 공지사항 페이지 컴포넌트
   },
 
 ];
