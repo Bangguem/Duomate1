@@ -18,8 +18,8 @@
         <div class="profile-header">
           <div class="profile-picture">
             <!-- <div class="add-icon" @click="triggerFileUpload">+</div> -->
-            <img v-if="riotInfo.profileIconId" 
-                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
+            <img v-if="userInfo.summonerInfo && userInfo.summonerInfo.profileIconId" 
+                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`" 
                  alt="Summoner Icon" />
           </div>
           <input
@@ -68,7 +68,7 @@
         <h2>Gaming Information</h2>
         <p>Your gaming details</p>
         <br />
-        <p v-if="riotInfo.summonerName">{{ summonerName }}님</p>
+        <p v-if="userInfo.SummonerName">{{ userInfo.SummonerName }} 님</p>
         <p v-else>연동이 필요합니다.</p>
 
         <div class="gaming-details">
@@ -80,29 +80,28 @@
           </div> -->
 
           <div class="detail-item">
-            <img src="tier-icon.png" alt="Tier Icon" />
+            <img v-if="userInfo.summonerRank && userInfo.summonerRank.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.tier}.png`)" alt="" />
             <p>Game Tier</p>
-            <h3>{{ riotInfo.summonerRank.tier || "정보 없음" }}</h3>
+            <h3>{{ userInfo.summonerRank?.tier || "정보 없음" }} {{ userInfo.summonerRank?.rank || "" }}</h3>
           </div>
+          <div class="champion-list" v-if="userInfo.top5Champions?.length > 0">
+            
+            <div class="champion-item">
+    <img :src="userInfo.top5Champions[1]?.iconUrl" alt="Champion Image" />
+    <p>{{ userInfo.top5Champions[1]?.championName }}</p>
+  </div>
+  <div class="champion-item">
+    <img :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
+    <p>{{ userInfo.top5Champions[0]?.championName }}</p>
+  </div>
+  <div class="champion-item">
+    <img :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
+    <p>{{ userInfo.top5Champions[2]?.championName }}</p>
+  </div>
+</div>
 
-          <div class="detail-item">
-            <img src="level-icon.png" alt="Level Icon" />
-            <p>In-game Level</p>
-            <h3>{{ riotInfo.summonerInfo.summonerLevel || "정보 없음" }}</h3>
-          </div>
         </div>
 
-        <!-- Most Played Champions -->
-        <div class="champions-container">
-          <h2>Most Played Champions</h2>
-          <div class="champion-list">
-            <div class="champion-item" v-for="(champ, index) in riotInfo.top5Champions" :key="index">
-              <img :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/champion/${champ}.png`" 
-                   alt="Champion Image" />
-              <p>{{ champ }}</p>
-            </div>
-          </div>
-        </div>
 
         <br /><br /><button class="riot-btn" @click="showRiotModal=true">Riot 연동</button>
       </section>
@@ -132,6 +131,7 @@
         email: '',
         gender: '',
         birthdate: '',
+        top5Champions: [],
       },
       riotInfo: {
         summonerRank: {
@@ -142,7 +142,7 @@
           summonerLevel: '',
           profileIconId: '',
         },
-        top5Champions: [],
+        
       },
       showRiotModal: false,
       summonerName: '',
@@ -155,6 +155,8 @@
   },
   mounted() {
     this.checkLoginStatus();
+  console.log("챔피언 데이터 (초기 로드):", this.userInfo.top5Champions);
+  console.log("챔피언 데이터 (초기 로드):", this.riotInfo.top5Champions);
   },
   methods: {
     async checkLoginStatus() {
@@ -251,6 +253,7 @@
             profileIconId: result.profileIconId || '',
             top5Champions: result.top5Champions || [],
           };
+
           this.showRiotModal = false;
         } else {
           alert("라이엇 연동 실패: " + result.message);
@@ -291,7 +294,7 @@ body {
   display: flex;
   flex-direction: column;
   width : 140vw;
-  height : 160vh;
+  height : 240vh;
   background-color: #212121;
 }
 
@@ -440,18 +443,23 @@ select {
     margin-left:240px;
   }
   .gaming-details {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 20px 0;
-    color: #FAFAFA;
-  }
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 20px 0;
+  color: #FAFAFA;
+  width: 100%;
+  text-align: center;
+  align-items: center;
+  align-content: center;
+}
+  
   .detail-item {
     text-align: center;
   }
   .detail-item img {
-    width: 80px;
-    height: 80px;
+    width: 200px;
+    height: 200px;
   }
   .detail-item p{
     margin:0;
@@ -534,24 +542,32 @@ select {
   height: 40px;
 } */
 /* Most Played Champions 스타일 */
-.champions-container {
+.most-played-champions {
   text-align: center;
-  margin-top: 20px;
 }
 
 .champion-list {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+  display: flex; /* 가로 정렬 */
+  gap: 10px; /* 챔피언 간격 */
 }
 
 .champion-item {
-  text-align: center;
+  display: flex;
+  flex-direction: column; /* 세로 정렬 (이미지 위, 이름 아래) */
+  align-items: center; /* 가운데 정렬 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .champion-item img {
-  width: 80px;
-  height: 80px;
+  width: 120px; /* 이미지 크기 */
+  height: 120px;
+}
+
+.champion-item p {
+  margin: 5px 0 0; /* 위쪽 간격 추가 */
+  font-size: 20px;
+  font-weight: bold; /* 글씨 두껍게 */
+
 }
   </style>
   
