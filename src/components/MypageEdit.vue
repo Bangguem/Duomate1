@@ -89,16 +89,16 @@
   <br />
   <div class="champion-list">
     <div class="champion-item">
-      <img :src="userInfo.top5Champions[1]?.iconUrl" alt="Champion Image" />
-      <p>{{ userInfo.top5Champions[1]?.championName }}</p>
+      <img v-if="(userInfo.top5Champions || [])[1]?.iconUrl" :src="userInfo.top5Champions[1]?.iconUrl" alt="Champion Image" />
+      <p>{{ (userInfo.top5Champions || [])[1]?.championName || "정보 없음" }}</p>
     </div>
     <div class="champion-item">
-      <img :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
-      <p>{{ userInfo.top5Champions[0]?.championName }}</p>
+      <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
+      <p>{{ (userInfo.top5Champions || [])[0]?.championName || "정보 없음" }}</p>
     </div>
     <div class="champion-item">
-      <img :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
-      <p>{{ userInfo.top5Champions[2]?.championName }}</p>
+      <img v-if="(userInfo.top5Champions || [])[2]?.iconUrl" :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
+      <p>{{ (userInfo.top5Champions || [])[2]?.championName || "정보 없음" }}</p>
     </div>
   </div>
 </div>
