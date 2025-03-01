@@ -8,7 +8,8 @@
     "lint": "vue-cli-service lint",
     "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
     "start:server": "cd server && node index.js",
-    "start:client": "npm run serve"
+    "start:client": "npm run serve",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "axios": "^1.7.7",

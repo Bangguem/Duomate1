@@ -7,84 +7,92 @@
                 <div class="profile-section">
                     <div class="profile-picture">
                         <!-- 🔹 소환사 아이콘 추가 -->
-                        <img :src="`http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`" alt="소환사 아이콘" class="summoner-icon" />
+                        <img :src="`http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
+                            alt="소환사 아이콘" class="summoner-icon" />
                     </div>
-                    <span>안녕하세요, {{ userInfo.nickname }}님!</span>
+                    <span>안녕하세요, {{ userInfo.summonerRank?.[0].tier }}님!</span>
                     <!-- 티어 정보 & 전적 갱신 버튼 -->
-                <div class="user-rank-container">
-                    <div class="rank-info">
-                        <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${userInfo.summonerRank?.tier.toLowerCase()}.png`" alt="티어 아이콘" class="rank-icon" />
-                        <span class="rank-text">{{ userInfo.summonerRank?.tier }}</span>
+                    <div class="user-rank-container">
+                        <div class="rank-info">
+                            <img :src="userInfo.summonerRank?.[0]
+                                ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-comxponents/global/default/${userInfo.summonerRank[0].tier.toLowerCase()}.png`
+                                : 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/unranked.png'"
+                                alt="티어 아이콘" class="rank-icon" />
+                            <span class="rank-text">
+                                {{ userInfo.summonerRank?.[0]
+                                    ? userInfo.summonerRank[0].tier + ' ' + userInfo.summonerRank[0].rank
+                                    : '랭크 정보 없음' }}
+                            </span>
+                        </div>
+                        <button class="refresh-button" @click="fetchLatestMatchData">전적 갱신</button>
                     </div>
-                    <button class="refresh-button" @click="fetchLatestMatchData">전적 갱신</button>
                 </div>
-                </div>
-    
-                
+
+
             </div>
-    
-                <!-- 포지션 선택 -->
-                <div class="selection-section">
-                    <h2>포지션 (중복 2개 가능)</h2>
-                    <div class="position-options">
-                        <div v-for="pos in positions" :key="pos.value"
-                            :class="{ selected: selectedPositions.includes(pos.value) }" @click="togglePosition(pos.value)">
-                            <img :src="pos.icon" :alt="pos.label" />
-                            <span>{{ pos.label }}</span>
-                        </div>
+
+            <!-- 포지션 선택 -->
+            <div class="selection-section">
+                <h2>포지션 (중복 2개 가능)</h2>
+                <div class="position-options">
+                    <div v-for="pos in positions" :key="pos.value"
+                        :class="{ selected: selectedPositions.includes(pos.value) }" @click="togglePosition(pos.value)">
+                        <img :src="pos.icon" :alt="pos.label" />
+                        <span>{{ pos.label }}</span>
                     </div>
                 </div>
-    
-                <!-- 음성 채팅 사용 여부 -->
-                <div class="selection-section">
-                    <h2>음성 채팅 사용 여부</h2>
-                    <div class="voice-options">
-                        <div v-for="voice in voiceOptions" :key="voice.value"
-                            :class="{ active: microphone === voice.value }" @click="microphone = voice.value">
-                            <img :src="voice.icon" :alt="voice.label" />
-                            <span>{{ voice.label }}</span>
-                        </div>
-                    </div>
-                </div>
-    
-                <!-- 일반/랭크 선택 -->
-                <div class="selection-section">
-                    <h2>일반 / 랭크</h2>
-                    <div class="game-mode-options">
-                        <div v-for="mode in gameModes" :key="mode.value" :class="{ active: matchType === mode.value }"
-                            @click="matchType = mode.value">
-                            <img :src="mode.icon" :alt="mode.label" />
-                            <span>{{ mode.label }}</span>
-                        </div>
-                    </div>
-                </div>
-    
-                <!-- 매칭 버튼 -->
-                <button @click="startMatching" :disabled="isMatching" class="match-button">매칭 시작</button>
             </div>
-    
-            <!-- ✅ 매칭 완료 화면 -->
-            <div class="match-confirmation" v-if="matchFound">
-    <div class="match-info">
-        <p class="match-text">매칭 완료!!</p>
-    </div>
-    <div class="match-buttons">
-        <button class="reject-button" @click="rejectMatch">거절</button>
-        <button class="accept-button" @click="acceptMatch">수락</button>
-    </div>
-</div>
-    
-            <!-- ✅ 기존 매칭 중 UI 유지 -->
-            <div class="popup-overlay" v-if="isMatching && !matchFound">
-                <div class="popup-content">
-                    <img src="/icons/loading.png" alt="Loading" class="loading-icon" />
-                    <p class="waiting-time">{{ formattedTime }}</p>
-                    <p>상대를 찾고 있습니다. 잠시만 기다려 주세요.</p>
-                    <button @click="cancelMatching">취소</button>
+
+            <!-- 음성 채팅 사용 여부 -->
+            <div class="selection-section">
+                <h2>음성 채팅 사용 여부</h2>
+                <div class="voice-options">
+                    <div v-for="voice in voiceOptions" :key="voice.value"
+                        :class="{ active: microphone === voice.value }" @click="microphone = voice.value">
+                        <img :src="voice.icon" :alt="voice.label" />
+                        <span>{{ voice.label }}</span>
+                    </div>
                 </div>
+            </div>
+
+            <!-- 일반/랭크 선택 -->
+            <div class="selection-section">
+                <h2>일반 / 랭크</h2>
+                <div class="game-mode-options">
+                    <div v-for="mode in gameModes" :key="mode.value" :class="{ active: matchType === mode.value }"
+                        @click="matchType = mode.value">
+                        <img :src="mode.icon" :alt="mode.label" />
+                        <span>{{ mode.label }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 매칭 버튼 -->
+            <button @click="startMatching" :disabled="isMatching" class="match-button">매칭 시작</button>
+        </div>
+
+        <!-- ✅ 매칭 완료 화면 -->
+        <div class="match-confirmation" v-if="matchFound">
+            <div class="match-info">
+                <p class="match-text">매칭 완료!!</p>
+            </div>
+            <div class="match-buttons">
+                <button class="reject-button" @click="rejectMatch">거절</button>
+                <button class="accept-button" @click="acceptMatch">수락</button>
             </div>
         </div>
-    </template>
+
+        <!-- ✅ 기존 매칭 중 UI 유지 -->
+        <div class="popup-overlay" v-if="isMatching && !matchFound">
+            <div class="popup-content">
+                <img src="/icons/loading.png" alt="Loading" class="loading-icon" />
+                <p class="waiting-time">{{ formattedTime }}</p>
+                <p>상대를 찾고 있습니다. 잠시만 기다려 주세요.</p>
+                <button @click="cancelMatching">취소</button>
+            </div>
+        </div>
+    </div>
+</template>
 
 <script>
 import { io } from "socket.io-client";
@@ -137,6 +145,32 @@ export default {
     },
 
     methods: {
+
+        async fetchLatestMatchData() {
+            try {
+                const response = await fetch('http://localhost:3000/updateSummonerInfo', {
+                    method: 'POST',
+                    credentials: 'include', // 쿠키 포함
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("소환사 정보 갱신 성공");
+                    // 최신 정보를 반영하기 위해 다시 로그인 상태 확인 또는 사용자 정보 불러오기 실행
+                    await this.checkLoginStatus();
+                } else {
+                    alert("소환사 정보 갱신 실패: " + result.message);
+                }
+            } catch (error) {
+                console.error("소환사 정보 갱신 오류:", error);
+                alert("소환사 정보 갱신 중 오류 발생");
+            }
+        },
+
         async checkLoginStatus() {
             try {
                 const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -288,6 +322,8 @@ export default {
             this.socket.emit("cancel match");
 
         }
+
+
     },
 
     computed: {
@@ -324,23 +360,30 @@ export default {
     padding: 20px;
     border-radius: 10px;
     color: white;
-    width: 600px;  /* 🔹 기존 400px → 600px로 확대 */
-    max-width: 80%; /* 🔹 화면 크기에 맞게 유동적으로 조절 */
+    width: 600px;
+    /* 🔹 기존 400px → 600px로 확대 */
+    max-width: 80%;
+    /* 🔹 화면 크기에 맞게 유동적으로 조절 */
 }
+
 /* ✅ 프로필 영역 (소환사 아이콘 + 닉네임) */
 .profile-section {
     display: flex;
-    align-items: center;  /* 요소들을 수직 정렬 */
-    gap: 15px; /* 아이콘과 닉네임 사이 여백 */
+    align-items: center;
+    /* 요소들을 수직 정렬 */
+    gap: 15px;
+    /* 아이콘과 닉네임 사이 여백 */
 }
 
 /* ✅ 프로필 사진 (소환사 아이콘 포함) */
 .profile-picture {
-    width: 80px;  /* 아이콘 크기 조정 */
+    width: 80px;
+    /* 아이콘 크기 조정 */
     height: 80px;
     background-color: #2c2c2c;
     border-radius: 50%;
-    overflow: hidden; /* 이미지가 둥글게 표시되도록 설정 */
+    overflow: hidden;
+    /* 이미지가 둥글게 표시되도록 설정 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -348,7 +391,8 @@ export default {
 
 /* ✅ 소환사 아이콘 스타일 */
 .summoner-icon {
-    width: 100%;  /* 부모 요소 크기에 맞춤 */
+    width: 100%;
+    /* 부모 요소 크기에 맞춤 */
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
@@ -363,10 +407,11 @@ export default {
 
 /* ✅ 프로필 & 티어 정보 컨테이너 */
 .profile-rank-container {
-    position: relative;  /* 🔹 내부 요소의 위치 기준 */
+    position: relative;
+    /* 🔹 내부 요소의 위치 기준 */
     display: flex;
-    align-items: center; 
-    justify-content: space-between;  
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     max-width: 600px;
     margin-bottom: 20px;
@@ -376,14 +421,17 @@ export default {
 .profile-section {
     display: flex;
     align-items: center;
-    gap: 15px; 
+    gap: 15px;
 }
 
 /* ✅ 티어 정보 & 전적 갱신 버튼 (오른쪽 상단 고정) */
 .user-rank-container {
-    position: absolute;  /* 🔹 절대 위치 설정 */
-    top: 0;  /* 상단 고정 */
-    right: 0; /* 오른쪽 고정 */
+    position: absolute;
+    /* 🔹 절대 위치 설정 */
+    top: 0;
+    /* 상단 고정 */
+    right: 0;
+    /* 오른쪽 고정 */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -392,36 +440,40 @@ export default {
 /* ✅ 티어 정보 (아이콘 + 텍스트 세로 배치) */
 .rank-info {
     display: flex;
-    flex-direction: column;  /* 🔹 세로 배치 (아이콘 → 텍스트) */
+    flex-direction: column;
+    /* 🔹 세로 배치 (아이콘 → 텍스트) */
     align-items: center;
     text-align: center;
-    gap: 5px;  /* 🔹 아이콘과 텍스트 사이 간격 */
+    gap: 5px;
+    /* 🔹 아이콘과 텍스트 사이 간격 */
 }
 
 /* ✅ 티어 아이콘 */
 .rank-icon {
-    width: 80px;  /* 🔹 기존보다 확대 */
+    width: 80px;
+    /* 🔹 기존보다 확대 */
     height: 80px;
     object-fit: contain;
 }
 
 /* ✅ 티어 텍스트 */
 .rank-text {
-    font-size: 18px;  
+    font-size: 18px;
     font-weight: bold;
     color: white;
-    margin-top: -5px;  /* 🔹 아이콘과 너무 붙지 않도록 조정 */
+    margin-top: -5px;
+    /* 🔹 아이콘과 너무 붙지 않도록 조정 */
 }
 
 /* ✅ 전적 갱신 버튼 스타일 */
 .refresh-button {
-    padding: 10px 15px; 
+    padding: 10px 15px;
     background: rgb(21, 81, 55);
     color: white;
-    font-size: 14px;  
+    font-size: 14px;
     font-weight: bold;
     border: none;
-    border-radius: 8px;  
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
 }
@@ -429,8 +481,9 @@ export default {
 /* ✅ 마우스 호버 효과 추가 */
 .refresh-button:hover {
     background: rgb(30, 100, 70);
-    transform: scale(1.05); 
+    transform: scale(1.05);
 }
+
 /* 아이콘 선택 스타일 */
 .position-options,
 .voice-options,
@@ -584,15 +637,22 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: fixed;  /* 화면에 고정 (팝업 역할) */
-    top: 50%;  /* 화면 중앙 위치 */
+    position: fixed;
+    /* 화면에 고정 (팝업 역할) */
+    top: 50%;
+    /* 화면 중앙 위치 */
     left: 50%;
-    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
-    width: 400px;  /* 원하는 팝업 크기 */
-    height: 600px; /* 원하는 팝업 크기 */
-    background: #222; /* 팝업 배경 색 */
+    transform: translate(-50%, -50%);
+    /* 정확한 중앙 정렬 */
+    width: 400px;
+    /* 원하는 팝업 크기 */
+    height: 600px;
+    /* 원하는 팝업 크기 */
+    background: #222;
+    /* 팝업 배경 색 */
     color: white;
-    border-radius: 15px; /* 팝업 모서리 둥글게 */
+    border-radius: 15px;
+    /* 팝업 모서리 둥글게 */
     padding: 20px;
     text-align: center;
 }
@@ -620,7 +680,8 @@ export default {
     gap: 10px;
 }
 
-.reject-button, .accept-button {
+.reject-button,
+.accept-button {
     padding: 15px 30px;
     font-size: 16px;
     border: none;
@@ -639,6 +700,4 @@ export default {
     color: white;
     border-radius: 45px;
 }
-
-
 </style>

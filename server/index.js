@@ -8,7 +8,7 @@ const { setupSocketIo, matchDataStore } = require('./setupSocketIo');// Socket.I
 
 // Middleware 설정
 app.use(cors({
-    origin: 'http://localhost:8080', // Vue 개발 서버 URL
+    origin: ['http://localhost:8080', 'https://bangguem.github.io'], // Vue 개발 서버 URL
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     credentials: true, // 쿠키를 포함한 요청 허용
     allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
@@ -326,6 +326,30 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
         res.status(404).json({ success: false, message: 'User Not Found' });
     }
 });
+
+app.post('/updateSummonerInfo', authenticateJWT, async (req, res) => {
+    const userData = req.user;
+    if (userData) {
+        const user = await fetchUser(userData.userid);
+        try {
+            const summonerprofile = {
+                userid: user.userid,
+                summonerName: user.SummonerName,
+                tag: user.Tag
+            };
+            await createSummoner(summonerprofile);
+            res.status(200).json({ success: true, message: '소환사 정보 갱신 성공' })
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            res.status(500).json({ success: false, message: '소환사 정보 갱신 실패' });
+        }
+    } else {
+        res.status(404).json({ success: false, message: 'User Not Found' });
+
+    }
+})
+
+
 
 // ✅ 매칭 정보 조회 API
 app.get("/match/get/:matchId", (req, res) => {

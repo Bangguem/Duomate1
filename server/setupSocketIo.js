@@ -154,7 +154,7 @@ const setupSocketIo = (server) => {
                             tier: player1.user.summonerRank.tier,
                             summonerRank: player1.user.summonerRank,
                             summonerInfo: player1.user.summonerInfo,
-
+                            top5Champions: player1.user.top5Champions
                         },
                         {
                             userid: player2.user.userid,
@@ -166,6 +166,7 @@ const setupSocketIo = (server) => {
                             tier: player2.user.summonerRank.tier,
                             summonerRank: player2.user.summonerRank,
                             summonerInfo: player2.user.summonerInfo,
+                            top5Champions: player2.user.top5Champions
                         }
                     ]
                 };

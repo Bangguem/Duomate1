@@ -197,7 +197,12 @@ async function createSummoner(summonerprofile) {
     const summonerInfo = await fetchSummonerIdByPuuid(puuid);
     const summonerRankData = await fetchSummonerInfoByid(summonerInfo.id);
     const top5Champions = await getTop5Champions(puuid);
-    const summonerRank = summonerRankData.length > 0 ? summonerRankData[0] : null;
+    const summonerRank = Array.isArray(summonerRankData)
+        ? [
+            ...summonerRankData.filter(entry => entry.queueType === 'RANKED_SOLO_5x5'),
+            ...summonerRankData.filter(entry => entry.queueType === 'RANKED_FLEX_SR')
+        ]
+        : [];
 
     return await collection.updateOne(
         { userid: summonerprofile.userid },

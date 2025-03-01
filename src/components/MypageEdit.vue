@@ -19,7 +19,7 @@
           <div class="profile-picture">
             <!-- <div class="add-icon" @click="triggerFileUpload">+</div> -->
             <img v-if="riotInfo.profileIconId" 
-                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
+                 :src="`https://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${riotInfo.summonerInfo?.profileIconId}.png`" 
                  alt="Summoner Icon" />
           </div>
           <input
@@ -82,13 +82,13 @@
           <div class="detail-item">
             <img src="tier-icon.png" alt="Tier Icon" />
             <p>Game Tier</p>
-            <h3>{{ riotInfo.summonerRank.tier || "정보 없음" }}</h3>
+            <h3>{{ riotInfo.summonerRank?.tier || "정보 없음" }}</h3>
           </div>
 
           <div class="detail-item">
             <img src="level-icon.png" alt="Level Icon" />
             <p>In-game Level</p>
-            <h3>{{ riotInfo.summonerInfo.summonerLevel || "정보 없음" }}</h3>
+            <h3>{{ riotInfo.summonerInfo?.summonerLevel || "정보 없음" }}</h3>
           </div>
         </div>
 
