@@ -258,6 +258,7 @@
           };
 
           this.showRiotModal = false;
+          window.location.reload();
         } else {
           alert("라이엇 연동 실패: " + result.message);
         }
