@@ -84,19 +84,22 @@
             <p>Game Tier</p>
             <h3>{{ userInfo.summonerRank?.tier || "정보 없음" }} {{ userInfo.summonerRank?.rank || "" }}</h3>
           </div>
-          <div class="champion-list" v-if="userInfo.top5Champions?.length > 0">
-            
-            <div class="champion-item">
-    <img :src="userInfo.top5Champions[1]?.iconUrl" alt="Champion Image" />
-    <p>{{ userInfo.top5Champions[1]?.championName }}</p>
-  </div>
-  <div class="champion-item">
-    <img :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
-    <p>{{ userInfo.top5Champions[0]?.championName }}</p>
-  </div>
-  <div class="champion-item">
-    <img :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
-    <p>{{ userInfo.top5Champions[2]?.championName }}</p>
+          <div class="most-played-champions">
+  <h2 class="most-champions-title">Most Champions</h2>  <!-- 리스트 밖으로 이동 -->
+  <br />
+  <div class="champion-list">
+    <div class="champion-item">
+      <img :src="userInfo.top5Champions[1]?.iconUrl" alt="Champion Image" />
+      <p>{{ userInfo.top5Champions[1]?.championName }}</p>
+    </div>
+    <div class="champion-item">
+      <img :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
+      <p>{{ userInfo.top5Champions[0]?.championName }}</p>
+    </div>
+    <div class="champion-item">
+      <img :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
+      <p>{{ userInfo.top5Champions[2]?.championName }}</p>
+    </div>
   </div>
 </div>
 
@@ -436,6 +439,7 @@ select {
   .gaming-info {
     padding: 20px 0;
     color: #FAFAFA;
+    align-items: center;
   }
   .gaming-info h2, 
   .gaming-info p{
@@ -452,10 +456,12 @@ select {
   text-align: center;
   align-items: center;
   align-content: center;
+
 }
   
   .detail-item {
     text-align: center;
+    margin-left: 200px;
   }
   .detail-item img {
     width: 200px;
@@ -543,19 +549,22 @@ select {
 } */
 /* Most Played Champions 스타일 */
 .most-played-champions {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 내부 요소들을 수직 정렬 */
 }
 
 .champion-list {
-  display: flex; /* 가로 정렬 */
-  gap: 10px; /* 챔피언 간격 */
+  display: flex;
+  gap: 10px;
+  justify-content: center; /* 챔피언 이미지를 가로 정렬 */
 }
 
 .champion-item {
   display: flex;
-  flex-direction: column; /* 세로 정렬 (이미지 위, 이름 아래) */
-  align-items: center; /* 가운데 정렬 */
-  text-align: center; /* 텍스트 가운데 정렬 */
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .champion-item img {
@@ -568,6 +577,13 @@ select {
   font-size: 20px;
   font-weight: bold; /* 글씨 두껍게 */
 
+}
+.most-champions-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  margin-right: 240px;
 }
   </style>
   

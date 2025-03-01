@@ -36,9 +36,9 @@
                   <p>Your gaming details</p>
                   <div class="game-stats">
                     <div class="game-tier">
-                      <img src="tier-icon.png" alt="Game Tier" />
+                      <img v-if="userInfo.summonerRank && userInfo.summonerRank.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.tier}.png`)" alt="" />
                       <p>Game Tier</p>
-                      <p>{{ userInfo.gameTier }}</p>
+                      <p>{{ userInfo.summonerRank?.tier || "정보 없음" }} {{ userInfo.summonerRank?.rank || "" }}</p>
                     </div>
                     <div class="most-champions">
                       <p>Most Champion Top 3</p>
