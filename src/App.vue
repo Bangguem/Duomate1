@@ -149,7 +149,7 @@
         <!-- 비디오 추가 -->
         <div class="background-video">
           <video autoplay loop muted>
-            <source src="@/assets/Duomate.mp4" type="video/mp4">
+            <source src="@/assets/Duomate2.mp4" type="video/mp4">
             <strong>Your browser does not support the video tag.</strong>
           </video>
           <div class="overlay-text">
@@ -506,16 +506,16 @@ body {
 .background-video {
   position: relative;
   /* 자식 요소를 기준으로 위치 설정 가능 */
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 }
 
 .background-video video {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
   /* 비디오 크기를 화면에 맞게 조절 */
-  position: relative;
+  position: absolute;
   /* 비디오 위치 지정 */
   z-index: 0;
   /* 기본값으로 설정 */
