@@ -235,9 +235,8 @@ const setupSocketIo = (server) => {
             console.log(`📊 방 ${roomName}의 현재 사용자 수: ${room ? room.size : 0}`);
         });
 
-        socket.on("chat message", ({ matchId, message }) => {
+        socket.on("chat message", ({ matchId, message, timestamp }) => {
             console.log(`📨 채팅 메시지 수신:`, { matchId, message, socketId: socket.id });
-
             const match = matchDataStore[matchId];
             if (!match) {
                 console.error(`❌ 매치 ID ${matchId}에 대한 매칭 정보를 찾을 수 없습니다.`);
@@ -245,14 +244,10 @@ const setupSocketIo = (server) => {
                 return;
             }
 
-            console.log(`🔍 매칭 정보:`, match);
-
             let sender = match.players.find(p => p.socketId === socket.id);
             if (!sender) {
                 console.error(`❌ 소켓 ID ${socket.id}에 대한 플레이어 정보를 찾을 수 없습니다.`);
                 console.log(`📊 현재 플레이어 목록:`, match.players);
-
-                // 소켓 ID가 변경된 경우를 위한 대체 처리
                 const senderByUserId = match.players.find(p => p.userid === socket.user.userid);
                 if (senderByUserId) {
                     console.log(`✅ 사용자 ID로 플레이어를 찾았습니다. 소켓 ID 업데이트`);
@@ -267,6 +262,7 @@ const setupSocketIo = (server) => {
             const chatData = {
                 username: sender.nickname,
                 message: message,
+                timestamp: timestamp || new Date().toISOString() // 타임스탬프 포함, 없으면 새로 생성
             };
 
             console.log(`📤 채팅 메시지 전송:`, {
@@ -277,7 +273,6 @@ const setupSocketIo = (server) => {
 
             io.to(match.roomName).emit("chat message", chatData);
         });
-
 
         socket.on('request normalmatch', async ({ position, microphone }) => {
             try {
