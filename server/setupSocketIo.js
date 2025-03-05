@@ -85,15 +85,15 @@ const setupSocketIo = (server) => {
                     return false;
                 }
 
-                const tier1 = player.user.summonerRank.tier;
-                const tier2 = entry.user.summonerRank.tier;
+                const tier1 = player.user.summonerRank[0].tier;
+                const tier2 = entry.user.summonerRank[0].tier;
 
 
                 // 에메랄드나 다이아몬드인 경우
                 if (tier1.includes('EMERALD') || tier1.includes('DIAMOND') ||
                     tier2.includes('EMERALD') || tier2.includes('DIAMOND')) {
-                    const key1 = `${tier1} ${player.user.summonerRank.rank}`;
-                    const key2 = `${tier2} ${entry.user.summonerRank.rank}`;
+                    const key1 = `${tier1} ${player.user.summonerRank[0].rank}`;
+                    const key2 = `${tier2} ${entry.user.summonerRank[0].rank}`;
                     return duoRestrictions[key1]?.includes(key2) || duoRestrictions[key2]?.includes(key1);
                 }
 
@@ -151,8 +151,8 @@ const setupSocketIo = (server) => {
                             microphone: player1.user.microphone,
                             socketId: player1.socket.id,
                             accepted: false,
-                            tier: player1.user.summonerRank.tier,
-                            summonerRank: player1.user.summonerRank,
+                            tier: player1.user.summonerRank[0].tier,
+                            summonerRank: player1.user.summonerRank[0],
                             summonerInfo: player1.user.summonerInfo,
                             top5Champions: player1.user.top5Champions
                         },
@@ -163,8 +163,8 @@ const setupSocketIo = (server) => {
                             microphone: player2.user.microphone,
                             socketId: player2.socket.id,
                             accepted: false,
-                            tier: player2.user.summonerRank.tier,
-                            summonerRank: player2.user.summonerRank,
+                            tier: player2.user.summonerRank[0].tier,
+                            summonerRank: player2.user.summonerRank[0],
                             summonerInfo: player2.user.summonerInfo,
                             top5Champions: player2.user.top5Champions
                         }
@@ -177,7 +177,7 @@ const setupSocketIo = (server) => {
                 player1.socket.emit('matchSuccess', { matchId });
                 player2.socket.emit('matchSuccess', { matchId });
 
-                console.log(`✅ 매칭 성공: ${player1.user.nickname}(${player1.user.summonerRank.tier}) - ${player2.user.nickname}(${player2.user.summonerRank.tier})`);
+                console.log(`✅ 매칭 성공: ${player1.user.nickname}(${player1.user.summonerRank[0].tier}) - ${player2.user.nickname}(${player2.user.summonerRank[0].tier})`);
 
                 processed.add(i);
                 processed.add(this.queue.indexOf(player2));

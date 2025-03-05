@@ -10,12 +10,12 @@
                         <img :src="`http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
                             alt="소환사 아이콘" class="summoner-icon" />
                     </div>
-                    <span>안녕하세요, {{ userInfo.summonerRank?.[0].tier }}님!</span>
+                    <span>안녕하세요, {{ userInfo.nickname }}님!</span>
                     <!-- 티어 정보 & 전적 갱신 버튼 -->
                     <div class="user-rank-container">
                         <div class="rank-info">
                             <img :src="userInfo.summonerRank?.[0]
-                                ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-comxponents/global/default/${userInfo.summonerRank[0].tier.toLowerCase()}.png`
+                                ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${userInfo.summonerRank[0].tier.toLowerCase()}.png`
                                 : 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/unranked.png'"
                                 alt="티어 아이콘" class="rank-icon" />
                             <span class="rank-text">

@@ -200,7 +200,6 @@ async function createSummoner(summonerprofile) {
     const summonerRank = Array.isArray(summonerRankData)
         ? [
             ...summonerRankData.filter(entry => entry.queueType === 'RANKED_SOLO_5x5'),
-            ...summonerRankData.filter(entry => entry.queueType === 'RANKED_FLEX_SR')
         ]
         : [];
 
