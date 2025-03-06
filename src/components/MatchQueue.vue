@@ -10,7 +10,7 @@
                         <img :src="`http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
                             alt="소환사 아이콘" class="summoner-icon" />
                     </div>
-                    <span>안녕하세요, {{ userInfo.nickname }}님!</span>
+                    <span>안녕하세요, {{ userInfo.SummonerName }}님!</span>
                     <!-- 티어 정보 & 전적 갱신 버튼 -->
                     <div class="user-rank-container">
                         <div class="rank-info">
