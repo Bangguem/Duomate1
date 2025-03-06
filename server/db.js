@@ -3,7 +3,7 @@ const axios = require('axios');
 const { response } = require('express');
 const { MongoClient } = require("mongodb");
 const DDRAGON_VERSION = '14.22.1'; // 최신 버전으로 업데이트 필요
-const DDRAGON_LANGUAGE = 'en_US'; // 원하는 언어 설정
+const DDRAGON_LANGUAGE = 'ko_KR'; // 원하는 언어 설정
 const { ObjectId } = require('mongodb');  // MongoDB에서 ObjectId 가져오기
 
 // MongoDB 연결 URL을 환경 변수에서 가져옵니다.
@@ -145,8 +145,8 @@ async function getChampionIdToNameMap() {
         for (const championKey in championsData) {
             const champion = championsData[championKey];
             championIdToNameMap[champion.key] = {
-                name: champion.name,          // 한국어 이름 (또는 사용 중인 언어)
-                englishName: champion.id      // 영어 이름 (아이콘 URL에 사용)
+                name: champion.name,
+                englishName: champion.id
             };
         }
         return championIdToNameMap;
