@@ -65,10 +65,9 @@
   
       <!-- Gaming Information Section -->
       <section class="gaming-info">
-        <h2>Gaming Information</h2>
-        <p>Your gaming details</p>
+        <h2>소환사 정보</h2>
         <br />
-        <p v-if="userInfo.SummonerName">{{ userInfo.SummonerName }} 님</p>
+        <p v-if="userInfo.SummonerName">{{ userInfo.SummonerName }}#{{ userInfo.Tag }} 님</p>
         <p v-else>연동이 필요합니다.</p>
 
         <div class="gaming-details">

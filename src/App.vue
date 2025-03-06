@@ -7,10 +7,10 @@
         <div class="header">
           <div class="logo">
             <div class="circle"></div>
-            <span>안녕하세요, {{ userInfo.nickname }}님!</span>
+            <span>{{ userInfo.nickname }} 님</span>
           </div>
           <nav class="nav-links">
-            <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
+            <!-- <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a> -->
             <a @click="mypageopen = true">마이페이지</a>
             <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
             <router-link to="/patch-notes">패치 노트</router-link> <!-- 새로운 패치 노트 링크 추가 -->
@@ -40,6 +40,8 @@
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
+                      <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+            <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
                       <img v-if="userInfo.summonerRank && userInfo.summonerRank.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.tier}.png`)" alt="" />
                       <p v-if="userInfo.summonerRank && userInfo.summonerRank.tier">Game Tier</p>
                       <p>{{ userInfo.summonerRank?.tier || "" }} {{ userInfo.summonerRank?.rank || "" }}</p>
@@ -164,14 +166,14 @@
     </main>
 
     <!-- 조건에 따라 푸터를 표시 -->
-    <footer v-if="showFooter" class="footer">
+    <!-- <footer v-if="showFooter" class="footer">
       <nav class="footer-links">
         <a href="#">Contact Us</a>
         <a href="#">About Us</a>
         <a href="#">Terms & Conditions</a>
         <a href="#">Privacy Policy</a>
       </nav>
-    </footer>
+    </footer> -->
   </div>
 </template>
 
