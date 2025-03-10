@@ -4,7 +4,9 @@
       <!-- Header Section -->
       <header class="header">
         <div class="logo">
-            <div class="circle"></div>
+            <div class="circle">
+              <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
+            </div>
             내 정보 변경</div>
         <nav class="nav-links">
           <a href="/" class="nav-links">홈</a>
@@ -640,28 +642,28 @@ select {
   margin-right: 240px;
 }
 .mastery-icon {
-  width: 90px !important;
-  height: 70px !important;
-  margin-top: 70px; /* 챔피언 이미지와 겹치게 조정 */
+  width: 70px !important;
+  height: 50px !important;
+  margin-top: 95px; /* 챔피언 이미지와 겹치게 조정 */
   position: absolute;
 }
 
 .high-mastery-icon {
-  width: 40px !important;
-  height: 20px !important;
+  width: 35px !important;
+  height: 15px !important;
   align-items: center;
   position: absolute;
   display: flex;
-  margin-left:3px;
-  margin-top:8px;
+  margin-left:5px;
+  margin-top:14px;
 }
 
 .high-mastery-level {
   position: absolute;
-  font-size: 16px !important;
+  font-size: 14px !important;
   color: #212121 !important;
   text-align: center;
-  margin:10px 0px 10px 14px !important;
+  margin:14px 0px 10px 14px !important;
 }
 
   </style>

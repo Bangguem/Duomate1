@@ -3,7 +3,9 @@
   <div class="signup-container">
     <header class="header">
       <div class="logo">
-      <div class="circle"></div>
+      <div class="circle">
+        <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
+      </div>
       <span>회원가입</span>
       </div>
       <nav>
@@ -174,7 +176,7 @@ export default {
               const result = await response.json();
               if (response.ok) {
                   alert(result.message);
-                  window.location.href = '/';
+                  window.location.href = '/login';
               } else {
                   alert(result.message);
               }

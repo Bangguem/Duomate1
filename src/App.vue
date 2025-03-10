@@ -6,7 +6,9 @@
         <!-- 로그인 상태일 때의 헤더 -->
         <div class="header">
           <div class="logo">
-            <div class="circle"></div>
+            <div class="circle">
+              <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
+            </div>
             <span>{{ userInfo.nickname }} 님</span>
           </div>
           <nav class="nav-links">
@@ -589,7 +591,7 @@ body {
 
 .champion-item p {
   margin: 5px 0 0; /* 위쪽 간격 줄이기 */
-  font-size: 12px; /* 기존 20px → 12px */
+  font-size: 10px; /* 기존 20px → 12px */
   font-weight: bold;
 }
 
@@ -602,27 +604,27 @@ body {
 }
 
 .mastery-icon {
-  width: 40px !important; /* 기존 90px → 40px */
-  height: 30px !important; /* 기존 70px → 30px */
-  margin-top: 35px; /* 챔피언 이미지와 겹치지 않도록 조정 */
+  width: 30px !important; /* 기존 90px → 40px */
+  height: 20px !important; /* 기존 70px → 30px */
+  margin-top: 38px; /* 챔피언 이미지와 겹치지 않도록 조정 */
   position: absolute;
 }
 
 .high-mastery-icon {
-  width: 20px !important; /* 기존 40px → 20px */
-  height: 10px !important; /* 기존 20px → 10px */
+  width: 15px !important; /* 기존 40px → 20px */
+  height: 8px !important; /* 기존 20px → 10px */
   position: absolute;
   display: flex;
-  margin-left: 2px;
-  margin-top: 4px;
+  margin-left: 4px;
+  margin-top: 6px;
 }
 
 .high-mastery-level {
   position: absolute;
-  font-size: 10px !important; /* 기존 16px → 10px */
+  font-size: 8px !important; /* 기존 16px → 10px */
   color: #212121 !important;
   text-align: center;
-  margin: 5px 0px 5px 7px !important; /* 크기에 맞게 조정 */
+  margin: 6px 0px 5px 7px !important; /* 크기에 맞게 조정 */
 }
 
 </style>

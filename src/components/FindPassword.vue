@@ -4,7 +4,9 @@
       <!-- 상단 헤더 -->
       <header class="header">
         <div class="logo">
-            <div class="circle"></div>
+            <div class="circle">
+              <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
+            </div>
             비밀번호 찾기</div>
         <nav class="nav-links">
           <a href="/">홈 화면</a>
