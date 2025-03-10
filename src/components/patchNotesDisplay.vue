@@ -1,5 +1,5 @@
 <template>
-  <div class="contents">  <!-- 전체 콘텐츠 컨테이너 -->
+  <div class="contents">
       <section class="contents-header">
           <div class="header-right">
               <div class="search-box">
@@ -17,7 +17,7 @@
               <img src="@/assets/icon_lol.png" alt="패치 아이콘" class="patch-icon" />
               <div class="patch-info">
                   <a :href="patch.link" target="_blank" class="patch-title">{{ patch.title }}</a>
-                  <p class="patch-date">{{ patch.date }}</p>
+                  <p class="patch-date">{{ patch.date || '날짜 없음' }}</p> <!-- 날짜 추가 -->
               </div>
           </div>
       </section>
@@ -84,13 +84,6 @@ export default {
               }
           } catch (error) {
               console.error('Error fetching patch notes:', error);
-          }
-      },
-      sortBy(type) {
-          if (type === 'latest') {
-              this.patchNotes.sort((a, b) => new Date(b.date) - new Date(a.date));
-          } else if (type === 'popular') {
-              // 인기순 정렬 (예: 좋아요 개수 기준, 데이터 형식에 맞게 수정 필요)
           }
       }
   }
