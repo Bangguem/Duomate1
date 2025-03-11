@@ -17,7 +17,9 @@
               <img src="@/assets/icon_lol.png" alt="패치 아이콘" class="patch-icon" />
               <div class="patch-info">
                   <a :href="patch.link" target="_blank" class="patch-title">{{ patch.title }}</a>
-                  <p class="patch-date">{{ patch.date || '날짜 없음' }}</p> <!-- 날짜 추가 -->
+                  <!-- 한줄평(리뷰)가 있을 경우 표시 -->
+                  <p class="patch-review" v-if="patch.review">{{ patch.review }}</p>
+                  <p class="patch-date">{{ patch.date || '날짜 없음' }}</p>
               </div>
           </div>
       </section>
@@ -162,7 +164,7 @@ export default {
 
 .patch-info {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   width: 100%;
   color: white;
 }
@@ -176,6 +178,12 @@ export default {
 
 .patch-title:hover {
   text-decoration: underline;
+}
+
+.patch-review {
+  font-size: 14px;
+  color: lightgray;
+  margin: 4px 0;
 }
 
 .patch-date {

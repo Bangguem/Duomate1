@@ -19,6 +19,9 @@ const getPatchNotes = async (req, res) => {
       let link = $(element).closest('a').attr('href'); // 링크 가져오기
       let date = $(element).parent().find('time').attr('datetime'); // 날짜 가져오기
 
+      // 한줄평(리뷰) 추출 (개발자도구에서 복사한 요소 기준)
+      const review = $(element).parent().find('[data-testid="card-description"]').text().trim();
+
       if (link && link.startsWith('/')) {
         link = `https://www.leagueoflegends.com${link}`;
       }
@@ -33,7 +36,8 @@ const getPatchNotes = async (req, res) => {
       patchNotes.push({
         title: title,
         link: link || '',
-        date: date || '', // 날짜 없으면 빈 값 처리
+        date: date || '',
+        review: review || '' // 한줄평 없으면 빈 값 처리
       });
     });
 
