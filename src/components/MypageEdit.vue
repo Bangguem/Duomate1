@@ -54,7 +54,7 @@
             <label for="birthdate">생년월일</label>
             <input id="birthdate" type="date" v-model="userInfo.birthdate" />
             <!-- <input type="text" placeholder="새 비밀번호를 입력하세요" />
-            <input type="text" placeholder="새 비밀번호를 다시 입력하세요" /> -->
+          <input type="text" placeholder="새 비밀번호를 다시 입력하세요" /> -->
             <button type="submit" class="submit-btn">저장</button>
           </form>
         </div>
@@ -70,19 +70,19 @@
 
         <div class="gaming-details">
           <!-- <div class="detail-item">
-             <img v-if="riotInfo.profileIconId" 
-                 :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
-                 alt="Summoner Icon" /> 
-            <p>{{ summonerName || "연동이 필요합니다" }} 님</p>
-          </div> -->
+           <img v-if="riotInfo.profileIconId" 
+               :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
+               alt="Summoner Icon" /> 
+          <p>{{ summonerName || "연동이 필요합니다" }} 님</p>
+        </div> -->
 
           <div class="detail-item">
             <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
             <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
-            <img v-if="userInfo.summonerRank && userInfo.summonerRank.tier"
-              :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.tier}.png`)" alt="" />
-            <p v-if="userInfo.summonerRank && userInfo.summonerRank.tier">Game Tier</p>
-            <h3>{{ userInfo.summonerRank?.tier || "" }} {{ userInfo.summonerRank?.rank || "" }}</h3>
+            <img v-if="userInfo.summonerRank && userInfo.summonerRank[0].tier"
+              :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0].tier}.png`)" alt="" />
+            <p v-if="userInfo.summonerRank && userInfo.summonerRank[0].tier">Game Tier</p>
+            <h3>{{ userInfo.summonerRank?.[0].tier || "" }} {{ userInfo.summonerRank?.[0].rank || "" }}</h3>
           </div>
           <div class="most-played-champions">
             <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -116,7 +116,7 @@
                   :src="require(`@/assets/Mastery/${userInfo.top5Champions[1]?.masteryLevel}.webp`)"
                   class="mastery-icon" alt="Mastery Level" />
                 <img
-                  v-if="(userInfo.top5Champions || [])[1]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
+                  v-if="(userInfo.top5Champions || [])[0]?.iconUrl && (userInfo.top5Champions || [])[0]?.masteryLevel >= 10"
                   src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                 <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
@@ -135,7 +135,7 @@
                   :src="require(`@/assets/Mastery/${userInfo.top5Champions[2]?.masteryLevel}.webp`)"
                   class="mastery-icon" alt="Mastery Level" />
                 <img
-                  v-if="(userInfo.top5Champions || [])[1]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
+                  v-if="(userInfo.top5Champions || [])[2]?.iconUrl && (userInfo.top5Champions || [])[2]?.masteryLevel >= 10"
                   src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                 <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
@@ -608,12 +608,12 @@ footer {
 }
 
 /* .riot-btn {
-  background-color: #006400;
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  width: 200px;
-  height: 40px;
+background-color: #006400;
+color: white;
+padding: 10px;
+border-radius: 5px;
+width: 200px;
+height: 40px;
 } */
 /* Most Played Champions 스타일 */
 .most-played-champions {
