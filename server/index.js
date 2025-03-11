@@ -2,39 +2,51 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const http = require('http');
-const app = express();
-const PORT = 3000;
-const { setupSocketIo, matchDataStore } = require('./setupSocketIo');// Socket.IO 설정 가져오기
-
-// Middleware 설정
-app.use(cors({
-    origin: ['http://localhost:8080', 'https://bangguem.github.io'], // Vue 개발 서버 URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
-    credentials: true, // 쿠키를 포함한 요청 허용
-    allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
-}));
-app.use(bodyParser.json());
-app.options('*', cors()); // 모든 경로에 대해 OPTIONS 요청 허용
-
-
-const server = http.createServer(app);
-const io = setupSocketIo(server);
-// 서버 실행
-
-
+const cookieParser = require('cookie-parser');
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
-const { connectToMongo, fetchUser, createUser, removeUser, closeMongoConnection,
-    ChangeUserprofile, createSummoner, fetchUserByemail, updatePassword, } = require('./db');
+
+const app = express();
+const PORT = 3000;
+
+// Socket.IO 설정
+const { setupSocketIo, matchDataStore } = require('./setupSocketIo');
+
+// 데이터베이스 및 인증 관련 함수들
+const { connectToMongo, fetchUser, createUser, removeUser, ChangeUserprofile,
+    createSummoner, fetchUserByemail, updatePassword } = require('./db');
 const { generateToken, verifyToken } = require('./auth');
-const cookieParser = require('cookie-parser');
-app.use(cookieParser()); // 쿠키 파싱
-app.use(express.urlencoded({ extended: true })); // URL-encoded 요청 본문 파싱
-const nodemailer = require('nodemailer');
-const boardRouter = require('./routes/board');  // board 라우터 추가
-const patchNotesFetcherRouter = require('./routes/patchNotesFetcher'); // patchNotesFetcher 라우터 추가
-app.use('/api/board', boardRouter);  // /api/board 라우트 추가
-app.use('/api/patch-notes', patchNotesFetcherRouter);  // /api/patch-notes 라우터 연결
+
+// 라우터 불러오기
+const boardRouter = require('./routes/board');
+const patchNotesFetcherRouter = require('./routes/patchNotesFetcher');
+
+// ─────────────────────────────────────────────
+//  Middleware 설정
+// ─────────────────────────────────────────────
+app.use(cors({
+    origin: ['http://localhost:8080', 'https://bangguem.github.io'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.options('*', cors());
+
+// ─────────────────────────────────────────────
+//  라우터 설정
+// ─────────────────────────────────────────────
+app.use('/api/board', boardRouter);
+app.use('/api/patch-notes', patchNotesFetcherRouter);
+
+// ─────────────────────────────────────────────
+//  HTTP 서버 및 Socket.IO 초기화
+// ─────────────────────────────────────────────
+const server = http.createServer(app);
+const io = setupSocketIo(server);
 
 connectToMongo().then(() => {
     server.listen(PORT, () => {
@@ -42,274 +54,221 @@ connectToMongo().then(() => {
     });
 });
 
+// ─────────────────────────────────────────────
+//  JWT 인증 미들웨어
+// ─────────────────────────────────────────────
 function authenticateJWT(req, res, next) {
     const token = req.cookies.auth_token;
-
     if (!token) {
-        req.user = null; // 토큰이 없으면 사용자 정보를 null로 설정
-        return next();
+        req.user = null;
+        return res.status(401).json({ message: '로그인이 필요합니다.' });
     }
-
-    // 토큰 검증
     const decoded = verifyToken(token);
     if (!decoded) {
-        req.user = null; // 토큰이 유효하지 않으면 사용자 정보를 null로 설정
-        return next();
+        req.user = null;
+        res.clearCookie('auth_token');
+        return res.status(401).json({ message: '세션이 만료되었거나 유효하지 않은 토큰입니다.' });
     }
-
-    // 검증이 완료되면 req.user에 사용자 정보 추가
     req.user = decoded;
     next();
 }
 
-// 회원가입 API
+// ─────────────────────────────────────────────
+//  사용자 관련 API
+// ─────────────────────────────────────────────
+// 회원가입
 app.post('/signup', async (req, res) => {
     const { userid, password, passwordcheck, email, nickname, birthdate, gender } = req.body;
-
-    // 비밀번호 확인
     if (password !== passwordcheck) {
-        res.status(400).json({ success: false, message: '비밀번호가 일치하지 않습니다.' });
-        return;
+        return res.status(400).json({ success: false, message: '비밀번호가 일치하지 않습니다.' });
     }
-
-    // 중복 아이디 확인
     const user = await fetchUser(userid);
     if (user) {
-        res.status(400).json({ success: false, message: `이미 존재하는 아이디입니다: ${userid}` });
-        return;
+        return res.status(400).json({ success: false, message: `이미 존재하는 아이디입니다: ${userid}` });
     }
-
-    // 비밀번호 해싱 및 사용자 생성
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
         userid,
         password: hashedPassword,
-        email: email || null, // 이메일이 없으면 null로 설정
+        email: email || null,
         nickname,
-        birthdate: birthdate || null, // 생년월일이 없으면 null로 설정
-        gender: gender || 'other', // 성별이 없으면 기본값을 'other'로 설정
+        birthdate: birthdate || null,
+        gender: gender || 'other',
     };
     await createUser(newUser);
-
-    // JWT 토큰 생성 및 쿠키에 저장
     const token = generateToken({ userid: newUser.userid });
     res.cookie('auth_token', token, { httpOnly: true });
-    res.status(201).json({ success: true, message: '회원가입이 완료되었습니다.' });
+    return res.status(201).json({ success: true, message: '회원가입이 완료되었습니다.' });
 });
 
-// 중복 확인 API
+// 중복 확인
 app.post('/check-duplicate', async (req, res) => {
     const { userid } = req.body;
-
     const user = await fetchUser(userid);
     if (user) {
-        res.status(400).json({ success: false, message: `이미 존재하는 아이디입니다: ${userid}` });
-    } else {
-        res.status(200).json({ success: true, message: '사용할 수 있는 아이디입니다.' });
+        return res.status(400).json({ success: false, message: `이미 존재하는 아이디입니다: ${userid}` });
+    }
+    return res.status(200).json({ success: true, message: '사용할 수 있는 아이디입니다.' });
+});
+
+// 로그인
+app.post('/login', async (req, res) => {
+    const { userid, password } = req.body;
+    try {
+        const user = await fetchUser(userid);
+        if (!user) {
+            return res.status(400).json({ success: false, message: '가입되지 않은 계정입니다.' });
+        }
+        const matchPassword = await bcrypt.compare(password, user.password);
+        if (!matchPassword) {
+            return res.status(400).json({ success: false, message: '비밀번호가 틀립니다.' });
+        }
+        const token = generateToken({ userid: user.userid });
+        res.cookie('auth_token', token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+        });
+        return res.status(200).json({ success: true, message: '로그인 성공' });
+    } catch (error) {
+        console.error('Login error:', error);
+        return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다. 다시 시도해주세요.' });
     }
 });
 
+// 로그아웃
 app.get('/logout', (req, res) => {
     res.clearCookie('auth_token');
-    res.status(200).json({ success: true, message: '로그아웃 성공' });
+    return res.status(200).json({ success: true, message: '로그아웃 성공' });
 });
 
+// 로그인 상태 체크
 app.get('/auth/check-login', authenticateJWT, async (req, res) => {
     if (!req.user) {
         return res.status(401).json({ loggedIn: false, message: '로그인 상태가 아닙니다.' });
     } else {
         const user = await fetchUser(req.user.userid);
-        res.status(200).json({
-            loggedIn: true,
-            message: '로그인 상태입니다.',
-            user,
-        });
+        return res.status(200).json({ loggedIn: true, message: '로그인 상태입니다.', user });
     }
 });
 
-
-app.post('/login', async (req, res) => {
-    const { userid, password } = req.body;
-
-    try {
-        // 사용자 조회
-        const user = await fetchUser(userid);
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: '가입되지 않은 계정입니다.',
-            });
-        }
-
-        // 비밀번호 확인
-        const matchPassword = await bcrypt.compare(password, user.password);
-        if (!matchPassword) {
-            return res.status(400).json({
-                success: false,
-                message: '비밀번호가 틀립니다.',
-            });
-        }
-
-        // JWT 토큰 생성
-        const token = generateToken({ userid: user.userid });
-        res.cookie('auth_token', token, {
-            httpOnly: true, // 클라이언트에서 접근할 수 없도록 설정
-            sameSite: 'strict', // CSRF 공격 방지
-            secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송 (배포 시)
-        });
-
-        // 성공 응답
-        return res.status(200).json({
-            success: true,
-            message: '로그인 성공',
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({
-            success: false,
-            message: '서버 오류가 발생했습니다. 다시 시도해주세요.',
-        });
-    }
-});
-
+// 회원 탈퇴
 app.get('/withdraw', authenticateJWT, async (req, res) => {
     const user = req.user;
     try {
         const isDeleted = await removeUser(user.userid);
         if (isDeleted) {
             res.clearCookie('auth_token');
-            return res.status(200).json({
-                success: true,
-                message: 'Account successfully deleted',
-            });
+            return res.status(200).json({ success: true, message: 'Account successfully deleted' });
         } else {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found in database',
-            });
+            return res.status(404).json({ success: false, message: 'User not found in database' });
         }
     } catch (error) {
         console.error('Error during withdrawal:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error during account withdrawal',
-        });
+        return res.status(500).json({ success: false, message: 'Error during account withdrawal' });
     }
 });
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.NODEMAILER_USER,
-        pass: process.env.NODEMAILER_PASSWORD,
-    },
+// 내 정보 변경
+app.post('/change-userprofile', authenticateJWT, async (req, res) => {
+    const userData = req.user;
+    if (userData) {
+        const { nickname, birthdate, gender, email } = req.body;
+        try {
+            const userprofile = {
+                userid: userData.userid,
+                nickname,
+                birthdate,
+                gender,
+                email,
+            };
+            await ChangeUserprofile(userprofile);
+            return res.status(200).json({ success: true, message: '내 정보 변경 성공' });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            return res.status(500).json({ success: false, message: '내 정보 변경 실패' });
+        }
+    } else {
+        return res.status(404).json({ success: false, message: 'User Not Found' });
+    }
 });
 
-// 비밀번호 재설정 요청 API
+// ─────────────────────────────────────────────
+//  비밀번호 및 아이디 관련 API
+// ─────────────────────────────────────────────
+// 비밀번호 재설정 요청
 app.post('/request-password-reset', async (req, res) => {
     const { email } = req.body;
-
     try {
-        // 이메일로 사용자 확인
         const user = await fetchUserByemail(email);
         if (!user) {
             return res.status(404).json({ success: false, message: '가입되지 않은 이메일입니다.' });
         }
-
-        // JWT 토큰 생성 (유효 시간: 15분)
         const token = generateToken({ email }, '15m');
-
-        // 비밀번호 변경 링크 생성
         const resetLink = `${process.env.CLIENT_URL}/find-password?token=${token}`;
-
-        // 이메일 전송
         await transporter.sendMail({
             from: process.env.NODEMAILER_USER,
             to: email,
             subject: '비밀번호 변경 요청',
             text: `비밀번호를 변경하려면 다음 링크를 클릭하세요: ${resetLink}`,
         });
-
-        res.status(200).json({ success: true, message: '비밀번호 변경 링크가 이메일로 전송되었습니다.' });
+        return res.status(200).json({ success: true, message: '비밀번호 변경 링크가 이메일로 전송되었습니다.' });
     } catch (error) {
         console.error('Error requesting password reset:', error);
-        res.status(500).json({ success: false, message: '비밀번호 변경 요청 중 오류가 발생했습니다.' });
+        return res.status(500).json({ success: false, message: '비밀번호 변경 요청 중 오류가 발생했습니다.' });
     }
 });
 
+// 비밀번호 재설정
 app.post('/reset-password', async (req, res) => {
     const { token, newPassword } = req.body;
-
     try {
-        // 토큰 검증
         const decoded = verifyToken(token);
         if (!decoded) {
-            return res.status(400).json({
-                success: false,
-                message: '유효하지 않거나 만료된 링크입니다.',
-            });
+            return res.status(400).json({ success: false, message: '유효하지 않거나 만료된 링크입니다.' });
         }
-
-        // 비밀번호 해싱 및 업데이트
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const result = await updatePassword(decoded.email, hashedPassword);
-
         if (result.matchedCount > 0) {
-            return res.status(200).json({
-                success: true,
-                message: '비밀번호가 성공적으로 변경되었습니다.',
-            });
+            return res.status(200).json({ success: true, message: '비밀번호가 성공적으로 변경되었습니다.' });
         } else {
-            return res.status(404).json({
-                success: false,
-                message: '사용자를 찾을 수 없습니다.',
-            });
+            return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
         }
     } catch (error) {
         console.error('Error resetting password:', error);
-        return res.status(500).json({
-            success: false,
-            message: '비밀번호 변경 중 오류가 발생했습니다.',
-        });
+        return res.status(500).json({ success: false, message: '비밀번호 변경 중 오류가 발생했습니다.' });
     }
 });
 
+// 아이디 찾기 요청
 app.post('/request-userid', async (req, res) => {
     const { email } = req.body;
-
     try {
-        // 이메일로 사용자 확인
         const user = await fetchUserByemail(email);
         if (!user) {
             return res.status(404).json({ success: false, message: '가입되지 않은 이메일입니다.' });
         }
-
-        // 이메일 전송
         await transporter.sendMail({
             from: process.env.NODEMAILER_USER,
             to: email,
             subject: 'Duo-Mate 아이디 찾기',
             text: `사용자님의 아이디는 : ${user.userid} 입니다`,
         });
-
-        res.status(200).json({ success: true, message: '아이디가 이메일로 전송되었습니다.' });
+        return res.status(200).json({ success: true, message: '아이디가 이메일로 전송되었습니다.' });
     } catch (error) {
         console.error('Error requesting password reset:', error);
-        res.status(500).json({ success: false, message: '아이디 요청 중 오류가 발생했습니다.' });
+        return res.status(500).json({ success: false, message: '아이디 요청 중 오류가 발생했습니다.' });
     }
 });
 
-function splitSummonerAndTag(input) {
-    const [summonerName, tag = 'kr1'] = input.split('#');
-    return { summonerName, tag };
-}
-//라이엇 정보 가져오기
+// ─────────────────────────────────────────────
+//  소환사 정보 관련 API
+// ─────────────────────────────────────────────
+// 소환사 정보 가져오기
 app.post('/summonerInfo', authenticateJWT, async (req, res) => {
     const userData = req.user;
     if (userData) {
         const { summonerName, tag } = req.body;
-
         try {
             const summonerprofile = {
                 userid: userData.userid,
@@ -317,16 +276,17 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
                 tag,
             };
             await createSummoner(summonerprofile);
-            res.status(200).json({ success: true, message: '소환사 정보 가져오기 성공' })
+            return res.status(200).json({ success: true, message: '소환사 정보 가져오기 성공' });
         } catch (error) {
             console.error('Error updating profile:', error);
-            res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
+            return res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
         }
     } else {
-        res.status(404).json({ success: false, message: 'User Not Found' });
+        return res.status(404).json({ success: false, message: 'User Not Found' });
     }
 });
 
+// 소환사 정보 갱신
 app.post('/updateSummonerInfo', authenticateJWT, async (req, res) => {
     const userData = req.user;
     if (userData) {
@@ -338,41 +298,36 @@ app.post('/updateSummonerInfo', authenticateJWT, async (req, res) => {
                 tag: user.Tag
             };
             await createSummoner(summonerprofile);
-            res.status(200).json({ success: true, message: '소환사 정보 갱신 성공' })
+            return res.status(200).json({ success: true, message: '소환사 정보 갱신 성공' });
         } catch (error) {
             console.error('Error updating profile:', error);
-            res.status(500).json({ success: false, message: '소환사 정보 갱신 실패' });
+            return res.status(500).json({ success: false, message: '소환사 정보 갱신 실패' });
         }
     } else {
-        res.status(404).json({ success: false, message: 'User Not Found' });
-
+        return res.status(404).json({ success: false, message: 'User Not Found' });
     }
-})
+});
 
-
-
-// ✅ 매칭 정보 조회 API
+// ─────────────────────────────────────────────
+//  매칭 관련 API
+// ─────────────────────────────────────────────
+// 매칭 정보 조회
 app.get("/match/get/:matchId", (req, res) => {
     const matchId = req.params.matchId;
-
     console.log(`📢 매칭 정보 요청: ${matchId}`);
     console.log(`🔍 저장된 매칭 데이터:`, matchDataStore);
-
-    // ✅ `matchId`가 `matchDataStore`에 존재하는지 확인
     if (!matchId || !matchDataStore[matchId]) {
         console.error(`❌ matchId(${matchId})에 해당하는 매칭 정보를 찾을 수 없음`);
         return res.status(404).json({ success: false, message: "매칭 정보 없음" });
     }
-
-    res.json({ success: true, match: matchDataStore[matchId] });
+    return res.json({ success: true, match: matchDataStore[matchId] });
 });
 
-// index.js의 /match/save 엔드포인트 수정
+// 매칭 저장
 app.post("/match/save", (req, res) => {
     const { matchId } = req.body;
     console.log("📢 매칭 저장 요청 받음. matchId:", matchId);
     console.log("📢 현재 matchDataStore:", matchDataStore);
-
     if (!matchId || !matchDataStore[matchId]) {
         console.error(`❌ 유효하지 않은 매칭 데이터 (matchId: ${matchId})`);
         return res.status(400).json({
@@ -382,33 +337,12 @@ app.post("/match/save", (req, res) => {
             availableMatches: Object.keys(matchDataStore)
         });
     }
-
     console.log(`✅ 매칭 데이터 확인 성공: ${matchId}`);
     console.log("🔹 저장된 매칭 데이터:", matchDataStore[matchId]);
-
-    res.json({ success: true, matchId });
+    return res.json({ success: true, matchId });
 });
-app.post('/change-userprofile', authenticateJWT, async (req, res) => {
-    const userData = req.user;
 
-    if (userData) {
-        const { nickname, birthdate, gender, email } = req.body;
-
-        try {
-            const userprofile = {
-                userid: userData.userid,
-                nickname,
-                birthdate,
-                gender,
-                email,
-            };
-            await ChangeUserprofile(userprofile);
-            res.status(200).json({ success: true, message: '내 정보 변경 성공' });
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            res.status(500).json({ success: false, message: '내 정보 변경 실패' });
-        }
-    } else {
-        res.status(404).json({ success: false, message: 'User Not Found' });
-    }
-});
+// ─────────────────────────────────────────────
+//  Express 앱 내보내기
+// ─────────────────────────────────────────────
+module.exports = app;

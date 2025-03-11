@@ -11,7 +11,7 @@
             <h2>{{ getOpponent.nickname || "상대방 닉네임" }}</h2>
             <!-- ✅ 소환사 아이디 추가 -->
             <p class="summoner-name">@{{ getOpponent.SummonerName || "소환사 아이디 없음" }}{{ '#' + getOpponent.Tag || " "
-            }}
+                }}
             </p>
 
             <!-- ✅ 포지션 아이콘 (최대 2개) -->
@@ -36,7 +36,7 @@
                         alt="Game Tier" class="ingame-icon" />
                     <p>Game Tier</p>
                     <p>{{ getOpponent.summonerRank?.tier || "Unranked" }} {{ getOpponent.summonerRank?.rank || " "
-                        }}
+                    }}
                     </p>
                 </div>
 
@@ -183,7 +183,7 @@ export default {
                 });
                 setTimeout(() => {
                     this.$router.push("/match");
-                }, 3000);
+                }, 2000);
             });
 
             this.socket.on("connect_error", error => {
