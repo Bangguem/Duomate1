@@ -132,7 +132,9 @@
         <!-- 비로그인 상태일 때의 헤더 -->
         <div class="header">
           <div class="logo">
-            <div class="circle"></div>
+            <div class="circle">
+              <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
+            </div>
             <span>Welcome</span>
           </div>
           <nav class="nav-links">
