@@ -2,13 +2,19 @@
     <div class="chat-container">
         <!-- 왼쪽: 상대방 정보 -->
         <div class="opponent-info">
-            <!-- 상대방 프로필 사진 -->
+            <!-- ✅ 상대방 프로필 사진 -->
             <div class="opponent-profile-picture">
                 <img :src="getOpponentProfileImage" alt="프로필 사진" class="profile-image" />
             </div>
-            <!-- 상대방 닉네임 -->
+
+            <!-- ✅ 상대방 닉네임 -->
             <h2>{{ getOpponent.nickname || "상대방 닉네임" }}</h2>
-            <!-- 포지션 아이콘 (최대 2개) -->
+            <!-- ✅ 소환사 아이디 추가 -->
+            <p class="summoner-name">@{{ getOpponent.SummonerName || "소환사 아이디 없음" }}{{ '#' + getOpponent.Tag || " "
+            }}
+            </p>
+
+            <!-- ✅ 포지션 아이콘 (최대 2개) -->
             <div class="opponent-position-container">
                 <div v-for="(pos, index) in opponentPositions" :key="index" class="position-item">
                     <img :src="getPositionIcon(pos)" alt="포지션 아이콘" class="position-icon" />
@@ -16,21 +22,26 @@
                 </div>
             </div>
 
-            <!-- 마이크 아이콘 -->
+            <!-- ✅ 마이크 아이콘 -->
             <div class="opponent-mic-container">
                 <img :src="opponentMicrophoneIcon" alt="마이크 상태 아이콘" class="mic-icon" />
                 <p class="mic-text">{{ getOpponent.microphone || "정보 없음" }}</p>
             </div>
+
             <!-- 인게임 정보 -->
             <div class="ingame-info">
-                <div>
-                    <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${getOpponent.summonerRank?.tier.toLowerCase()}.png`"
+                <!-- Game Tier -->
+                <div class="ingame-tier">
+                    <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${(getOpponent.summonerRank?.tier || 'unranked').toLowerCase()}.png`"
                         alt="Game Tier" class="ingame-icon" />
-
                     <p>Game Tier</p>
-                    <p>{{ getOpponent.summonerRank?.tier || "Unknown" }}</p>
+                    <p>{{ getOpponent.summonerRank?.tier || "Unranked" }} {{ getOpponent.summonerRank?.rank || " "
+                        }}
+                    </p>
                 </div>
-                <div>
+
+                <!-- Most Champions (티어 아래로 배치) -->
+                <div class="ingame-champions">
                     <img src="/icons/champion.png" alt="Most Champions" class="ingame-icon" />
                     <p>Most Champion Top 3</p>
                     <p>{{ getOpponent.champions || "N/A" }}</p>
@@ -38,24 +49,26 @@
             </div>
         </div>
 
-        <!-- 오른쪽: 채팅창 -->
+        <!-- ✅ 오른쪽: 채팅창 -->
         <div class="chat-room">
             <div class="chat-header">
                 <h1>채팅방</h1>
                 <button @click="leaveRoom" class="leave-button">나가기</button>
             </div>
+
             <div class="chat-window" ref="chatWindow">
                 <div v-for="(message, index) in messages" :key="index" class="chat-message"
                     :class="{ 'my-message': message.username === userInfo?.nickname, 'system-message': message.type === 'system' }">
                     <div class="message-content">
                         <span class="message-text">{{ message.message }}</span>
                     </div>
-                    <!-- 메시지 메타 정보: 여기서 시간 표시 (닉네임 대신) -->
+                    <!-- ✅ 메시지 전송 시간 추가 -->
                     <div class="message-meta">
                         <span class="message-time">{{ formatTime(message.timestamp) }}</span>
                     </div>
                 </div>
             </div>
+
             <div class="chat-input">
                 <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="메시지를 입력하세요..." />
                 <button @click="sendMessage">전송</button>
@@ -76,6 +89,7 @@ export default {
             match: null,
             matchId: null,
             userInfo: null,
+            opponentDisconnected: false, // 상대방 접속 종료 여부 추가
         };
     },
     computed: {
@@ -87,27 +101,24 @@ export default {
                 {}
             );
         },
-        // 예시: 상대방 프로필 이미지 URL (실제 데이터 구조에 맞게 조정)
         getOpponentProfileImage() {
-            return this.getOpponent.profileImage || `http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${this.getOpponent.summonerInfo?.profileIconId}.png`;
+            return this.getOpponent?.profileImage ||
+                (this.getOpponent?.summonerInfo?.profileIconId
+                    ? `http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${this.getOpponent.summonerInfo.profileIconId}.png`
+                    : "/icons/default-profile.png");
         },
-        // 예시: 포지션 아이콘 반환 함수 (실제 경로에 맞게 조정)
         opponentPositions() {
             if (!this.getOpponent || !this.getOpponent.position) {
-                return ["없음"]; // 기본값
+                return ["없음"];
             }
-
-            // 포지션이 배열이 아닐 경우, 쉼표 기준으로 나누어 배열로 변환
             let positions = Array.isArray(this.getOpponent.position)
                 ? this.getOpponent.position
                 : String(this.getOpponent.position).split(",").map(p => p.trim());
 
-            return positions.slice(0, 2); // 최대 2개만 표시
+            return positions.slice(0, 2);
         },
-
-        // ✅ 포지션별 아이콘 매핑
         getPositionIcon() {
-            return (position) => {
+            return position => {
                 const positionIcons = {
                     "탑": "/icons/top.png",
                     "정글": "/icons/jungle.png",
@@ -119,12 +130,10 @@ export default {
                 return positionIcons[position] || "/icons/none.png";
             };
         },
-
-        // 예시: 마이크 아이콘 (상대방의 마이크 상태에 따라)
         opponentMicrophoneIcon() {
-            return this.getOpponent.microphone === '가능'
-                ? '/icons/mic-on.png'
-                : '/icons/mic-off.png';
+            return this.getOpponent?.microphone === "가능"
+                ? "/icons/mic-on.png"
+                : "/icons/mic-off.png";
         }
     },
     watch: {
@@ -147,21 +156,25 @@ export default {
     },
     methods: {
         setupSocket() {
-            if (this.socket) return;
+            if (this.socket || !this.matchId) return; // 중복 연결 방지 + matchId 확인
+
             console.log("📢 소켓 연결 시도");
             this.socket = io("http://localhost:3000", { withCredentials: true });
+
             this.socket.on("connect", () => {
                 console.log("✅ 소켓 연결됨:", this.socket.id);
-                if (this.match && this.match.roomName) {
+                if (this.match?.roomName) {
                     console.log("📢 방 참가 시도:", this.match.roomName);
                     this.socket.emit("join room", { roomName: this.match.roomName });
                 }
             });
-            this.socket.on("chat message", (data) => {
+
+            this.socket.on("chat message", data => {
                 console.log("💬 메시지 수신:", data);
                 this.messages.push(data);
             });
-            this.socket.on("user disconnected", (data) => {
+
+            this.socket.on("user disconnected", data => {
                 console.log("📢 상대방 접속 종료:", data);
                 this.opponentDisconnected = true;
                 this.messages.push({
@@ -172,7 +185,8 @@ export default {
                     this.$router.push("/match");
                 }, 3000);
             });
-            this.socket.on("connect_error", (error) => {
+
+            this.socket.on("connect_error", error => {
                 console.error("❌ 소켓 연결 에러:", error);
             });
         },
@@ -180,29 +194,27 @@ export default {
             if (this.socket && this.matchId) {
                 this.socket.emit("leave room", {
                     matchId: this.matchId,
-                    userId: this.userInfo.userid,
-                    nickname: this.userInfo.nickname,
+                    userId: this.userInfo?.userid,
+                    nickname: this.userInfo?.nickname,
                 });
                 this.socket.disconnect();
             }
             this.$router.push("/match");
         },
         formatTime(timestamp) {
-            if (!timestamp) return '';
+            if (!timestamp) return "";
             const date = new Date(timestamp);
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const hours = date.getHours().toString().padStart(2, "0");
+            const minutes = date.getMinutes().toString().padStart(2, "0");
             return `${hours}:${minutes}`;
         },
-
         sendMessage() {
             if (this.newMessage.trim() && this.socket && this.matchId) {
-                // 현재 시간을 타임스탬프로 추가 (ISO 문자열)
                 const timestamp = new Date().toISOString();
                 this.socket.emit("chat message", {
                     matchId: this.matchId,
                     message: this.newMessage,
-                    timestamp, // 메시지 전송 시 타임스탬프 포함
+                    timestamp,
                 });
                 this.newMessage = "";
             } else {
@@ -249,6 +261,7 @@ export default {
                 console.log("🔹 서버에서 받은 매칭 데이터:", data);
                 if (data.success) {
                     this.match = data.match;
+                    this.setupSocket(); // ✅ match 데이터 로드 후 소켓 설정
                 } else {
                     console.error("❌ 매칭 정보를 찾을 수 없습니다.");
                 }
@@ -262,15 +275,14 @@ export default {
         console.log("📢 ChatRoom에서 받은 matchId:", this.matchId);
         await this.fetchUserInfo();
         await this.fetchMatchInfo();
-        this.setupSocket();
     },
     beforeUnmount() {
         if (this.socket) {
             if (!this.opponentDisconnected) {
                 this.socket.emit("leave room", {
                     matchId: this.matchId,
-                    userId: this.userInfo.userid,
-                    nickname: this.userInfo.nickname,
+                    userId: this.userInfo?.userid,
+                    nickname: this.userInfo?.nickname,
                 });
             }
             console.log("📢 소켓 연결 종료");
@@ -321,6 +333,14 @@ export default {
     margin: 10px 0;
 }
 
+/* ✅ 소환사 아이디 스타일 */
+.summoner-name {
+    font-size: 14px;
+    color: #bbb;
+    margin-top: -5px;
+    /* 닉네임과 간격 조정 */
+}
+
 /* 포지션 아이콘 영역 */
 .opponent-position-container {
     display: flex;
@@ -362,17 +382,42 @@ export default {
     font-size: 14px;
 }
 
-/* 인게임 정보 영역 */
+/* 인게임 정보 영역 (세로 정렬) */
 .ingame-info {
-    margin-top: 20px;
     display: flex;
-    gap: 20px;
-    justify-content: center;
+    flex-direction: column;
+    /* 기존 가로 정렬에서 세로 정렬로 변경 */
+    align-items: center;
+    /* 중앙 정렬 */
+    gap: 15px;
+    /* 요소 간격 */
+    margin-top: 20px;
 }
 
-.ingame-icon {
+/* 개별 인게임 정보 아이템 (Game Tier, Most Champion) */
+.ingame-tier,
+.ingame-champions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* ✅ Game Tier 아이콘 스타일 */
+.ingame-tier .ingame-icon {
+    width: 150px;
+    /* 티어 아이콘 크기 */
+    height: 150px;
+    margin-bottom: 5px;
+    /* 아이콘과 텍스트 사이 간격 */
+}
+
+/* ✅ Most Champion 아이콘 스타일 */
+.ingame-champions .ingame-icon {
     width: 40px;
+    /* 챔피언 아이콘 크기 */
     height: 40px;
+    margin-bottom: 5px;
 }
 
 /* 오른쪽: 채팅창 영역 */
@@ -428,16 +473,18 @@ export default {
 
 /* 메시지 내용 */
 .message-content {
-    background: #e0e0e0;
+    background: rgb(66, 66, 66);
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 45px;
     max-width: 70%;
 }
 
 /* 내 메시지 내용 */
 .my-message .message-content {
-    background: #007bff;
+    background: rgb(21, 81, 55);
     color: white;
+    padding: 10px;
+    border-radius: 45px;
 }
 
 /* 메시지 메타 (예: 전송 시간) */
