@@ -514,7 +514,7 @@ select {
   
   .detail-item {
     text-align: center;
-    margin-left: 200px;
+    margin-left: 250px;
   }
   .detail-item img {
     width: 200px;
@@ -524,7 +524,7 @@ select {
     margin:0;
   }
   .riot-btn {
-    background-color: #006400;
+    background-color: #0064006d;
     color: #fff;
     border: none;
     padding: 10px;
@@ -587,7 +587,7 @@ select {
   padding: 8px;
   border: none;
   cursor: pointer;
-  background-color: #006400;
+  background-color: #00640073;
   color:#FAFAFA;
   border-radius: 5px;
 }
@@ -605,6 +605,7 @@ select {
   display: flex;
   flex-direction: column;
   align-items: center; /* 내부 요소들을 수직 정렬 */
+  margin-right:80px;
 }
 
 .champion-list {
