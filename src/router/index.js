@@ -13,6 +13,7 @@ import MatchQueue from '@/components/MatchQueue.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
 import NoticePage from '../components/NoticePage.vue'; // 공지사항 페이지 컴포넌트
+import UpdatePage from '@/components/UpdatePage.vue'; // 업데이트 페이지 추가
 
 const routes = [
   {
@@ -58,7 +59,11 @@ const routes = [
     name: 'Notices',
     component: NoticePage, // 공지사항 페이지 컴포넌트
   },
-
+  {
+    path: '/updates', // 업데이트 페이지 라우트 추가
+    name: 'UpdatePage',
+    component: UpdatePage,
+  },
 ];
 
 const router = createRouter({

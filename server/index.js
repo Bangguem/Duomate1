@@ -34,9 +34,11 @@ const nodemailer = require('nodemailer');
 const boardRouter = require('./routes/board');  // board 라우터 추가
 const patchNotesFetcherRouter = require('./routes/patchNotesFetcher'); // patchNotesFetcher 라우터 추가
 const noticesRoutes = require('./routes/notices'); // notices 라우트 불러오기
+const updateRouter = require('./routes/updateFetcher'); // 업데이트 라우터 추가
 app.use('/api/board', boardRouter);  // /api/board 라우트 추가
 app.use('/api/patch-notes', patchNotesFetcherRouter);  // /api/patch-notes 라우터 연결
 app.use('/api/notices', noticesRoutes);
+app.use('/api/updates', updateRouter); // 업데이트 API 추가
 
 connectToMongo().then(() => {
     server.listen(PORT, () => {
