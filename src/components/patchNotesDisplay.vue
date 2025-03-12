@@ -17,7 +17,6 @@
               <img src="@/assets/icon_lol.png" alt="패치 아이콘" class="patch-icon" />
               <div class="patch-info">
                   <a :href="patch.link" target="_blank" class="patch-title">{{ patch.title }}</a>
-                  <!-- 한줄평(리뷰)가 있을 경우 표시 -->
                   <p class="patch-review" v-if="patch.review">{{ patch.review }}</p>
                   <p class="patch-date">{{ patch.date || '날짜 없음' }}</p>
               </div>
@@ -60,6 +59,8 @@ export default {
               if (response.ok) {
                   const data = await response.json();
                   this.patchNotes = data;
+                  // 초기 데이터 로드 후 skip 값을 업데이트해 중복 호출 방지
+                  this.skip += this.limit;
               } else {
                   console.error('Error fetching patch notes');
               }
