@@ -77,12 +77,19 @@
         </div> -->
 
           <div class="detail-item">
-            <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
-            <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
-            <img v-if="userInfo.summonerRank && userInfo.summonerRank[0].tier"
-              :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0].tier}.png`)" alt="" />
-            <p v-if="userInfo.summonerRank && userInfo.summonerRank[0].tier">Game Tier</p>
-            <h3>{{ userInfo.summonerRank?.[0].tier || "" }} {{ userInfo.summonerRank?.[0].rank || "" }}</h3>
+            <img :src="userInfo.summonerRank?.[0]?.tier
+              ? require(`@/assets/Rank/Rank=${userInfo.summonerRank[0].tier}.png`)
+              : require('@/assets/Rank/unranked.png')" alt="" />
+            <p>
+              {{ userInfo.summonerRank?.[0]?.tier ? 'Game Tier' : 'UNRANKED' }}
+            </p>
+            <h3>
+              {{
+                userInfo.summonerRank?.[0]?.tier
+                  ? userInfo.summonerRank[0].tier + ' ' + userInfo.summonerRank[0].rank
+                  : 'UNRANKED'
+              }}
+            </h3>
           </div>
           <div class="most-played-champions">
             <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
