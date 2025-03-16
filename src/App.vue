@@ -81,7 +81,7 @@
                             :src="require(`@/assets/Mastery/${userInfo.top5Champions[1]?.masteryLevel}.webp`)"
                             class="mastery-icon" alt="Mastery Level" />
                           <img
-                            v-if="(userInfo.top5Champions || [])[1]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
+                            v-if="(userInfo.top5Champions || [])[0]?.iconUrl && (userInfo.top5Champions || [])[0]?.masteryLevel >= 10"
                             src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
@@ -100,7 +100,7 @@
                             :src="require(`@/assets/Mastery/${userInfo.top5Champions[2]?.masteryLevel}.webp`)"
                             class="mastery-icon" alt="Mastery Level" />
                           <img
-                            v-if="(userInfo.top5Champions || [])[1]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
+                            v-if="(userInfo.top5Champions || [])[2]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
                             src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
