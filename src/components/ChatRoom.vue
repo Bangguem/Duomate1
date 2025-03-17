@@ -13,36 +13,32 @@
             <p class="summoner-name">@{{ getOpponent.SummonerName || "소환사 아이디 없음" }}{{ '#' + getOpponent.Tag || "" }}
             </p>
 
-            <!-- ✅ 포지션 아이콘 (최대 2개) -->
-            <div class="opponent-position-container">
+            <!-- ✅ 포지션 + 마이크 아이콘을 한 줄에 배치 (포지션 2개 + 마이크 1개) -->
+            <div class="opponent-position-mic-container">
                 <div v-for="(pos, index) in opponentPositions" :key="index" class="position-item">
                     <img :src="getPositionIcon(pos)" alt="포지션 아이콘" class="position-icon" />
                     <p class="position-text">{{ pos }}</p>
                 </div>
+
+                <!-- ✅ 마이크 아이콘을 포지션 옆으로 이동 -->
+                <div class="mic-item">
+                    <img :src="opponentMicrophoneIcon" alt="마이크 상태 아이콘" class="mic-icon" />
+                    <p class="mic-text">{{ getOpponent.microphone || "정보 없음" }}</p>
+                </div>
             </div>
 
-            <!-- ✅ 마이크 아이콘 -->
-            <div class="opponent-mic-container">
-                <img :src="opponentMicrophoneIcon" alt="마이크 상태 아이콘" class="mic-icon" />
-                <p class="mic-text">{{ getOpponent.microphone || "정보 없음" }}</p>
-            </div>
-
-            <!-- 인게임 정보 -->
+            <!-- ✅ 인게임 정보 -->
             <div class="ingame-info">
                 <!-- Game Tier -->
                 <div class="ingame-tier">
                     <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${(getOpponent.summonerRank?.tier || 'unranked').toLowerCase()}.png`"
                         alt="Game Tier" class="ingame-icon" />
-                    <p>Game Tier</p>
+                    <!-- ❌ "Game Tier" 텍스트 제거 -->
                     <p>{{ getOpponent.summonerRank?.tier || "Unranked" }} {{ getOpponent.summonerRank?.rank || "" }}</p>
                 </div>
 
                 <!-- ✅ Most Champions (한 줄로 정렬 + 아이콘 아래 이름 표시) -->
                 <div class="most-played-champions">
-                    <h2 class="most-champions-title" v-if="(getOpponent.top5Champions || [])[0]?.iconUrl">
-                        Most Champions
-                    </h2>
-                    <br />
                     <div class="champion-list">
                         <!-- 챔피언 아이템 1 (인덱스 1) -->
                         <div class="champion-item">
@@ -154,6 +150,7 @@ export default {
             matchId: null,
             userInfo: null,
             opponentDisconnected: false, // 상대방 접속 종료 여부
+            iconSize: "60px", // 포지션 및 마이크 아이콘 크기 조절 가능
         };
     },
     computed: {
@@ -199,28 +196,6 @@ export default {
                 ? "/icons/mic-on.png"
                 : "/icons/mic-off.png";
         },
-        opponentChampions() {
-            // 챔피언 목록이 undefined이거나 배열이 아닐 경우 기본값 제공
-            if (!this.getOpponent.top5Champions) {
-                return ["N/A", "N/A", "N/A"];
-            }
-
-            let champions = this.getOpponent.top5Champions;
-
-            // 챔피언 데이터가 문자열로 올 경우 배열로 변환
-            if (typeof champions === "string") {
-                champions = champions.split(",").map(c => c.trim());
-            }
-
-            return Array.isArray(champions) ? champions.slice(0, 3) : ["N/A", "N/A", "N/A"];
-        },
-        getChampionIcon() {
-            return championName => {
-                return championName && championName !== "N/A"
-                    ? `http://ddragon.leagueoflegends.com/cdn/14.22.1/img/champion/${championName}.png`
-                    : "/icons/default-champion.png";
-            };
-        }
     },
     watch: {
         messages: {
@@ -242,7 +217,7 @@ export default {
     },
     methods: {
         setupSocket() {
-            if (this.socket || !this.matchId) return; // 중복 연결 방지 + matchId 확인
+            if (this.socket || !this.matchId) return;
 
             console.log("📢 소켓 연결 시도");
             this.socket = io("http://localhost:3000", { withCredentials: true });
@@ -347,7 +322,7 @@ export default {
                 console.log("🔹 서버에서 받은 매칭 데이터:", data);
                 if (data.success) {
                     this.match = data.match;
-                    this.setupSocket(); // ✅ match 데이터 로드 후 소켓 설정
+                    this.setupSocket();
                 } else {
                     console.error("❌ 매칭 정보를 찾을 수 없습니다.");
                 }
@@ -384,19 +359,19 @@ export default {
 .chat-container {
     display: flex;
     flex-direction: row;
-    /* 기본 가로 정렬 */
     justify-content: space-between;
     align-items: stretch;
     width: 100vw;
     height: 100vh;
-    overflow: auto;
-    /* 🔹 전체 화면 크기가 작아지면 스크롤 가능 */
+    overflow: hidden;
+    /* ✅ 내용이 넘칠 경우 가로 스크롤만 허용 */
+    flex-wrap: nowrap;
+    /* ✅ 채팅창이 아래로 내려가는 문제 방지 */
 }
 
 /* ✅ 상대방 정보 영역 */
 .opponent-info {
-    flex: 0.4;
-    /* 🔹 40% 차지 */
+    flex: 0.3;
     background-color: rgb(25, 25, 25);
     color: white;
     text-align: center;
@@ -405,14 +380,13 @@ export default {
     flex-direction: column;
     align-items: center;
     overflow: auto;
-    /* 🔹 상대방 정보도 스크롤 가능 */
 }
 
 /* ✅ 상대방 프로필 사진 */
 .opponent-profile-picture {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 90%;
     overflow: hidden;
     margin-bottom: 10px;
 }
@@ -436,14 +410,16 @@ export default {
     margin-top: -5px;
 }
 
-/* ✅ 포지션 아이콘 */
-.opponent-position-container {
+/* ✅ 포지션 + 마이크 아이콘을 한 줄로 정렬 */
+.opponent-position-mic-container {
     display: flex;
+    align-items: center;
     gap: 15px;
     justify-content: center;
     margin-bottom: 15px;
 }
 
+/* ✅ 포지션 아이콘 스타일 */
 .position-item {
     display: flex;
     flex-direction: column;
@@ -452,8 +428,8 @@ export default {
 }
 
 .position-icon {
-    width: 60px;
-    height: 60px;
+    width: var(--icon-size, 60px);
+    height: var(--icon-size, 60px);
 }
 
 .position-text {
@@ -461,15 +437,17 @@ export default {
     font-size: 14px;
 }
 
-/* ✅ 마이크 아이콘 */
-.opponent-mic-container {
-    margin-top: 10px;
+/* ✅ 마이크 아이콘 스타일 */
+.mic-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
 }
 
 .mic-icon {
-    width: 50px;
-    height: 50px;
+    width: var(--icon-size, 60px);
+    height: var(--icon-size, 60px);
 }
 
 .mic-text {
@@ -477,7 +455,7 @@ export default {
     font-size: 14px;
 }
 
-/* ✅ 인게임 정보 (세로 정렬) */
+/* ✅ 인게임 정보 */
 .ingame-info {
     display: flex;
     flex-direction: column;
@@ -509,14 +487,6 @@ export default {
     align-items: center;
     margin: 20px 0;
     /* 상하 여백 */
-}
-
-.most-champions-title {
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 10px;
-    /* 제목과 리스트 사이 간격 */
 }
 
 .champion-list {
@@ -594,8 +564,7 @@ export default {
 
 /* ✅ 채팅창 영역 */
 .chat-room {
-    flex: 0.6;
-    /* 🔹 60% 차지 */
+    flex: 0.7;
     background-color: rgb(33, 33, 33);
     color: white;
     display: flex;
@@ -603,7 +572,6 @@ export default {
     align-items: center;
     padding: 20px;
     overflow: auto;
-    /* 🔹 채팅창도 스크롤 가능 */
 }
 
 /* ✅ 채팅 헤더 */
@@ -624,7 +592,7 @@ export default {
     cursor: pointer;
 }
 
-/* ✅ 채팅창 내부 스크롤 추가 */
+/* ✅ 채팅창 내부 스크롤 */
 .chat-window {
     flex: 1;
     overflow-y: auto;
@@ -697,7 +665,7 @@ export default {
     cursor: pointer;
 }
 
-/* ✅ 작은 화면에서도 좌우/상하 스크롤 가능 */
+/* ✅ 작은 화면에서 스크롤 가능 */
 @media (max-width: 768px) {
     .chat-container {
         flex-direction: column;
@@ -709,7 +677,6 @@ export default {
     .chat-room {
         width: 100%;
         height: 50vh;
-        /* 위아래 50%씩 차지 */
         overflow: auto;
     }
 }
