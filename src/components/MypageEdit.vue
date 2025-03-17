@@ -77,19 +77,11 @@
         </div> -->
 
           <div class="detail-item">
-            <img :src="userInfo.summonerRank?.[0]?.tier
-              ? require(`@/assets/Rank/Rank=${userInfo.summonerRank[0].tier}.png`)
-              : require('@/assets/Rank/unranked.png')" alt="" />
-            <p>
-              {{ userInfo.summonerRank?.[0]?.tier ? 'Game Tier' : 'UNRANKED' }}
-            </p>
-            <h3>
-              {{
-                userInfo.summonerRank?.[0]?.tier
-                  ? userInfo.summonerRank[0].tier + ' ' + userInfo.summonerRank[0].rank
-                  : 'UNRANKED'
-              }}
-            </h3>
+            <img v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+            <p v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo">랭크 정보 없음</p>
+            <img v-if="userInfo.summonerRank[0] && userInfo.summonerRank[0].tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank[0]?.tier}.png`)" alt="" />
+            <p v-if="userInfo.summonerRank[0] && userInfo.summonerRank[0].tier">Game Tier</p>
+            <h3>{{ userInfo.summonerRank[0]?.tier || "" }} {{ userInfo.summonerRank[0]?.rank || "" }}</h3>
           </div>
           <div class="most-played-champions">
             <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -119,7 +111,7 @@
       <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
       <!-- 숙련도 이미지 -->
       <img v-if="(userInfo.top5Champions || [])[0]?.masteryLevel < 10" 
-       :src="require(`@/assets/Mastery/${userInfo.top5Champions[1]?.masteryLevel}.webp`)" 
+       :src="require(`@/assets/Mastery/${userInfo.top5Champions[0]?.masteryLevel}.webp`)" 
        class="mastery-icon"
        alt="Mastery Level" />
        <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl && (userInfo.top5Champions || [])[0]?.masteryLevel >= 10"
@@ -192,11 +184,8 @@ export default {
         top5Champions: [],
       },
       riotInfo: {
-        summonerRank: {
-          tier: '',
-          rank: '',
-        },
-        summonerInfo: {
+        summonerRank: [],
+        summonerInfo:{
           summonerLevel: '',
           profileIconId: '',
         },
@@ -352,8 +341,8 @@ body {
   margin: 0;
   display: flex;
   flex-direction: column;
-  width: 140vw;
-  height: 240vh;
+  width : 140vw;
+  height : 200vh;
   background-color: #212121;
 }
 
@@ -688,15 +677,15 @@ height: 40px;
   align-items: center;
   position: absolute;
   display: flex;
-  margin-left: 5px;
-  margin-top: 14px;
+  margin-left:5px !important;
+  margin-top:14px !important;
 }
 
 .high-mastery-level {
   position: absolute;
   font-size: 14px !important;
   color: #212121 !important;
-  text-align: center;
-  margin: 14px 0px 10px 14px !important;
+  text-align: center !important;
+  margin:14px 0px 10px 14px !important;
 }
 </style>
