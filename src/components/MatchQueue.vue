@@ -63,13 +63,17 @@
             </div>
 
             <!-- ✅ 매칭 버튼 -->
-            <button @click="startMatching" :disabled="isMatching" class="match-button">매칭 시작</button>
+            <button @click="startMatching" :disabled="isMatching" class="match-button">
+                매칭 시작
+            </button>
         </div>
 
         <!-- ✅ 매칭 완료 팝업 -->
         <div class="match-confirmation" v-if="matchFound && !waitingForOpponent">
             <div class="match-info">
                 <p class="match-text">매칭 완료!!</p>
+                <!-- 15초 카운트 다운 표시 -->
+                <p>남은 시간: {{ countdown }}초</p>
             </div>
             <div class="match-buttons">
                 <button class="reject-button" @click="rejectMatch">거절</button>
@@ -112,10 +116,14 @@ export default {
             isMatching: false,
             matchFound: false,
             matchId: null,
-            opponentAccepted: false,  // 🔹 상대방이 수락했는지 여부
-            waitingForOpponent: false,  // 🔹 상대 응답 대기 상태 추가
+            opponentAccepted: false, // 🔹 상대방 수락 여부
+            waitingForOpponent: false, // 🔹 상대 응답 대기 상태
             waitingTime: 0,
             timer: null,
+
+            // 15초 카운트 다운 관련 변수 추가
+            countdown: 15,
+            countdownTimer: null,
 
             positionIconSize: 40,
             voiceIconWidth: 50,
@@ -149,15 +157,13 @@ export default {
     },
 
     methods: {
-
         async fetchLatestMatchData() {
             try {
-                const response = await fetch('http://localhost:3000/updateSummonerInfo', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' }
+                const response = await fetch("http://localhost:3000/updateSummonerInfo", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" }
                 });
-
                 const result = await response.json();
                 if (result.success) {
                     alert("소환사 정보 갱신 성공");
@@ -173,11 +179,10 @@ export default {
 
         async checkLoginStatus() {
             try {
-                const response = await fetch('http://localhost:3000/auth/check-login', {
-                    method: 'GET',
-                    credentials: 'include',
+                const response = await fetch("http://localhost:3000/auth/check-login", {
+                    method: "GET",
+                    credentials: "include",
                 });
-
                 if (response.ok) {
                     const data = await response.json();
                     this.isLoggedIn = data.loggedIn;
@@ -190,7 +195,7 @@ export default {
                     this.handleUnauthenticatedUser();
                 }
             } catch (error) {
-                console.error('❌ 로그인 상태 확인 오류:', error);
+                console.error("❌ 로그인 상태 확인 오류:", error);
                 this.handleUnauthenticatedUser();
             }
         },
@@ -217,6 +222,7 @@ export default {
                 this.waitingForOpponent = false;
                 this.opponentAccepted = false;
                 if (this.timer) clearInterval(this.timer);
+                this.clearAcceptCountdown();
             });
 
             this.socket.on("matchSuccess", (data) => {
@@ -224,6 +230,8 @@ export default {
                 this.matchId = data.matchId;
                 this.matchFound = true;
                 this.waitingForOpponent = false;
+                // 매칭 성공 시 15초 카운트 다운 시작
+                this.startAcceptCountdown();
             });
 
             this.socket.on("matchRejected", () => {
@@ -233,14 +241,16 @@ export default {
                 this.waitingForOpponent = false;
                 this.opponentAccepted = false;
                 if (this.timer) clearInterval(this.timer);
+                this.clearAcceptCountdown();
                 alert("⚠️ 상대방이 매칭을 거부했습니다. 다시 시도해주세요!");
             });
 
             this.socket.on("matchConfirmed", async (data) => {
                 if (data.matchId === this.matchId) {
-                    this.opponentAccepted = true;  // 🔹 상대방이 수락함
+                    this.opponentAccepted = true; // 🔹 상대방 수락
+                    this.clearAcceptCountdown();
                     if (this.waitingForOpponent) {
-                        // ✅ 나도 수락했으므로 채팅방으로 이동
+                        // ✅ 둘 다 수락했으므로 채팅방으로 이동
                         this.$router.push(`/chatroom?matchId=${this.matchId}`);
                     }
                 }
@@ -253,6 +263,7 @@ export default {
                 this.waitingForOpponent = false;
                 this.opponentAccepted = false;
                 if (this.timer) clearInterval(this.timer);
+                this.clearAcceptCountdown();
             });
         },
 
@@ -267,11 +278,9 @@ export default {
         startMatching() {
             this.isMatching = true;
             this.waitingTime = 0;
-
             this.timer = setInterval(() => {
                 this.waitingTime++;
             }, 1000);
-
             this.socket.emit(
                 this.matchType === "일반" ? "request normalmatch" : "request rankmatch",
                 { position: this.selectedPositions, microphone: this.microphone }
@@ -281,7 +290,8 @@ export default {
         acceptMatch() {
             if (this.matchId) {
                 this.socket.emit("acceptMatch", { matchId: this.matchId });
-                this.waitingForOpponent = true;  // 🔹 상대방 응답 대기 상태 활성화
+                this.waitingForOpponent = true; // 🔹 상대방 응답 대기 상태 활성화
+                this.clearAcceptCountdown();
             }
             if (this.opponentAccepted) {
                 // ✅ 상대방도 수락한 상태 → 채팅방으로 이동
@@ -298,12 +308,39 @@ export default {
             this.waitingForOpponent = false;
             this.opponentAccepted = false;
             if (this.timer) clearInterval(this.timer);
+            this.clearAcceptCountdown();
         },
 
         cancelMatching() {
             if (this.timer) clearInterval(this.timer);
             this.isMatching = false;
             this.socket.emit("cancel match");
+            this.clearAcceptCountdown();
+        },
+
+        // 15초 수락 카운트 다운 시작
+        startAcceptCountdown() {
+            this.countdown = 15;
+            if (this.countdownTimer) clearInterval(this.countdownTimer);
+            this.countdownTimer = setInterval(() => {
+                if (this.countdown > 0) {
+                    this.countdown--;
+                } else {
+                    clearInterval(this.countdownTimer);
+                    this.countdownTimer = null;
+                    // 남은 시간이 0초가 되면 자동 거절 처리
+                    this.rejectMatch();
+                    alert("⚠️ 수락 시간이 초과되어 매칭이 거절되었습니다.");
+                }
+            }, 1000);
+        },
+
+        // 카운트 다운 타이머 정리
+        clearAcceptCountdown() {
+            if (this.countdownTimer) {
+                clearInterval(this.countdownTimer);
+                this.countdownTimer = null;
+            }
         }
     },
 
@@ -311,13 +348,16 @@ export default {
         formattedTime() {
             const minutes = Math.floor(this.waitingTime / 60);
             const seconds = this.waitingTime % 60;
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            return `${minutes.toString().padStart(2, "0")}:${seconds
+                .toString()
+                .padStart(2, "0")}`;
         }
     },
 
     beforeUnmount() {
         if (this.timer) clearInterval(this.timer);
         if (this.socket) this.socket.disconnect();
+        this.clearAcceptCountdown();
     }
 };
 </script>
@@ -440,13 +480,11 @@ export default {
     flex-wrap: wrap;
 }
 
-/* ✅ 아이콘과 텍스트를 세로 정렬 (아이콘 아래 글자 표시) */
 .position-options div,
 .voice-options div,
 .game-mode-options div {
     display: flex;
     flex-direction: column;
-    /* 세로 정렬 */
     align-items: center;
     text-align: center;
 }
@@ -457,17 +495,13 @@ export default {
     transition: transform 0.2s;
 }
 
-/* ✅ 마이크 "사용" 아이콘 크기 */
 .voice-options img[src*="mic-on.png"] {
     width: 50px;
-    /* 원하는 크기 */
     height: 90px;
 }
 
-/* ✅ 마이크 "미사용" 아이콘 크기 */
 .voice-options img[src*="mic-off.png"] {
     width: 70px;
-    /* 원하는 크기 */
     height: 90px;
 }
 
@@ -531,20 +565,6 @@ export default {
     text-align: center;
 }
 
-.opponent-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.profile-picture {
-    width: 100px;
-    height: 100px;
-    background-color: #2c2c2c;
-    border-radius: 50%;
-}
-
 .match-buttons {
     display: flex;
     gap: 10px;
@@ -579,7 +599,6 @@ export default {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
-    /* 🔹 투명도 조정 가능 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -587,16 +606,11 @@ export default {
 
 .popup-content {
     background: rgb(66, 66, 66);
-    /* 🔹 팝업 배경색 변경 */
     padding: 30px;
-    /* 🔹 내부 패딩 */
     border-radius: 15px;
-    /* 🔹 둥근 모서리 */
     text-align: center;
     width: 300px;
-    /* 🔹 팝업 크기 조정 */
     height: 500px;
-    /* 🔹 높이 조정 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -605,27 +619,19 @@ export default {
 
 .popup-content p {
     color: white;
-    /* 🔹 글자 색상 */
     font-size: 15px;
-    /* 🔹 글자 크기 */
     font-weight: bold;
-    /* 🔹 글자 굵기 */
     text-align: center;
     margin-bottom: 10px;
-    /* 🔹 간격 조정 */
 }
 
-/* ✅ 로딩 아이콘 */
 .loading-icon {
     width: 80px;
-    /* 🔹 아이콘 크기 */
     height: 80px;
     margin-top: 10px;
     animation: spin 1s linear infinite;
-    /* 🔹 회전 애니메이션 */
 }
 
-/* ✅ 로딩 애니메이션 (회전 속도 변경 가능) */
 @keyframes spin {
     from {
         transform: rotate(0deg);
@@ -639,33 +645,25 @@ export default {
 .popup-content button {
     padding: 12px 20px;
     background: rgb(66, 66, 66);
-    /* 🔹 팝업 배경색과 동일 */
     color: white;
-    /* 🔹 글자색 */
     font-size: 16px;
-    /* 🔹 글자 크기 */
     border: 1px solid white;
-    /* 🔹 흰색 테두리 추가 */
     border-radius: 10px;
-    /* 🔹 둥근 모서리 */
     cursor: pointer;
     margin-top: 15px;
     transition: transform 0.2s ease;
 }
 
-/* ✅ 버튼 호버 효과 (색상 변화 없이 살짝 확대) */
 .popup-content button:hover {
     transform: scale(1.05);
 }
 
-/* ✅ 상대방 응답 대기 팝업 스타일 */
 .waiting-popup {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgb(66, 66, 66);
-    /* 🔹 배경색을 하나로 통일 */
     color: white;
     padding: 30px;
     border-radius: 12px;
@@ -678,34 +676,12 @@ export default {
     height: 400px;
 }
 
-/* ✅ 로딩 아이콘 스타일 */
-.loading-icon {
-    width: 50px;
-    height: 50px;
-    margin-top: 10px;
-    animation: spin 1s linear infinite;
-    /* 🔹 애니메이션 추가 */
-}
-
-/* ✅ 회전 애니메이션 */
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ✅ 대기 시간 표시 */
 .waiting-time {
     font-size: 24px;
     font-weight: bold;
     margin: 10px 0;
 }
 
-/* ✅ 반응형 스타일 */
 @media (max-width: 768px) {
     .match-container {
         width: 90%;
