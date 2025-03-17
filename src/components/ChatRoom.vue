@@ -38,12 +38,75 @@
                 </div>
 
                 <!-- ✅ Most Champions (한 줄로 정렬 + 아이콘 아래 이름 표시) -->
-                <div class="ingame-champions">
-                    <p>Most Champion Top 3</p>
+                <div class="most-played-champions">
+                    <h2 class="most-champions-title" v-if="(getOpponent.top5Champions || [])[0]?.iconUrl">
+                        Most Champions
+                    </h2>
+                    <br />
                     <div class="champion-list">
-                        <div v-for="(champion, index) in opponentChampions" :key="index" class="champion-item">
-                            <img :src="getChampionIcon(champion)" alt="Champion Icon" class="champion-icon" />
-                            <p class="champion-name">{{ champion }}</p>
+                        <!-- 챔피언 아이템 1 (인덱스 1) -->
+                        <div class="champion-item">
+                            <img v-if="(getOpponent.top5Champions || [])[1]?.iconUrl"
+                                :src="getOpponent.top5Champions[1]?.iconUrl" alt="Champion Image" />
+                            <!-- 숙련도 관련 컨테이너 추가 -->
+                            <div class="mastery-wrapper">
+                                <img v-if="(getOpponent.top5Champions || [])[1]?.masteryLevel < 10"
+                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[1]?.masteryLevel}.webp`)"
+                                    class="mastery-icon" alt="Mastery Level" />
+                                <img v-if="(getOpponent.top5Champions || [])[1]?.iconUrl && (getOpponent.top5Champions || [])[1]?.masteryLevel >= 10"
+                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                                <!-- 숙련도 레벨이 10 이상일 때 오버레이 -->
+                                <div v-if="(getOpponent.top5Champions || [])[1]?.masteryLevel >= 10">
+                                    <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
+                                        alt="High Mastery" />
+                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[1]?.masteryLevel
+                                        }}</p>
+                                </div>
+                            </div>
+                            <br />
+                            <p>{{ (getOpponent.top5Champions || [])[1]?.championName || "" }}</p>
+                        </div>
+
+                        <!-- 챔피언 아이템 2 (인덱스 0) -->
+                        <div class="champion-item">
+                            <img v-if="(getOpponent.top5Champions || [])[0]?.iconUrl"
+                                :src="getOpponent.top5Champions[0]?.iconUrl" alt="Champion Image" />
+                            <div class="mastery-wrapper">
+                                <img v-if="(getOpponent.top5Champions || [])[0]?.masteryLevel < 10"
+                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[0]?.masteryLevel}.webp`)"
+                                    class="mastery-icon" alt="Mastery Level" />
+                                <img v-if="(getOpponent.top5Champions || [])[0]?.iconUrl && (getOpponent.top5Champions || [])[0]?.masteryLevel >= 10"
+                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                                <div v-if="(getOpponent.top5Champions || [])[0]?.masteryLevel >= 10">
+                                    <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
+                                        alt="High Mastery" />
+                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[0]?.masteryLevel
+                                        }}</p>
+                                </div>
+                            </div>
+                            <br />
+                            <p>{{ (getOpponent.top5Champions || [])[0]?.championName || "" }}</p>
+                        </div>
+
+                        <!-- 챔피언 아이템 3 (인덱스 2) -->
+                        <div class="champion-item">
+                            <img v-if="(getOpponent.top5Champions || [])[2]?.iconUrl"
+                                :src="getOpponent.top5Champions[2]?.iconUrl" alt="Champion Image" />
+                            <div class="mastery-wrapper">
+                                <img v-if="(getOpponent.top5Champions || [])[2]?.masteryLevel < 10"
+                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[2]?.masteryLevel}.webp`)"
+                                    class="mastery-icon" alt="Mastery Level" />
+                                <img v-if="(getOpponent.top5Champions || [])[2]?.iconUrl && (getOpponent.top5Champions || [])[2]?.masteryLevel >= 10"
+                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                                <div v-if="(getOpponent.top5Champions || [])[2]?.masteryLevel >= 10">
+                                    <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
+                                        alt="High Mastery" />
+                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[2]?.masteryLevel
+                                        }}</p>
+                                </div>
+                            </div>
+                            <br />
+                            <p>{{ (getOpponent.top5Champions || [])[2]?.championName || "" }}</p>
                         </div>
                     </div>
                 </div>
@@ -137,14 +200,12 @@ export default {
                 : "/icons/mic-off.png";
         },
         opponentChampions() {
-            console.log("📢 상대방 챔피언 데이터:", this.getOpponent.champions);
-
             // 챔피언 목록이 undefined이거나 배열이 아닐 경우 기본값 제공
-            if (!this.getOpponent.champions) {
+            if (!this.getOpponent.top5Champions) {
                 return ["N/A", "N/A", "N/A"];
             }
 
-            let champions = this.getOpponent.champions;
+            let champions = this.getOpponent.top5Champions;
 
             // 챔피언 데이터가 문자열로 올 경우 배열로 변환
             if (typeof champions === "string") {
@@ -441,37 +502,94 @@ export default {
     margin-bottom: 5px;
 }
 
-/* ✅ 챔피언 아이콘을 한 줄로 정렬 */
-.champion-list {
+/* Most Champions 영역을 한 줄로 정렬 */
+.most-played-champions {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
-    /* 아이콘 사이 간격 */
-    margin-top: 10px;
+    margin: 20px 0;
+    /* 상하 여백 */
 }
 
-/* ✅ 개별 챔피언 아이콘 스타일 */
+.most-champions-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    /* 제목과 리스트 사이 간격 */
+}
+
+.champion-list {
+    display: flex;
+    flex-direction: row;
+    /* 가로 정렬 */
+    gap: 10px;
+    /* 아이템 사이 간격 */
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+    /* 화면이 좁을 경우 가로 스크롤 */
+}
+
 .champion-item {
     display: flex;
     flex-direction: column;
-    /* 아이콘 아래 챔피언 이름 */
     align-items: center;
     text-align: center;
+    position: relative;
 }
 
-/* ✅ 챔피언 아이콘 */
-.champion-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
+.champion-item img {
+    width: 120px;
+    /* 챔피언 이미지 크기 */
+    height: 120px;
 }
 
-/* ✅ 챔피언 이름 */
-.champion-name {
-    margin-top: 5px;
-    font-size: 14px;
-    color: white;
+.champion-item p {
+    margin-top: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 숙련도 영역 컨테이너 (상대 위치 지정) */
+.mastery-wrapper {
+    position: relative;
+    width: 70px;
+    /* 마스터리 아이콘과 동일 너비 */
+    height: 50px;
+    /* 마스터리 아이콘과 동일 높이 */
+}
+
+/* 마스터리 아이콘: 컨테이너의 상단에 위치 */
+.mastery-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px !important;
+    height: 50px !important;
+}
+
+/* 고정 숙련도 아이콘: 마스터리 아이콘 바로 아래 중앙에 배치 */
+.high-mastery-icon {
+    position: absolute;
+    top: calc(100% + 5px);
+    /* 마스터리 아이콘 하단에서 5px 아래 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35px !important;
+    height: 15px !important;
+}
+
+/* 숙련도 레벨 텍스트: 고정 숙련도 아이콘 위쪽 중앙에 배치 */
+.high-mastery-level {
+    position: absolute;
+    bottom: calc(100% + 5px);
+    /* 고정 숙련도 아이콘 위쪽에서 5px 간격 */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px !important;
+    color: #212121 !important;
+    text-align: center;
 }
 
 /* ✅ 채팅창 영역 */
