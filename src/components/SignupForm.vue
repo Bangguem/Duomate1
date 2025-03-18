@@ -277,8 +277,8 @@ font-family: Arial, sans-serif;
 background-color: #212121;
 }
 #app {
-  width : 120vw;
-  height : 120vh;
+  width : 120%;
+  height : 120%;
   background-color: #212121;
 }
 
