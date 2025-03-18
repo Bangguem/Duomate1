@@ -66,7 +66,7 @@
                             src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-                          <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10">
+                          <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
                             <br />
@@ -85,7 +85,7 @@
                             src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-                          <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10">
+                          <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[0]?.masteryLevel }}</p>
                             <br />
@@ -104,7 +104,7 @@
                             src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-                          <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10">
+                          <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[2]?.masteryLevel }}</p>
                             <br />
@@ -190,6 +190,7 @@ export default {
       mypageopen: false,
       isLoggedIn: false, // 로그인 상태
       userInfo: {},
+      windowWidth: window.innerWidth,
     };
   },
 
@@ -200,6 +201,9 @@ export default {
       return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board', '/patch-notes'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
+    isMobile() {
+      return this.windowWidth < 768; // 예시: 768px 이하일 때 모바일로 간주
+    },
     showHeader() {
       return !this.isAuthPage;
     },
@@ -215,6 +219,9 @@ export default {
     }
   },
   methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth; // 창 크기 변경 시 너비 업데이트
+    },
     enterMatchQueue() {
       this.$router.push('/matchqueue');
     },
@@ -289,7 +296,11 @@ export default {
     },
   },
   mounted() {
+    window.addEventListener('resize', this.handleResize); // 창 크기 변화 리스너 추가
     this.checkLoginStatus(); // 컴포넌트가 마운트될 때 로그인 상태 확인
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize); // 리스너 제거
   },
 };
 </script>
@@ -617,34 +628,42 @@ body {
   /* 간격 조정 */
 }
 
-.mastery-icon {
-  width: 30px !important;
-  /* 기존 90px → 40px */
-  height: 20px !important;
-  /* 기존 70px → 30px */
-  margin-top: 38px;
-  /* 챔피언 이미지와 겹치지 않도록 조정 */
+.champion-item .mastery-icon {
   position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 20px;
+  z-index: 2;
+}
+.most-champions .champion-item .mastery-wrapper {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 20px;
+  z-index: 3;
 }
 
-.high-mastery-icon {
-  width: 15px !important;
-  /* 기존 40px → 20px */
-  height: 8px !important;
-  /* 기존 20px → 10px */
+.most-champions .champion-item .high-mastery-icon {
+  bottom:-2px;
+  width: 15px;
+  height: 8px;
   position: absolute;
-  display: flex;
-  margin-left: 4px;
-  margin-top: 6px;
+  left: 8px;
 }
 
-.high-mastery-level {
+.most-champions .champion-item .high-mastery-level {
+  bottom: -8px;
   position: absolute;
-  font-size: 8px !important;
-  /* 기존 16px → 10px */
-  color: #212121 !important;
-  text-align: center;
-  margin: 6px 0px 5px 7px !important;
-  /* 크기에 맞게 조정 */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: bold;
+  color: #212121;
+  z-index: 4;
 }
+
 </style>
