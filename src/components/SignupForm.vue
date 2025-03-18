@@ -32,6 +32,7 @@
       :type="passwordVisible ? 'text' : 'password'"
       placeholder="비밀번호를 입력해주세요"
       v-model="form.password"
+      minlength="8"
       required
     />
     <img
@@ -40,6 +41,9 @@
       class="toggle-password"
       @click="togglePasswordVisibility('password')"
     />
+  </div>
+  <div v-if="form.password.length > 0 && form.password.length < 8" class="error-message">
+    비밀번호는 최소 8자리 이상이어야 합니다.
   </div>
 </div>
           <div class="form-group password-field">
@@ -50,6 +54,7 @@
       :type="passwordCheckVisible ? 'text' : 'password'"
       placeholder="비밀번호를 다시 입력해주세요"
       v-model="form.passwordcheck"
+      minlength="8"
       required
     />
     <img
@@ -59,6 +64,14 @@
       @click="togglePasswordVisibility('passwordcheck')"
     />
   </div>
+  <div v-if="form.passwordcheck && form.password.length >= 8">
+  <div v-if="form.password !== form.passwordcheck" class="error-message">
+    비밀번호가 일치하지 않습니다.
+  </div>
+  <div v-else class="correct-message">
+    비밀번호가 일치합니다.
+  </div>
+</div>
           </div>
           <div class="form-group">
             <label for="email">이메일</label>
@@ -68,18 +81,16 @@
             <label for="nickname">닉네임</label>
             <input id="nickname" type="text" placeholder="닉네임을 입력해주세요" v-model="form.nickname" required />
           </div>
-          <!-- <div class="form-group">
-            <label for="birthdate">생년월일</label>
-            <input id="birthdate" type="date" v-model="form.birthdate" placeholder="생년월일을 입력해주세요" />
-          </div> -->
-          <!-- <div class="form-group">
-            <label for="gender">성별</label>
-            <select id="gender" v-model="form.gender" require>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
-              <option value="other">기타</option>
-            </select>
-          </div> -->
+          <!-- 라이엇 연동 폼 -->
+<div class="form-group riot-connect">
+  <label for="riot-id">라이엇 계정 연동</label>
+  <div class="riot-inputs">
+    <input id="riot-id" type="text" placeholder="소환사 이름" v-model="form.riotId" required />
+    <span>#</span>
+    <input id="riot-tag" type="text" placeholder="태그" v-model="form.riotTag" required />
+  </div>
+  <button type="button" @click="linkRiotAccount">연동하기</button>
+</div>
           <div class="button-group">
             <button type="button" class="cancel-button">Cancel</button>
             <button type="submit" class="signup-button">Sign Up</button>
@@ -117,6 +128,55 @@ export default {
       };
   },
   methods: {
+    async linkRiotAccount() {
+      console.log("연동하기 버튼 클릭됨"); // 디버깅 로그
+
+      if (!this.summonerName || !this.tag) {
+        alert("소환사 이름과 태그를 입력해주세요.");
+        return;
+      }
+
+      try {
+
+        console.log("소환사 이름:", this.summonerName);
+        console.log("태그:", this.tag);
+
+        console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
+        const response = await fetch("http://localhost:3000/summonerInfo", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            summonerName: this.summonerName,
+            tag: this.tag,
+          }),
+        });
+        console.log("서버 응답 상태 코드:", response.status); // 응답 상태 확인
+        const result = await response.json();
+        console.log("서버 응답 데이터:", result); // 응답 데이터 확인
+
+        if (result.success) {
+          alert("라이엇 연동 완료");
+          // Riot API 데이터 업데이트
+          this.riotInfo = {
+            tier: result.tier || "정보 없음",
+            summonerLevel: result.summonerLevel || "정보 없음",
+            profileIconId: result.profileIconId || '',
+            top5Champions: result.top5Champions || [],
+          };
+
+          this.showRiotModal = false;
+          window.location.reload();
+        } else {
+          alert("라이엇 연동 실패: " + result.message);
+        }
+      } catch (error) {
+        console.error("Error linking Riot account:", error);
+        alert("연동 중 오류가 발생했습니다.");
+      }
+    },
     togglePasswordVisibility(field) {
       if (field === 'password') {
       this.passwordVisible = !this.passwordVisible;
@@ -185,6 +245,7 @@ export default {
               alert('회원가입 중 오류가 발생했습니다.');
           }
       },
+      
     },
     
 };
@@ -317,6 +378,7 @@ color: black;
 .button-group {
 display: flex;
 gap: 10px;
+margin-left: 8px;
 }
 
 .cancel-button,
@@ -370,5 +432,49 @@ background-color: #15513775;
 
 .toggle-password:hover {
   opacity: 1;
+}
+.riot-connect {
+  display: flex;
+  flex-direction: column;
+}
+
+.riot-inputs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.riot-inputs input {
+  width: 50%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #FAFAFA;
+  color: black;
+}
+
+.riot-inputs span {
+  font-size: 18px;
+  color: #FAFAFA;
+}
+.form-group button {
+  margin-top: 10px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #15513775;
+  color: #FAFAFA;
+  border-radius: 5px;
+}
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.correct-message {
+  color: green;
+  font-size: 12px;
+  margin-top: 5px;
 }
 </style>

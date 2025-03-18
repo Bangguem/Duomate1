@@ -77,11 +77,11 @@
         </div> -->
 
           <div class="detail-item">
-            <img v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
-            <p v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo">랭크 정보 없음</p>
-            <img v-if="userInfo.summonerRank[0] && userInfo.summonerRank[0].tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank[0]?.tier}.png`)" alt="" />
-            <p v-if="userInfo.summonerRank[0] && userInfo.summonerRank[0].tier">Game Tier</p>
-            <h3>{{ userInfo.summonerRank[0]?.tier || "" }} {{ userInfo.summonerRank[0]?.rank || "" }}</h3>
+            <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+            <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
+            <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+            <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
+            <h3>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</h3>
           </div>
           <div class="most-played-champions">
             <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -100,12 +100,12 @@
                   src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
 
       <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-      <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10">
+      <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
       <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery"/>
       <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
+      </div>
       <br />
       <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
-      </div>
     </div>
     <div class="champion-item">
       <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl" alt="Champion Image" />
@@ -120,12 +120,12 @@
        alt="Mastery Level" />
 
       <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-      <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10">
+      <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10" class="mastery-wrapper">
       <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery"/>
       <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[0]?.masteryLevel }}</p>
+      </div>
       <br />
       <p>{{ (userInfo.top5Champions || [])[0]?.championName || "" }}</p>
-      </div>
     </div>
     <div class="champion-item">
       <img v-if="(userInfo.top5Champions || [])[2]?.iconUrl" :src="userInfo.top5Champions[2]?.iconUrl" alt="Champion Image" />
@@ -140,12 +140,12 @@
        alt="Mastery Level" />
 
                 <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
-                <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10">
+                <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10" class="mastery-wrapper">
                   <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                   <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[2]?.masteryLevel }}</p>
-                  <br />
-                  <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
                 </div>
+                <br />
+                <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ body {
   display: flex;
   flex-direction: column;
   width : 140vw;
-  height : 200vh;
+  height : 180vh;
   background-color: #212121;
 }
 
@@ -486,7 +486,7 @@ select {
 }
 
 .submit-btn {
-  background-color: #006400;
+  background-color: #0064006d;
   color: #fff;
   border: none;
   padding: 10px;
@@ -600,7 +600,7 @@ footer {
   padding: 8px;
   border: none;
   cursor: pointer;
-  background-color: #00640073;
+  background-color: #0064006d;
   color: #FAFAFA;
   border-radius: 5px;
 }
@@ -630,16 +630,16 @@ height: 40px;
 }
 
 .champion-item {
+  position: relative;
+  width: 120px;
+  height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  position: relative;
 }
 
 .champion-item img {
-  display: flex;
-  ;
   width: 120px;
   /* 이미지 크기 */
   height: 120px;
@@ -663,29 +663,42 @@ height: 40px;
   margin-right: 240px;
 }
 
-.mastery-icon {
-  width: 70px !important;
-  height: 50px !important;
-  margin-top: 95px;
-  /* 챔피언 이미지와 겹치게 조정 */
+.champion-item .mastery-icon {
   position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 50px;
+  z-index: 2;
+}
+.most-played-champions .champion-item .mastery-wrapper {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 50px;
+  z-index: 3;
 }
 
-.high-mastery-icon {
-  width: 35px !important;
-  height: 15px !important;
-  align-items: center;
+.most-played-champions .champion-item .high-mastery-icon {
+  bottom:-6px;
+  width: 38px;
+  height: 18px;
   position: absolute;
-  display: flex;
-  margin-left:5px !important;
-  margin-top:14px !important;
+  left: 16px;
 }
 
-.high-mastery-level {
+.most-played-champions .champion-item .high-mastery-level {
+  bottom: -18px;
   position: absolute;
-  font-size: 14px !important;
-  color: #212121 !important;
-  text-align: center !important;
-  margin:14px 0px 10px 14px !important;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: bold;
+  color: #212121;
+  z-index: 4;
 }
+
 </style>
