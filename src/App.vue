@@ -38,7 +38,7 @@
 
                 <!-- 게임 정보 -->
                 <div class="gaming-info">
-                  <h2>Gaming Information</h2>
+                  <h2>소환사 정보</h2>
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
@@ -118,6 +118,7 @@
                 </div>
 
                 <!-- 회원 탈퇴 버튼 -->
+                 <br />
                 <button class="delete-button" @click="withdraw(), mypageopen = false">회원탈퇴</button>
 
                 <button class="close-button" @click="mypageopen = false">닫기</button>
@@ -465,12 +466,13 @@ body {
 .game-stats {
   display: flex;
   justify-content: space-around;
+  margin-left: 20px;
 }
 
 .game-tier img,
 .most-champions img {
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 80px;
 }
 
 .game-tier p {
