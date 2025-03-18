@@ -28,7 +28,7 @@ const routes = [
   { path: '/reset-password', component: ResetPassword },
   { path: '/find-password', component: FindPassword },
   { path: '/find-id', component: FindId },
-  { path: '/mypage-edit', component: MypageEdit, meta: { requiresAuth: true } },
+  { path: '/mypage-edit', component: MypageEdit, meta: { requiresAuth: true } /* 비로그인 상태일 때 로그인 페이지로 이동 */ },
   {
     path: '/board',
     name: 'BoardForm',
