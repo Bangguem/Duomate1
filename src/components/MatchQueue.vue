@@ -542,7 +542,7 @@ export default {
     cursor: not-allowed;
 }
 
-/* ✅ 매칭 완료 팝업 */
+/* ✅ 매칭 완료 팝업 (크기 완전히 고정) */
 .match-confirmation {
     display: flex;
     flex-direction: column;
@@ -552,43 +552,52 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
-    height: 600px;
+    width: 400px !important;
+    /* 고정된 가로 크기 */
+    height: 200px !important;
+    /* 고정된 세로 크기 */
     background: #222;
     color: white;
     border-radius: 15px;
     padding: 20px;
     text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-.match-info {
-    text-align: center;
-}
-
+/* ✅ 수락/거절 버튼 컨테이너 */
 .match-buttons {
     display: flex;
     gap: 10px;
+    margin-top: 15px;
 }
 
 .reject-button,
 .accept-button {
-    padding: 15px 30px;
+    padding: 12px 30px;
     font-size: 16px;
     border: none;
     cursor: pointer;
+    border-radius: 45px;
 }
 
 .reject-button {
     background: none;
     border: 2px solid white;
     color: white;
-    border-radius: 45px;
 }
 
 .accept-button {
     background: rgb(21, 81, 55);
     color: white;
-    border-radius: 45px;
+}
+
+/* ✅ 작은 화면에서도 크기 유지 */
+@media (max-width: 768px) {
+    .match-confirmation {
+        width: 400px !important;
+        /* 모바일에서도 크기 고정 */
+        height: 200px !important;
+    }
 }
 
 /* ✅ 매칭 중 UI 배경 (팝업 전체 배경) */

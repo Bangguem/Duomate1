@@ -2,114 +2,61 @@
     <div class="chat-container">
         <!-- 왼쪽: 상대방 정보 -->
         <div class="opponent-info">
-            <!-- ✅ 상대방 프로필 사진 -->
             <div class="opponent-profile-picture">
                 <img :src="getOpponentProfileImage" alt="프로필 사진" class="profile-image" />
             </div>
 
-            <!-- ✅ 상대방 닉네임 -->
             <h2>{{ getOpponent.nickname || "상대방 닉네임" }}</h2>
-            <!-- ✅ 소환사 아이디 추가 -->
             <p class="summoner-name">@{{ getOpponent.SummonerName || "소환사 아이디 없음" }}{{ '#' + getOpponent.Tag || "" }}
             </p>
 
-            <!-- ✅ 포지션 + 마이크 아이콘을 한 줄에 배치 (포지션 2개 + 마이크 1개) -->
             <div class="opponent-position-mic-container">
                 <div v-for="(pos, index) in opponentPositions" :key="index" class="position-item">
                     <img :src="getPositionIcon(pos)" alt="포지션 아이콘" class="position-icon" />
                     <p class="position-text">{{ pos }}</p>
                 </div>
-
-                <!-- ✅ 마이크 아이콘을 포지션 옆으로 이동 -->
                 <div class="mic-item">
                     <img :src="opponentMicrophoneIcon" alt="마이크 상태 아이콘" class="mic-icon" />
                     <p class="mic-text">{{ getOpponent.microphone || "정보 없음" }}</p>
                 </div>
             </div>
 
-            <!-- ✅ 인게임 정보 -->
             <div class="ingame-info">
-                <!-- Game Tier -->
                 <div class="ingame-tier">
                     <img :src="`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${(getOpponent.summonerRank?.tier || 'unranked').toLowerCase()}.png`"
                         alt="Game Tier" class="ingame-icon" />
-                    <!-- ❌ "Game Tier" 텍스트 제거 -->
                     <p>{{ getOpponent.summonerRank?.tier || "Unranked" }} {{ getOpponent.summonerRank?.rank || "" }}</p>
                 </div>
 
-                <!-- ✅ Most Champions (한 줄로 정렬 + 아이콘 아래 이름 표시) -->
-                <div class="most-played-champions">
+                <!-- ✅ Most Champions (한 줄 정렬 + 마스터리 적용) -->
+                <div class="most-played-champions" v-if="getOpponentChampions.length > 0">
                     <div class="champion-list">
-                        <!-- 챔피언 아이템 1 (인덱스 1) -->
-                        <div class="champion-item">
-                            <img v-if="(getOpponent.top5Champions || [])[1]?.iconUrl"
-                                :src="getOpponent.top5Champions[1]?.iconUrl" alt="Champion Image" />
-                            <!-- 숙련도 관련 컨테이너 추가 -->
-                            <div class="mastery-wrapper">
-                                <img v-if="(getOpponent.top5Champions || [])[1]?.masteryLevel < 10"
-                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[1]?.masteryLevel}.webp`)"
-                                    class="mastery-icon" alt="Mastery Level" />
-                                <img v-if="(getOpponent.top5Champions || [])[1]?.iconUrl && (getOpponent.top5Champions || [])[1]?.masteryLevel >= 10"
-                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
-                                <!-- 숙련도 레벨이 10 이상일 때 오버레이 -->
-                                <div v-if="(getOpponent.top5Champions || [])[1]?.masteryLevel >= 10">
-                                    <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
-                                        alt="High Mastery" />
-                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[1]?.masteryLevel
-                                        }}</p>
-                                </div>
-                            </div>
-                            <br />
-                            <p>{{ (getOpponent.top5Champions || [])[1]?.championName || "" }}</p>
-                        </div>
+                        <div v-for="(champion, index) in getOpponentChampions" :key="index" class="champion-item">
 
-                        <!-- 챔피언 아이템 2 (인덱스 0) -->
-                        <div class="champion-item">
-                            <img v-if="(getOpponent.top5Champions || [])[0]?.iconUrl"
-                                :src="getOpponent.top5Champions[0]?.iconUrl" alt="Champion Image" />
-                            <div class="mastery-wrapper">
-                                <img v-if="(getOpponent.top5Champions || [])[0]?.masteryLevel < 10"
-                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[0]?.masteryLevel}.webp`)"
-                                    class="mastery-icon" alt="Mastery Level" />
-                                <img v-if="(getOpponent.top5Champions || [])[0]?.iconUrl && (getOpponent.top5Champions || [])[0]?.masteryLevel >= 10"
-                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
-                                <div v-if="(getOpponent.top5Champions || [])[0]?.masteryLevel >= 10">
-                                    <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
-                                        alt="High Mastery" />
-                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[0]?.masteryLevel
-                                        }}</p>
-                                </div>
-                            </div>
-                            <br />
-                            <p>{{ (getOpponent.top5Champions || [])[0]?.championName || "" }}</p>
-                        </div>
+                            <img :src="champion.iconUrl" class="champion-icon" alt="Champion Image" />
 
-                        <!-- 챔피언 아이템 3 (인덱스 2) -->
-                        <div class="champion-item">
-                            <img v-if="(getOpponent.top5Champions || [])[2]?.iconUrl"
-                                :src="getOpponent.top5Champions[2]?.iconUrl" alt="Champion Image" />
                             <div class="mastery-wrapper">
-                                <img v-if="(getOpponent.top5Champions || [])[2]?.masteryLevel < 10"
-                                    :src="require(`@/assets/Mastery/${getOpponent.top5Champions[2]?.masteryLevel}.webp`)"
+                                <img v-if="champion.masteryLevel < 10"
+                                    :src="require(`@/assets/Mastery/${champion.masteryLevel}.webp`)"
                                     class="mastery-icon" alt="Mastery Level" />
-                                <img v-if="(getOpponent.top5Champions || [])[2]?.iconUrl && (getOpponent.top5Champions || [])[2]?.masteryLevel >= 10"
-                                    src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
-                                <div v-if="(getOpponent.top5Champions || [])[2]?.masteryLevel >= 10">
+                                <img v-if="champion.masteryLevel >= 10" src="@/assets/Mastery/10.webp"
+                                    class="mastery-icon" alt="Mastery Level" />
+
+                                <div class="mastery-box">
                                     <img src="@/assets/Mastery/level.webp" class="high-mastery-icon"
                                         alt="High Mastery" />
-                                    <p class="high-mastery-level">{{ (getOpponent.top5Champions || [])[2]?.masteryLevel
-                                        }}</p>
+                                    <p class="high-mastery-level">{{ champion.masteryLevel }}</p>
                                 </div>
                             </div>
-                            <br />
-                            <p>{{ (getOpponent.top5Champions || [])[2]?.championName || "" }}</p>
+
+                            <p class="champion-name">{{ champion.championName }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ✅ 오른쪽: 채팅창 -->
+        <!-- ✅ 채팅창 -->
         <div class="chat-room">
             <div class="chat-header">
                 <h1>채팅방</h1>
@@ -122,7 +69,6 @@
                     <div class="message-content">
                         <span class="message-text">{{ message.message }}</span>
                     </div>
-                    <!-- ✅ 메시지 전송 시간 추가 -->
                     <div class="message-meta">
                         <span class="message-time">{{ formatTime(message.timestamp) }}</span>
                     </div>
@@ -149,18 +95,14 @@ export default {
             match: null,
             matchId: null,
             userInfo: null,
-            opponentDisconnected: false, // 상대방 접속 종료 여부
-            iconSize: "60px", // 포지션 및 마이크 아이콘 크기 조절 가능
+            opponentDisconnected: false,
+            iconSize: "60px",
         };
     },
     computed: {
         getOpponent() {
             if (!this.match || !this.match.players || !this.userInfo) return {};
-            return (
-                this.match.players.find(player => player.userid !== this.userInfo.userid) ||
-                this.match.players[0] ||
-                {}
-            );
+            return this.match.players.find(player => player.userid !== this.userInfo.userid) || {};
         },
         getOpponentProfileImage() {
             return this.getOpponent?.profileImage ||
@@ -169,46 +111,54 @@ export default {
                     : "/icons/default-profile.png");
         },
         opponentPositions() {
-            if (!this.getOpponent || !this.getOpponent.position) {
-                return ["없음"];
-            }
-            let positions = Array.isArray(this.getOpponent.position)
-                ? this.getOpponent.position
-                : String(this.getOpponent.position).split(",").map(p => p.trim());
-
-            return positions.slice(0, 2);
+            if (!this.getOpponent?.position) return ["없음"];
+            return Array.isArray(this.getOpponent.position)
+                ? this.getOpponent.position.slice(0, 2)
+                : String(this.getOpponent.position).split(",").slice(0, 2);
+        },
+        getOpponentChampions() {
+            return this.getOpponent?.top5Champions?.slice(0, 3) || [];
         },
         getPositionIcon() {
-            return position => {
-                const positionIcons = {
-                    "탑": "/icons/top.png",
-                    "정글": "/icons/jungle.png",
-                    "미드": "/icons/mid.png",
-                    "원딜": "/icons/adc.png",
-                    "서포터": "/icons/support.png",
-                    "없음": "/icons/none.png"
-                };
-                return positionIcons[position] || "/icons/none.png";
-            };
+            return position => ({
+                "탑": "/icons/top.png",
+                "정글": "/icons/jungle.png",
+                "미드": "/icons/mid.png",
+                "원딜": "/icons/adc.png",
+                "서포터": "/icons/support.png",
+                "없음": "/icons/none.png"
+            }[position] || "/icons/none.png");
         },
         opponentMicrophoneIcon() {
-            return this.getOpponent?.microphone === "가능"
-                ? "/icons/mic-on.png"
-                : "/icons/mic-off.png";
+            if (!this.getOpponent || !this.getOpponent.microphone) {
+                console.log("❌ 상대방 데이터가 없거나 마이크 상태가 정의되지 않음");
+                return "/icons/mic-off.png"; // 기본값
+            }
+
+            let micStatus = String(this.getOpponent.microphone).trim().toLowerCase();
+            console.log("🎤 상대방 마이크 상태:", micStatus);
+
+            if (micStatus === "가능" || micStatus === "사용") {
+                return "/icons/mic-on.png"; // 마이크 사용 가능
+            } else if (micStatus === "불가능" || micStatus === "끄기" || micStatus === "off") {
+                return "/icons/mic-off.png"; // 마이크 사용 불가능
+            } else {
+                console.log("⚠️ 알 수 없는 마이크 상태 값, 기본값으로 설정:", micStatus);
+                return "/icons/mic-off.png"; // 기본값
+            }
         },
+
     },
     watch: {
         messages: {
             handler() {
-                this.$nextTick(() => {
-                    this.scrollToBottom();
-                });
+                this.$nextTick(() => this.scrollToBottom());
             },
             deep: true,
         },
         match: {
             handler(newMatch) {
-                if (newMatch && newMatch.roomName && !this.socket) {
+                if (newMatch?.roomName && !this.socket) {
                     this.setupSocket();
                 }
             },
@@ -225,7 +175,6 @@ export default {
             this.socket.on("connect", () => {
                 console.log("✅ 소켓 연결됨:", this.socket.id);
                 if (this.match?.roomName) {
-                    console.log("📢 방 참가 시도:", this.match.roomName);
                     this.socket.emit("join room", { roomName: this.match.roomName });
                 }
             });
@@ -263,43 +212,31 @@ export default {
             this.$router.push("/match");
         },
         formatTime(timestamp) {
-            if (!timestamp) return "";
-            const date = new Date(timestamp);
-            const hours = date.getHours().toString().padStart(2, "0");
-            const minutes = date.getMinutes().toString().padStart(2, "0");
-            return `${hours}:${minutes}`;
+            return timestamp
+                ? new Date(timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                : "";
         },
         sendMessage() {
             if (this.newMessage.trim() && this.socket && this.matchId) {
-                const timestamp = new Date().toISOString();
                 this.socket.emit("chat message", {
                     matchId: this.matchId,
                     message: this.newMessage,
-                    timestamp,
+                    timestamp: new Date().toISOString(),
                 });
                 this.newMessage = "";
-            } else {
-                console.warn("메시지 전송 실패:", {
-                    hasSocket: !!this.socket,
-                    hasMatchId: !!this.matchId,
-                    messageLength: this.newMessage.length,
-                });
             }
         },
         scrollToBottom() {
-            const chatWindow = this.$refs.chatWindow;
-            if (chatWindow) {
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            }
+            this.$refs.chatWindow?.scrollTo({ top: this.$refs.chatWindow.scrollHeight, behavior: "smooth" });
         },
         async fetchUserInfo() {
             try {
-                const userResponse = await fetch("http://localhost:3000/auth/check-login", {
+                const response = await fetch("http://localhost:3000/auth/check-login", {
                     credentials: "include",
                 });
-                const userData = await userResponse.json();
-                if (userData.loggedIn) {
-                    this.userInfo = userData.user;
+                const data = await response.json();
+                if (data.loggedIn) {
+                    this.userInfo = data.user;
                     console.log("✅ 사용자 정보 로드됨:", this.userInfo);
                 } else {
                     console.error("❌ 사용자 정보를 가져올 수 없습니다.");
@@ -319,7 +256,6 @@ export default {
                     credentials: "include",
                 });
                 const data = await response.json();
-                console.log("🔹 서버에서 받은 매칭 데이터:", data);
                 if (data.success) {
                     this.match = data.match;
                     this.setupSocket();
@@ -362,11 +298,12 @@ export default {
     justify-content: space-between;
     align-items: stretch;
     width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    /* ✅ 내용이 넘칠 경우 가로 스크롤만 허용 */
+    min-height: 100vh;
+    /* 최소 높이 100vh 유지 */
+    overflow: auto;
+    /* 창 크기가 줄어들면 스크롤 생성 */
     flex-wrap: nowrap;
-    /* ✅ 채팅창이 아래로 내려가는 문제 방지 */
+    /* 상대방 정보와 채팅창이 줄바꿈되지 않도록 고정 */
 }
 
 /* ✅ 상대방 정보 영역 */
@@ -380,6 +317,7 @@ export default {
     flex-direction: column;
     align-items: center;
     overflow: auto;
+    /* 내부 요소 스크롤 가능 */
 }
 
 /* ✅ 상대방 프로필 사진 */
@@ -445,9 +383,20 @@ export default {
     text-align: center;
 }
 
-.mic-icon {
-    width: var(--icon-size, 60px);
-    height: var(--icon-size, 60px);
+/* ✅ 마이크 ON 아이콘 (icons/mic-on.png) 크기 조절 */
+.mic-icon[src*="mic-on.png"] {
+    width: 35px;
+    /* 원하는 크기로 변경 */
+    height: 60px;
+    /* 원하는 크기로 변경 */
+}
+
+/* ✅ 마이크 OFF 아이콘 (icons/mic-off.png) 크기 조절 */
+.mic-icon[src*="mic-off.png"] {
+    width: 45px;
+    /* 원하는 크기로 변경 */
+    height: 60px;
+    /* 원하는 크기로 변경 */
 }
 
 .mic-text {
@@ -480,86 +429,101 @@ export default {
     margin-bottom: 5px;
 }
 
-/* Most Champions 영역을 한 줄로 정렬 */
+/* ✅ Most Champions 영역 */
 .most-played-champions {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 20px 0;
-    /* 상하 여백 */
+    margin-top: 20px;
 }
 
+/* ✅ 챔피언 리스트 (한 줄로 정렬) */
 .champion-list {
     display: flex;
     flex-direction: row;
-    /* 가로 정렬 */
     gap: 10px;
-    /* 아이템 사이 간격 */
+    /* 챔피언 아이콘 간격 */
     justify-content: center;
     width: 100%;
-    overflow-x: auto;
-    /* 화면이 좁을 경우 가로 스크롤 */
 }
 
+/* ✅ 챔피언 아이템 컨테이너 */
 .champion-item {
     display: flex;
     flex-direction: column;
+    /* 세로 정렬 */
     align-items: center;
     text-align: center;
     position: relative;
 }
 
-.champion-item img {
-    width: 120px;
-    /* 챔피언 이미지 크기 */
-    height: 120px;
+/* ✅ 챔피언 아이콘 */
+.champion-icon {
+    width: 80px;
+    height: 80px;
 }
 
-.champion-item p {
-    margin-top: 10px;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-/* 숙련도 영역 컨테이너 (상대 위치 지정) */
+/* ✅ 숙련도 아이콘 및 박스 */
 .mastery-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     position: relative;
-    width: 70px;
-    /* 마스터리 아이콘과 동일 너비 */
-    height: 50px;
-    /* 마스터리 아이콘과 동일 높이 */
+    margin-top: -10px;
+    /* 아이콘과 살짝 겹치게 */
 }
 
-/* 마스터리 아이콘: 컨테이너의 상단에 위치 */
+/* ✅ 마스터리 아이콘 */
 .mastery-icon {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 70px !important;
-    height: 50px !important;
+    width: 40px;
+    height: 30px;
+    position: relative;
 }
 
-/* 고정 숙련도 아이콘: 마스터리 아이콘 바로 아래 중앙에 배치 */
+/* ✅ 마스터리 박스 스타일 (크기 1/4로 줄이고 내부 정렬) */
+.mastery-box {
+    position: relative;
+    width: 25px;
+    /* 마스터리 박스 크기 */
+    height: 15px;
+    display: flex;
+    justify-content: center;
+    /* 중앙 정렬 */
+    align-items: center;
+    /* 수직 중앙 정렬 */
+}
+
+/* ✅ 마스터리 박스 크기 */
 .high-mastery-icon {
-    position: absolute;
-    top: calc(100% + 5px);
-    /* 마스터리 아이콘 하단에서 5px 아래 */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 35px !important;
-    height: 15px !important;
+    width: 25px;
+    height: 10px;
+    position: relative;
+    /* 숫자를 내부에 넣기 위해 필요 */
 }
 
-/* 숙련도 레벨 텍스트: 고정 숙련도 아이콘 위쪽 중앙에 배치 */
+/* ✅ 마스터리 숫자 (박스 내부 중앙 + 살짝 더 위로) */
 .high-mastery-level {
     position: absolute;
-    bottom: calc(100% + 5px);
-    /* 고정 숙련도 아이콘 위쪽에서 5px 간격 */
+    top: 25%;
+    /* 기존보다 더 위로 */
     left: 50%;
-    transform: translateX(-50%);
-    font-size: 14px !important;
-    color: #212121 !important;
+    transform: translate(-50%, -85%);
+    /* Y축 이동량 미세 조정 */
+    font-size: 8px;
+    /* 글자 크기 유지 */
+    font-weight: bold;
+    color: #2c1b05;
+    /* 가독성을 위해 어두운 색상 */
     text-align: center;
+    width: 100%;
+}
+
+/* ✅ 챔피언 이름을 맨 아래로 배치 */
+.champion-name {
+    margin-top: 10px;
+    /* 박스와 간격 조정 */
+    font-size: 16px;
+    font-weight: bold;
 }
 
 /* ✅ 채팅창 영역 */
@@ -572,6 +536,7 @@ export default {
     align-items: center;
     padding: 20px;
     overflow: auto;
+    /* 내부 요소 스크롤 가능 */
 }
 
 /* ✅ 채팅 헤더 */
@@ -599,6 +564,8 @@ export default {
     width: 80%;
     max-height: 70vh;
     padding: 10px;
+    overscroll-behavior: contain;
+    /* 스크롤이 부모 요소로 전달되지 않도록 방지 */
 }
 
 /* ✅ 채팅 메시지 */
@@ -665,19 +632,52 @@ export default {
     cursor: pointer;
 }
 
-/* ✅ 작은 화면에서 스크롤 가능 */
+/* ✅ 작은 화면에서도 원본 크기 유지 */
 @media (max-width: 768px) {
     .chat-container {
-        flex-direction: column;
-        height: auto;
+        flex-direction: row;
+        /* 줄바꿈 방지 */
         overflow: auto;
+        /* 전체 컨테이너에서 스크롤 가능하도록 설정 */
     }
 
     .opponent-info,
     .chat-room {
-        width: 100%;
-        height: 50vh;
+        height: 100vh;
+        /* 상대방 정보와 채팅창 높이 유지 */
         overflow: auto;
+        /* 내부 스크롤 */
     }
+}
+
+/* WebKit 기반 브라우저 (Chrome, Edge, Safari 등) */
+.chat-window::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+    background: rgb(33, 33, 33);
+    /* 채팅창 배경과 동일한 색상 */
+    border-radius: 10px;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+    background-color: rgb(85, 85, 85);
+    /* 배경보다 밝은 톤으로 대비 부여 */
+    border-radius: 10px;
+    border: 2px solid rgb(33, 33, 33);
+    /* 배경색과 동일한 테두리 */
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(105, 105, 105);
+    /* 호버 시 살짝 더 밝게 */
+}
+
+/* Firefox */
+.chat-window {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(85, 85, 85) rgb(33, 33, 33);
+    /* thumb 색상, track 색상 */
 }
 </style>
