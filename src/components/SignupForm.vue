@@ -144,7 +144,7 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch("http://localhost:3000/signupsummonerInfo", {
+        const response = await fetch("http://localhost:3000/summonerInfo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
