@@ -265,9 +265,7 @@ app.post('/request-userid', async (req, res) => {
 //  소환사 정보 관련 API
 // ─────────────────────────────────────────────
 // 소환사 정보 가져오기
-app.post('/summonerInfo', authenticateJWT, async (req, res) => {
-    const userData = req.user;
-    if (userData) {
+app.post('/summonerInfo', async (req, res) => {
         const { summonerName, tag } = req.body;
         try {
             const summonerprofile = {
@@ -281,9 +279,7 @@ app.post('/summonerInfo', authenticateJWT, async (req, res) => {
             console.error('Error updating profile:', error);
             return res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
         }
-    } else {
-        return res.status(404).json({ success: false, message: 'User Not Found' });
-    }
+    
 });
 
 // 소환사 정보 갱신
