@@ -91,6 +91,7 @@
   </div>
   <button type="button" @click="linkRiotAccount">연동하기</button>
 </div>
+<!-- <p v-if="riotInfo.summonerName">{{ userInfo.SummonerName }}#{{ userInfo.Tag }}</p> -->
           <div class="button-group">
             <button type="button" class="cancel-button">Cancel</button>
             <button type="submit" class="signup-button">Sign Up</button>
@@ -142,13 +143,14 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch("http://localhost:3000/signupsummonerInfo", {
+        const response = await fetch("http://localhost:3000/summonerInfo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
           body: JSON.stringify({
+            userid: this.form.userid,
             summonerName: this.summonerName,
             tag: this.tag,
           }),
@@ -168,7 +170,6 @@ export default {
           };
 
           this.showRiotModal = false;
-          window.location.reload();
         } else {
           alert("라이엇 연동 실패: " + result.message);
         }

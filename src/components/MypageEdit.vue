@@ -283,6 +283,7 @@ export default {
           },
           credentials: "include",
           body: JSON.stringify({
+            userid: this.userInfo.userid, 
             summonerName: this.summonerName,
             tag: this.tag,
           }),

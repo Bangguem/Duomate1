@@ -266,21 +266,31 @@ app.post('/request-userid', async (req, res) => {
 // ─────────────────────────────────────────────
 // 소환사 정보 가져오기
 app.post('/summonerInfo', async (req, res) => {
-        const { summonerName, tag } = req.body;
-        try {
-            const summonerprofile = {
-                userid: userData.userid,
-                summonerName,
-                tag,
-            };
-            await createSummoner(summonerprofile);
-            return res.status(200).json({ success: true, message: '소환사 정보 가져오기 성공' });
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            return res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
+    const { userid, summonerName, tag } = req.body;
+    try {
+        // 로그인 상태일 때는 세션에서 userData 사용
+        let finalUserid = userid;
+        if (!finalUserid && req.session && req.session.userData) {
+            finalUserid = req.session.userData.userid;
         }
-    
+
+        if (!finalUserid) {
+            return res.status(400).json({ success: false, message: 'userid가 없습니다.' });
+        }
+        const summonerprofile = {
+            userid: finalUserid,
+            summonerName,
+            tag,
+        };
+        await createSummoner(summonerprofile);
+        return res.status(200).json({ success: true, message: '소환사 정보 가져오기 성공' });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        return res.status(500).json({ success: false, message: '소환사 정보 가져오기 실패' });
+    }
+
 });
+
 
 // 소환사 정보 갱신
 app.post('/updateSummonerInfo', authenticateJWT, async (req, res) => {
