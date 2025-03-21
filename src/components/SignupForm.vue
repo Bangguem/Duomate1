@@ -85,9 +85,9 @@
 <div class="form-group riot-connect">
   <label for="riot-id">라이엇 계정 연동</label>
   <div class="riot-inputs">
-    <input id="riot-id" type="text" placeholder="소환사 이름" v-model="form.riotId" required />
+    <input id="riot-id" type="text" placeholder="소환사 이름" v-model="summonerName" required />
     <span>#</span>
-    <input id="riot-tag" type="text" placeholder="태그" v-model="form.riotTag" required />
+    <input id="riot-tag" type="text" placeholder="태그" v-model="tag" required />
   </div>
   <button type="button" @click="linkRiotAccount">연동하기</button>
 </div>
@@ -142,7 +142,7 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch("http://localhost:3000/summonerInfo", {
+        const response = await fetch("http://localhost:3000/signupsummonerInfo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
