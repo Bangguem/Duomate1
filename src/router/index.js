@@ -14,6 +14,7 @@ import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
 import NoticePage from '../components/NoticePage.vue'; // 공지사항 페이지 컴포넌트
 import UpdatePage from '@/components/UpdatePage.vue'; // 업데이트 페이지 추가
+import UpdateDetail from '@/components/UpdateDetail.vue'; // 상세 페이지 컴포넌트
 
 const routes = [
   {
@@ -63,6 +64,13 @@ const routes = [
     path: '/updates', // 업데이트 페이지 라우트 추가
     name: 'UpdatePage',
     component: UpdatePage,
+  },
+   // 업데이트 상세 페이지
+  {
+      path: '/updates/:id',
+      name: 'UpdateDetail',
+      component: UpdateDetail,
+      props: true,
   },
 ];
 

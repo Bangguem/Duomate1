@@ -8,7 +8,7 @@
       </div>
       <div class="header-right">
         <div class="search-box">
-          <input v-model="searchQuery" type="text" placeholder="검색" class="search-input">
+          <input v-model="searchQuery" type="text" placeholder="검색" class="search-input" />
           <span class="search-icon" @click="filterUpdates">🔍</span>
         </div>
       </div>
@@ -24,13 +24,12 @@
       <div v-if="loading" class="loading">로딩 중...</div>
       <div v-else-if="error" class="error">업데이트를 불러오는 데 실패했습니다.</div>
       <div v-else-if="filteredUpdates.length" class="feed-list">
-        <div
-          v-for="update in filteredUpdates"
-          :key="update._id"
-          class="feed-card"
-        >
+        <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
           <div class="feed-header">
-            <strong>{{ update.title }}</strong>
+            <!-- 제목을 router-link로 감싸서 클릭 시 상세페이지(UpdateDetail.vue)로 이동 -->
+            <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }">
+              <strong>{{ update.title }}</strong>
+            </router-link>
             <div>{{ formatDate(update.date) }}</div>
           </div>
           <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p>
@@ -104,7 +103,7 @@ export default {
       this.fetchUpdates();
     },
     filterUpdates() {
-      // 검색어는 computed(filteredUpdates)에서 처리합니다.
+      // 검색어 필터링은 computed 속성(filteredUpdates)에서 처리됩니다.
     },
     async submitUpdate() {
       try {
@@ -112,7 +111,7 @@ export default {
           title: this.title,
           content: this.content
         });
-        // 작성 후 폼 초기화, 목록 새로고침, 목록 모드 전환
+        // 작성 후 입력값 초기화, 업데이트 목록 새로고침, 목록 모드 전환
         this.title = '';
         this.content = '';
         this.fetchUpdates();
@@ -131,7 +130,6 @@ export default {
       return text ? text.replace(/\n/g, '<br>') : text;
     },
     formatDate(date) {
-      // Date 객체 또는 ISO 문자열을 읽기 쉬운 형식으로 변환
       return new Date(date).toLocaleDateString();
     }
   }

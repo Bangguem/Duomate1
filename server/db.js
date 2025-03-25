@@ -434,13 +434,53 @@ async function fetchUpdates(sortOption = { date: -1 }) {
     const collection = db.collection(UPDATES_COLLECTION);
     return await collection.find().sort(sortOption).toArray();
 }
-
-// 업데이트 생성 함수 (내용과 날짜만 저장)
+  
+// 업데이트 생성 함수
 async function createUpdate(newUpdate) {
     const db = client.db(DB_NAME);
     const collection = db.collection(UPDATES_COLLECTION);
     const result = await collection.insertOne(newUpdate);
     return { _id: result.insertedId, ...newUpdate };
+}
+  
+// 업데이트 ID로 조회 함수
+async function fetchUpdateById(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(id) });
+}
+  
+// 업데이트 수정 함수 (date 필드 보존 처리 포함)
+async function updateUpdate(id, updatedFields) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updatedFields },
+      { returnDocument: 'after' }  // MongoDB Node.js 드라이버 v4.x 이상
+    );
+  
+    // 만약 수정된 문서가 반환되지 않으면 원본 문서를 반환
+    if (!result.value) {
+      return await fetchUpdateById(id);
+    }
+  
+    // 반환된 문서에 date 필드가 없거나 유효하지 않다면, 원본 문서에서 date 값을 보존
+    if (!result.value.date || isNaN(new Date(result.value.date))) {
+      const original = await fetchUpdateById(id);
+      if (original && original.date) {
+        result.value.date = original.date;
+      }
+    }
+    return result.value;
+}
+  
+// 업데이트 삭제 함수
+async function deleteUpdate(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
 }
 
 module.exports = {
@@ -469,4 +509,7 @@ module.exports = {
     incrementPostViews,
     fetchUpdates,
     createUpdate,
+    fetchUpdateById,
+    updateUpdate,
+    deleteUpdate,
 }
