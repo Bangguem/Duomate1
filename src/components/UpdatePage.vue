@@ -24,9 +24,14 @@
       <div v-if="loading" class="loading">로딩 중...</div>
       <div v-else-if="error" class="error">업데이트를 불러오는 데 실패했습니다.</div>
       <div v-else-if="filteredUpdates.length" class="feed-list">
-        <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
+        <div
+          v-for="update in filteredUpdates"
+          :key="update._id"
+          class="feed-card"
+        >
           <div class="feed-header">
-            <strong>작성일: {{ update.date }}</strong>
+            <strong>{{ update.title }}</strong>
+            <div>{{ formatDate(update.date) }}</div>
           </div>
           <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p>
         </div>
@@ -38,6 +43,7 @@
     <div v-if="currentPage === 'write'" class="update-form">
       <h2>업데이트 작성</h2>
       <form @submit.prevent="submitUpdate">
+        <input v-model="title" type="text" placeholder="제목 입력" required />
         <textarea v-model="content" placeholder="업데이트 내용 입력" required></textarea>
         <div class="form-buttons">
           <button type="submit" class="submit-button">작성</button>
@@ -59,7 +65,9 @@ export default {
       currentPage: 'list',// 'list' (목록 모드) 또는 'write' (작성 모드)
       sortOrder: 'latest',// 정렬 기준 (latest 또는 oldest)
       searchQuery: '',    // 검색어
-      content: ''         // 업데이트 내용 (작성 폼 데이터)
+      // 업데이트 작성 폼 데이터 (제목과 내용)
+      title: '',
+      content: ''
     };
   },
   computed: {
@@ -67,8 +75,9 @@ export default {
       if (!this.searchQuery.trim()) return this.updates;
       return this.updates.filter(update => {
         return (
-          (update.date && update.date.includes(this.searchQuery)) ||
-          (update.content && update.content.toLowerCase().includes(this.searchQuery.toLowerCase()))
+          (update.title && update.title.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+          (update.content && update.content.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+          (update.date && update.date.toString().includes(this.searchQuery))
         );
       });
     }
@@ -95,14 +104,16 @@ export default {
       this.fetchUpdates();
     },
     filterUpdates() {
-      // 검색은 computed(filteredUpdates)에서 처리
+      // 검색어는 computed(filteredUpdates)에서 처리합니다.
     },
     async submitUpdate() {
       try {
         await axios.post('http://localhost:3000/api/updates', {
+          title: this.title,
           content: this.content
         });
-        // 작성 후 폼 초기화 및 목록 새로고침, 목록 모드로 전환
+        // 작성 후 폼 초기화, 목록 새로고침, 목록 모드 전환
+        this.title = '';
         this.content = '';
         this.fetchUpdates();
         this.currentPage = 'list';
@@ -118,6 +129,10 @@ export default {
     },
     convertNewLinesToBreaks(text) {
       return text ? text.replace(/\n/g, '<br>') : text;
+    },
+    formatDate(date) {
+      // Date 객체 또는 ISO 문자열을 읽기 쉬운 형식으로 변환
+      return new Date(date).toLocaleDateString();
     }
   }
 };
@@ -235,6 +250,7 @@ export default {
   color: white;
   margin-bottom: 15px;
 }
+.update-form input,
 .update-form textarea {
   width: 100%;
   padding: 10px;

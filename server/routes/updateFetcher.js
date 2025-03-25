@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 const router = express.Router();
 const { fetchUpdates, createUpdate } = require('../db'); // db.js의 함수 임포트
 
-// GET / : 업데이트 목록을 가져옴 (최종 URL: /api/updates)
+// GET /: MongoDB의 updates 컬렉션에서 업데이트 목록을 가져옴
 router.get('/', async (req, res) => {
     try {
         const { sort } = req.query;
@@ -19,12 +19,12 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /: 새로운 업데이트 작성 (내용과 Date 객체를 저장)
+// POST /: 새로운 업데이트 작성 (제목과 내용 포함)
 router.post('/', async (req, res) => {
     try {
-        const { content } = req.body;
-        const date = new Date(); // Date 객체로 저장
-        const newUpdate = { content, date };
+        const { title, content } = req.body;
+        const date = new Date(); // Date 객체로 저장하면 정렬 시 편리합니다.
+        const newUpdate = { title, content, date };
         const createdUpdate = await createUpdate(newUpdate);
         res.json(createdUpdate);
     } catch (error) {
