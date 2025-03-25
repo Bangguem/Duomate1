@@ -1,180 +1,267 @@
 <template>
-    <div class="contents">
-        <!-- 필터 및 검색 기능 -->
-        <section class="contents-header">
-            <div class="header-left">
-                <button class="filter-button" @click="sortUpdates('latest')">최신순</button>
-                <button class="filter-button" @click="sortUpdates('oldest')">오래된순</button>
-            </div>
-            <div class="header-right">
-                <div class="search-box">
-                    <input v-model="searchQuery" type="text" placeholder="검색" class="search-input">
-                    <span class="search-icon">🔍</span>
-                </div>
-            </div>
-        </section>
+  <div class="contents">
+    <!-- 목록 및 상단 필터 영역 (목록 모드일 때) -->
+    <section class="contents-header" v-if="currentPage === 'list'">
+      <div class="header-left">
+        <button @click="sortUpdates('latest')" class="filter-button">최신순</button>
+        <button @click="sortUpdates('oldest')" class="filter-button">오래된순</button>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <input v-model="searchQuery" type="text" placeholder="검색" class="search-input">
+          <span class="search-icon" @click="filterUpdates">🔍</span>
+        </div>
+      </div>
+    </section>
 
-        <!-- 업데이트 공지 리스트 -->
-        <section class="patch-list">
-            <div v-if="filteredUpdates.length === 0">
-                <p>업데이트 공지가 없습니다.</p>
-            </div>
-            <div class="patch-item" v-for="(patch, index) in filteredUpdates" :key="index">
-                <img src="@/assets/icon_setting.png" alt="업데이트 아이콘" class="update-icon" />
-                <div class="patch-info">
-                    <p class="patch-title">{{ patch.month }}월 {{ patch.day }}일 업데이트 공지</p>
-                    <p class="patch-date">{{ patch.date }}</p>
-                </div>
-            </div>
-        </section>
+    <!-- 업데이트 작성 이동 버튼 (목록 모드일 때) -->
+    <div class="write-button-container" v-if="currentPage === 'list'">
+      <button @click="goToWritePage" class="write-button">업데이트 작성</button>
     </div>
+
+    <!-- 업데이트 목록 영역 (목록 모드) -->
+    <div v-if="currentPage === 'list'" class="feed-container">
+      <div v-if="loading" class="loading">로딩 중...</div>
+      <div v-else-if="error" class="error">업데이트를 불러오는 데 실패했습니다.</div>
+      <div v-else-if="filteredUpdates.length" class="feed-list">
+        <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
+          <div class="feed-header">
+            <strong>작성일: {{ update.date }}</strong>
+          </div>
+          <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p>
+        </div>
+      </div>
+      <div v-else class="no-updates">업데이트가 없습니다.</div>
+    </div>
+
+    <!-- 업데이트 작성 폼 (작성 모드) -->
+    <div v-if="currentPage === 'write'" class="update-form">
+      <h2>업데이트 작성</h2>
+      <form @submit.prevent="submitUpdate">
+        <textarea v-model="content" placeholder="업데이트 내용 입력" required></textarea>
+        <div class="form-buttons">
+          <button type="submit" class="submit-button">작성</button>
+          <button type="button" @click="goToListPage" class="cancel-button">취소</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script>
+import axios from 'axios';
 export default {
-    data() {
-        return {
-            updates: [],      // 서버에서 가져온 업데이트 공지 리스트
-            searchQuery: '',  // 검색어
-            sortType: 'latest', // 정렬 기준
-        };
-    },
-    computed: {
-        filteredUpdates() {
-            return this.updates.filter(patch => 
-                patch.month.includes(this.searchQuery) || 
-                patch.day.includes(this.searchQuery) || 
-                patch.date.includes(this.searchQuery)
-            );
-        }
-    },
-    watch: {
-        searchQuery() {
-            clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.fetchUpdates();
-            }, 500); // 500ms 동안 입력 없으면 API 요청
-        }
-    },
-    mounted() {
-        this.fetchUpdates();
-    },
-    methods: {
-        async fetchUpdates() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/updates?sort=${this.sortType}`);
-                if (response.ok) {
-                    this.updates = await response.json();
-                } else {
-                    console.error('Error fetching updates');
-                }
-            } catch (error) {
-                console.error('Error fetching updates:', error);
-            }
-        },
-        sortUpdates(order) {
-            this.sortType = order;
-            this.fetchUpdates();
-        }
+  data() {
+    return {
+      updates: [],        // 업데이트 목록
+      loading: false,     // 로딩 상태
+      error: false,       // 오류 발생 여부
+      currentPage: 'list',// 'list' (목록 모드) 또는 'write' (작성 모드)
+      sortOrder: 'latest',// 정렬 기준 (latest 또는 oldest)
+      searchQuery: '',    // 검색어
+      content: ''         // 업데이트 내용 (작성 폼 데이터)
+    };
+  },
+  computed: {
+    filteredUpdates() {
+      if (!this.searchQuery.trim()) return this.updates;
+      return this.updates.filter(update => {
+        return (
+          (update.date && update.date.includes(this.searchQuery)) ||
+          (update.content && update.content.toLowerCase().includes(this.searchQuery.toLowerCase()))
+        );
+      });
     }
+  },
+  created() {
+    this.fetchUpdates();
+  },
+  methods: {
+    async fetchUpdates() {
+      this.loading = true;
+      this.error = false;
+      try {
+        const response = await axios.get(`http://localhost:3000/api/updates?sort=${this.sortOrder}`);
+        this.updates = response.data;
+      } catch (err) {
+        console.error('업데이트를 가져오는 중 오류:', err);
+        this.error = true;
+      } finally {
+        this.loading = false;
+      }
+    },
+    sortUpdates(order) {
+      this.sortOrder = order;
+      this.fetchUpdates();
+    },
+    filterUpdates() {
+      // 검색은 computed(filteredUpdates)에서 처리
+    },
+    async submitUpdate() {
+      try {
+        await axios.post('http://localhost:3000/api/updates', {
+          content: this.content
+        });
+        // 작성 후 폼 초기화 및 목록 새로고침, 목록 모드로 전환
+        this.content = '';
+        this.fetchUpdates();
+        this.currentPage = 'list';
+      } catch (err) {
+        console.error('업데이트 작성 중 오류:', err);
+      }
+    },
+    goToWritePage() {
+      this.currentPage = 'write';
+    },
+    goToListPage() {
+      this.currentPage = 'list';
+    },
+    convertNewLinesToBreaks(text) {
+      return text ? text.replace(/\n/g, '<br>') : text;
+    }
+  }
 };
 </script>
 
 <style scoped>
 .contents {
-    width: 100%;
-    max-width: 1260px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px 50px;
-    border-radius: 0.5rem;
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 20px 50px;
 }
 
+/* 상단 필터 영역 */
 .contents-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #424242;
-    padding: 15px;
-    border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #424242;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
 }
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.update-icon {
-    width: 40px;
-    height: 40px;
-}
-
 .filter-button {
-    background-color: #333;
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+  background-color: #333;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
 }
-
 .search-box {
-    display: flex;
-    align-items: center;
-    background-color: black;
-    border-radius: 20px;
-    padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  background-color: black;
+  border-radius: 20px;
+  padding: 5px 10px;
 }
-
 .search-input {
-    background: none;
-    border: none;
-    color: white;
-    outline: none;
+  background: none;
+  border: none;
+  color: white;
+  outline: none;
 }
-
 .search-icon {
-    color: gray;
-    cursor: pointer;
+  color: gray;
+  cursor: pointer;
 }
 
-.patch-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* 작성 버튼 */
+.write-button-container {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.write-button {
+  background-color: transparent;
+  border: 1px solid #42b983;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
 }
 
-.patch-item {
-    display: flex;
-    align-items: center;
-    background-color: #333;
-    padding: 15px;
-    border-radius: 8px;
-    gap: 15px;
+/* 업데이트 목록 */
+.feed-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.feed-list {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.feed-card {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 12px;
+  color: white;
+}
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.feed-content {
+  font-size: 16px;
+}
+.no-updates {
+  color: white;
+  text-align: center;
+}
+.loading, .error {
+  color: white;
+  text-align: center;
 }
 
-.patch-info {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    color: white;
+/* 업데이트 작성 폼 */
+.update-form {
+  background-color: #424242;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 500px;
+  margin: 0 auto;
 }
-
-.patch-title {
-    font-size: 16px;
-    font-weight: bold;
+.update-form h2 {
+  color: white;
+  margin-bottom: 15px;
 }
-
-.patch-date {
-    font-size: 14px;
-    color: gray;
+.update-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #222;
+  color: white;
+}
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.submit-button {
+  background-color: #42b983;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.cancel-button {
+  background-color: gray;
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
 }
 </style>

@@ -17,6 +17,7 @@ const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
 const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
 const COMMENTS_COLLECTION = 'comments'; // 댓글 컬렉션
+const UPDATES_COLLECTION = 'updates'; // 업데이트 컬렉션
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -427,6 +428,21 @@ async function incrementPostViews(postId) {
     return result.modifiedCount > 0; // 성공 여부 반환
 }
 
+// 업데이트 목록 조회 함수
+async function fetchUpdates(sortOption = { date: -1 }) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    return await collection.find().sort(sortOption).toArray();
+}
+
+// 업데이트 생성 함수 (내용과 날짜만 저장)
+async function createUpdate(newUpdate) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.insertOne(newUpdate);
+    return { _id: result.insertedId, ...newUpdate };
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -451,4 +467,6 @@ module.exports = {
     updateCommentLikes,
     ChangeUserprofile,
     incrementPostViews,
+    fetchUpdates,
+    createUpdate,
 }
