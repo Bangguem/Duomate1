@@ -284,6 +284,8 @@ export default {
 
 /* 제목 스타일: 하얀색, 밑줄 없음 */
 .patch-title {
+  font-size: 16px;
+  font-weight: bold;
   color: white;
   text-decoration: none;
 }

@@ -30,7 +30,8 @@
             {{ update.title }}
           </router-link>
           <p class="patch-date">{{ formatDate(update.date) }}</p>
-          <p class="patch-description">{{ update.content }}</p>
+          <!-- 업데이트 내용을 숨기기 위해 주석 처리 -->
+          <!-- <p class="patch-description">{{ update.content }}</p> -->
         </div>
       </div>
       <button class="more-button" @click="goToUpdates">더보기</button>
