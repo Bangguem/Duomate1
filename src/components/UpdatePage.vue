@@ -26,11 +26,14 @@
       <div v-else-if="filteredUpdates.length" class="feed-list">
         <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
           <div class="feed-header">
-            <!-- 제목을 router-link로 감싸서 클릭 시 상세페이지로 이동 -->
-            <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }" class="patch-title">
-              <strong>{{ update.title }}</strong>
-            </router-link>
-            <div>{{ formatDate(update.date) }}</div>
+            <!-- NoticePage.vue와 동일한 레이아웃: 아이콘, 그 옆에 제목과 날짜를 담은 컨테이너 -->
+            <img src="@/assets/icon_setting.png" alt="업데이트 아이콘" class="patch-icon" />
+            <div class="patch-info">
+              <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }" class="patch-title">
+                {{ update.title }}
+              </router-link>
+              <p class="patch-date">{{ formatDate(update.date) }}</p>
+            </div>
           </div>
           <!-- 업데이트 내용을 숨기기 위해 주석 처리 -->
           <!-- <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p> -->
@@ -65,7 +68,6 @@ export default {
       currentPage: 'list',// 'list' 또는 'write'
       sortOrder: 'latest',// 정렬 기준
       searchQuery: '',    // 검색어
-      // 업데이트 작성 폼 데이터 (제목과 내용)
       title: '',
       content: ''
     };
@@ -222,9 +224,31 @@ export default {
 }
 .feed-header {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.patch-icon {
+  width: 40px;
+  height: 40px;
+}
+.patch-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 20px;
+  flex: 1;
+}
+.patch-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+.patch-title:hover {
+  text-decoration: underline;
+}
+.patch-date {
   font-size: 14px;
-  margin-bottom: 10px;
+  color: #bbb !important;
 }
 .feed-content {
   font-size: 16px;
@@ -280,16 +304,5 @@ export default {
   color: white;
   border-radius: 8px;
   cursor: pointer;
-}
-
-/* 제목 스타일: 하얀색, 밑줄 없음 */
-.patch-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-}
-.patch-title:hover {
-  text-decoration: underline;
 }
 </style>
