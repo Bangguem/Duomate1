@@ -26,13 +26,14 @@
       <div v-else-if="filteredUpdates.length" class="feed-list">
         <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
           <div class="feed-header">
-            <!-- 제목을 router-link로 감싸서 클릭 시 상세페이지(UpdateDetail.vue)로 이동 -->
-            <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }">
+            <!-- 제목을 router-link로 감싸서 클릭 시 상세페이지로 이동 -->
+            <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }" class="patch-title">
               <strong>{{ update.title }}</strong>
             </router-link>
             <div>{{ formatDate(update.date) }}</div>
           </div>
-          <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p>
+          <!-- 업데이트 내용을 숨기기 위해 주석 처리 -->
+          <!-- <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p> -->
         </div>
       </div>
       <div v-else class="no-updates">업데이트가 없습니다.</div>
@@ -61,8 +62,8 @@ export default {
       updates: [],        // 업데이트 목록
       loading: false,     // 로딩 상태
       error: false,       // 오류 발생 여부
-      currentPage: 'list',// 'list' (목록 모드) 또는 'write' (작성 모드)
-      sortOrder: 'latest',// 정렬 기준 (latest 또는 oldest)
+      currentPage: 'list',// 'list' 또는 'write'
+      sortOrder: 'latest',// 정렬 기준
       searchQuery: '',    // 검색어
       // 업데이트 작성 폼 데이터 (제목과 내용)
       title: '',
@@ -103,7 +104,7 @@ export default {
       this.fetchUpdates();
     },
     filterUpdates() {
-      // 검색어 필터링은 computed 속성(filteredUpdates)에서 처리됩니다.
+      // 검색어 필터링은 computed(filteredUpdates)에서 처리됩니다.
     },
     async submitUpdate() {
       try {
@@ -154,7 +155,8 @@ export default {
   border-radius: 10px;
   margin-bottom: 10px;
 }
-.header-left, .header-right {
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
 }
@@ -231,7 +233,8 @@ export default {
   color: white;
   text-align: center;
 }
-.loading, .error {
+.loading,
+.error {
   color: white;
   text-align: center;
 }
@@ -277,5 +280,14 @@ export default {
   color: white;
   border-radius: 8px;
   cursor: pointer;
+}
+
+/* 제목 스타일: 하얀색, 밑줄 없음 */
+.patch-title {
+  color: white;
+  text-decoration: none;
+}
+.patch-title:hover {
+  text-decoration: underline;
 }
 </style>
