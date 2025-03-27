@@ -1,6 +1,6 @@
 <template>
   <div class="contents">
-    <!-- 목록 및 상단 필터 영역 (목록 모드일 때) -->
+    <!-- 목록 상단 필터 -->
     <section class="contents-header" v-if="currentPage === 'list'">
       <div class="header-left">
         <button @click="sortUpdates('latest')" class="filter-button">최신순</button>
@@ -14,19 +14,18 @@
       </div>
     </section>
 
-    <!-- 업데이트 작성 이동 버튼 (목록 모드일 때) -->
-    <div class="write-button-container" v-if="currentPage === 'list'">
+    <!-- ✅ 관리자일 때만 보이는 작성 버튼 -->
+    <div class="write-button-container" v-if="currentPage === 'list' && isAdmin">
       <button @click="goToWritePage" class="write-button">업데이트 작성</button>
     </div>
 
-    <!-- 업데이트 목록 영역 (목록 모드) -->
+    <!-- 업데이트 목록 -->
     <div v-if="currentPage === 'list'" class="feed-container">
       <div v-if="loading" class="loading">로딩 중...</div>
       <div v-else-if="error" class="error">업데이트를 불러오는 데 실패했습니다.</div>
       <div v-else-if="filteredUpdates.length" class="feed-list">
         <div v-for="update in filteredUpdates" :key="update._id" class="feed-card">
           <div class="feed-header">
-            <!-- NoticePage.vue와 동일한 레이아웃: 아이콘, 그 옆에 제목과 날짜를 담은 컨테이너 -->
             <img src="@/assets/icon_setting.png" alt="업데이트 아이콘" class="patch-icon" />
             <div class="patch-info">
               <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }" class="patch-title">
@@ -35,14 +34,12 @@
               <p class="patch-date">{{ formatDate(update.date) }}</p>
             </div>
           </div>
-          <!-- 업데이트 내용을 숨기기 위해 주석 처리 -->
-          <!-- <p class="feed-content" v-html="convertNewLinesToBreaks(update.content)"></p> -->
         </div>
       </div>
       <div v-else class="no-updates">업데이트가 없습니다.</div>
     </div>
 
-    <!-- 업데이트 작성 폼 (작성 모드) -->
+    <!-- 업데이트 작성 폼 -->
     <div v-if="currentPage === 'write'" class="update-form">
       <h2>업데이트 작성</h2>
       <form @submit.prevent="submitUpdate">
@@ -59,20 +56,23 @@
 
 <script>
 import axios from 'axios';
+
 export default {
   data() {
     return {
-      updates: [],        // 업데이트 목록
-      loading: false,     // 로딩 상태
-      error: false,       // 오류 발생 여부
-      currentPage: 'list',// 'list' 또는 'write'
-      sortOrder: 'latest',// 정렬 기준
-      searchQuery: '',    // 검색어
+      updates: [],
+      loading: false,
+      error: false,
+      currentPage: 'list',
+      sortOrder: 'latest',
+      searchQuery: '',
       title: '',
-      content: ''
+      content: '',
+      currentUser: null // ✅ 로그인 사용자 정보
     };
   },
   computed: {
+    // 검색 필터링
     filteredUpdates() {
       if (!this.searchQuery.trim()) return this.updates;
       return this.updates.filter(update => {
@@ -82,12 +82,31 @@ export default {
           (update.date && update.date.toString().includes(this.searchQuery))
         );
       });
+    },
+    // ✅ Admin 여부 판별
+    isAdmin() {
+      return this.currentUser?.userid === 'Admin';
     }
   },
   created() {
     this.fetchUpdates();
+    this.checkLogin(); // ✅ 로그인 확인
   },
   methods: {
+    // ✅ 로그인 유저 정보 확인
+    async checkLogin() {
+      try {
+        const res = await axios.get('http://localhost:3000/auth/check-login', {
+          withCredentials: true
+        });
+        if (res.data.loggedIn) {
+          this.currentUser = res.data.user;
+        }
+      } catch (err) {
+        console.error('로그인 정보 확인 실패:', err);
+      }
+    },
+
     async fetchUpdates() {
       this.loading = true;
       this.error = false;
@@ -106,24 +125,29 @@ export default {
       this.fetchUpdates();
     },
     filterUpdates() {
-      // 검색어 필터링은 computed(filteredUpdates)에서 처리됩니다.
+      // computed에서 처리됨
     },
     async submitUpdate() {
       try {
         await axios.post('http://localhost:3000/api/updates', {
           title: this.title,
           content: this.content
-        });
-        // 작성 후 입력값 초기화, 업데이트 목록 새로고침, 목록 모드 전환
+        }, { withCredentials: true }); // ✅ 쿠키 인증 필요
         this.title = '';
         this.content = '';
         this.fetchUpdates();
         this.currentPage = 'list';
       } catch (err) {
         console.error('업데이트 작성 중 오류:', err);
+        alert('작성 실패! 관리자만 작성 가능합니다.');
       }
     },
+    // ✅ Admin만 작성 페이지 이동 가능
     goToWritePage() {
+      if (!this.isAdmin) {
+        alert('관리자만 작성할 수 있습니다.');
+        return;
+      }
       this.currentPage = 'write';
     },
     goToListPage() {
@@ -140,14 +164,13 @@ export default {
 </script>
 
 <style scoped>
+/* 기존 스타일 그대로 유지 */
 .contents {
   width: 100%;
   max-width: 1260px;
   margin: 0 auto;
   padding: 20px 50px;
 }
-
-/* 상단 필터 영역 */
 .contents-header {
   display: flex;
   justify-content: space-between;
@@ -157,8 +180,7 @@ export default {
   border-radius: 10px;
   margin-bottom: 10px;
 }
-.header-left,
-.header-right {
+.header-left, .header-right {
   display: flex;
   align-items: center;
 }
@@ -188,8 +210,6 @@ export default {
   color: gray;
   cursor: pointer;
 }
-
-/* 작성 버튼 */
 .write-button-container {
   text-align: center;
   margin-bottom: 10px;
@@ -202,8 +222,6 @@ export default {
   border-radius: 20px;
   cursor: pointer;
 }
-
-/* 업데이트 목록 */
 .feed-container {
   display: flex;
   flex-direction: column;
@@ -250,20 +268,10 @@ export default {
   font-size: 14px;
   color: #bbb !important;
 }
-.feed-content {
-  font-size: 16px;
-}
-.no-updates {
+.no-updates, .loading, .error {
   color: white;
   text-align: center;
 }
-.loading,
-.error {
-  color: white;
-  text-align: center;
-}
-
-/* 업데이트 작성 폼 */
 .update-form {
   background-color: #424242;
   padding: 20px;
@@ -275,8 +283,7 @@ export default {
   color: white;
   margin-bottom: 15px;
 }
-.update-form input,
-.update-form textarea {
+.update-form input, .update-form textarea {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;

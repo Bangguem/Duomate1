@@ -8,8 +8,25 @@ const {
   updateUpdate,
   deleteUpdate
 } = require('../db');
+const { verifyToken } = require('../auth'); // JWT 검증 함수 추가
 
-// GET / : 업데이트 목록 조회
+// ✅ 인증 & Admin 확인 미들웨어
+function authenticateAdmin(req, res, next) {
+  const token = req.cookies.auth_token;
+  if (!token) {
+    return res.status(401).json({ message: '로그인이 필요합니다.' });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.userid !== 'Admin') {
+    return res.status(403).json({ message: '관리자만 접근 가능합니다.' });
+  }
+
+  req.user = decoded; // 인증된 사용자 정보 저장
+  next();
+}
+
+// ✅ GET / : 업데이트 목록 조회 (모두 접근 가능)
 router.get('/', async (req, res) => {
   try {
     const { sort } = req.query;
@@ -25,8 +42,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST / : 신규 업데이트 작성
-router.post('/', async (req, res) => {
+// ✅ POST / : 신규 업데이트 작성 (관리자만)
+router.post('/', authenticateAdmin, async (req, res) => {
   try {
     const { title, content } = req.body;
     const date = new Date();
@@ -39,7 +56,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /:id : 업데이트 상세 조회
+// ✅ GET /:id : 업데이트 상세 조회 (모두 접근 가능)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -54,8 +71,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /:id : 업데이트 수정
-router.put('/:id', async (req, res) => {
+// ✅ PUT /:id : 업데이트 수정 (관리자만)
+router.put('/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
@@ -80,8 +97,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /:id : 업데이트 삭제
-router.delete('/:id', async (req, res) => {
+// ✅ DELETE /:id : 업데이트 삭제 (관리자만)
+router.delete('/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const success = await deleteUpdate(id);
