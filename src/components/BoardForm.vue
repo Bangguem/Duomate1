@@ -65,6 +65,10 @@
           <h2 class="feed-title" @click="goToDetailPage(post._id)">{{ post.title }}</h2>
           <p class="feed-content" v-html="convertNewLinesToBreaks(post.content)"></p>
 
+          <div v-if="post.imageUrl" class="feed-image">
+            <img :src="`http://localhost:3000${post.imageUrl}`" alt="게시글 이미지" />
+          </div>
+
           <div class="feed-actions">
             <span>👍 {{ post.likes || 0 }}</span>
             <span style="margin-left: 10px;">👎 {{ post.dislikes || 0 }}</span>
@@ -87,6 +91,9 @@
           class="post-input"
           required
         />
+
+        <input type="file" @change="handleImageUpload" accept="image/*" />
+
         <textarea
           v-model="content"
           placeholder="내용을 입력하세요"
@@ -120,6 +127,7 @@ export default {
       sortOrder: 'latest',    // 정렬 기준
       searchQuery: '',        // 검색어
       searchType: 'title',    // 검색 항목 (제목, 내용, 등록자명)
+      image: null, // 추가
     };
   },
   computed: {
@@ -143,6 +151,10 @@ export default {
     this.checkLoginStatus(); // 로그인 상태 확인
   },
   methods: {
+    handleImageUpload(event) {
+      this.image = event.target.files[0];
+    },
+
     // 로그인 상태 확인
     async checkLoginStatus() {
       try {
@@ -212,15 +224,20 @@ export default {
 
     // 게시글 작성
     async submitPost() {
+      const formData = new FormData();
+      formData.append('title', this.title);
+      formData.append('content', this.content);
+      if (this.image) {
+        formData.append('image', this.image);
+      }
+
       try {
-        await axios.post('http://localhost:3000/api/board',
-          {
-            title: this.title,
-            content: this.content
+        await axios.post('http://localhost:3000/api/board', formData, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
           },
-          { withCredentials: true }
-        );
-        // 작성 후 게시판 페이지로 이동 + 다시 데이터 불러오기
+        });
         this.goToBoardPage();
         this.initData();
       } catch (error) {
@@ -530,5 +547,16 @@ export default {
 /* 공통 버튼 여백 */
 button {
   margin: 5px;
+}
+
+.feed-image {
+  margin-top: 10px;
+  text-align: center;
+}
+.feed-image img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 </style>

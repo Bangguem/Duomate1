@@ -7,6 +7,22 @@ const { createPost, fetchPosts, deletePost, getPostById, fetchUser, updatePost,
         deleteCommentsByPostId, updateCommentLikes, incrementPostViews} = require('../db');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// 업로드 폴더 설정
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../../public/uploads'));
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + decodeURIComponent(file.originalname);
+      cb(null, uniqueSuffix);
+    }
+});
+const upload = multer({ storage });
+
 
 // 공통 에러 처리 함수
 function handleError(res, status, message) {
@@ -59,24 +75,25 @@ router.get('/', async (req, res) => {
 });
 
 // 게시글 작성
-router.post('/', authenticateJWT, async (req, res) => {
+router.post('/', authenticateJWT, upload.single('image'), async (req, res) => {
     const { title, content } = req.body;
-
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+  
     if (!title || !content) {
-        return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
+      return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
-
+  
     if (!req.user || !req.user.nickname) {
-        return res.status(401).json({ message: '인증되지 않은 사용자입니다.' });
+      return res.status(401).json({ message: '인증되지 않은 사용자입니다.' });
     }
-
+  
     const author = req.user.nickname;
-
+  
     try {
-        const post = await createPost({ title, content, author });
-        res.status(201).json(post);
+      const post = await createPost({ title, content, author, imageUrl }); // imageUrl도 저장
+      res.status(201).json(post);
     } catch (error) {
-        res.status(500).json({ message: '게시글 작성에 실패했습니다.', error });
+      res.status(500).json({ message: '게시글 작성에 실패했습니다.', error });
     }
 });
 
@@ -98,6 +115,21 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
             return res.status(403).json({ message: '게시글 작성자만 삭제할 수 있습니다.' });
         }
 
+        // ✅ 이미지 파일 삭제 처리
+        if (post.imageUrl) {
+            try {
+                const imagePath = path.join(__dirname, '../../public', post.imageUrl);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                    console.log('✅ 이미지 삭제 완료:', imagePath);
+                } else {
+                    console.warn('⚠️ 이미지 파일이 존재하지 않음:', imagePath);
+                }
+            } catch (err) {
+                console.error('❌ 이미지 삭제 중 오류:', err.message);
+            }
+        }
+        
         // 게시글 삭제
         const postDeleted = await deletePost(postId, req.user.nickname);
         if (postDeleted) {

@@ -50,6 +50,11 @@
         <!-- 게시글 본문 -->
         <p class="post-content" v-html="convertNewLinesToBreaks(post.content)"></p>
 
+        <!-- 이미지가 있을 경우 보여주기 -->
+        <div v-if="post.imageUrl" class="post-image">
+          <img :src="`http://localhost:3000${post.imageUrl}`" alt="게시글 이미지" />
+        </div>
+
         <!-- 좋아요/싫어요 -->
         <div class="action-buttons">
           <button @click="likePost" class="like-btn">
@@ -637,5 +642,15 @@ export default {
 .loading, .error {
   text-align: center;
   color: white;
+}
+
+.post-image {
+  margin: 20px 0;
+  text-align: center;
+}
+.post-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
 }
 </style>

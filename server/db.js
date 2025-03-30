@@ -241,7 +241,8 @@ async function createPost(postData) {
         createdAt: new Date(),
         likes: 0, // 추가
         dislikes: 0, // 추가
-        views: 0 // 조회수 초기화
+        views: 0, // 조회수 초기화
+        imageUrl: postData.imageUrl || null  // ✅ 이미지 경로 저장
     };
     const result = await collection.insertOne(newPost);
     return { id: result.insertedId, ...newPost };
