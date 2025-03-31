@@ -1,7 +1,7 @@
 <template>
-  <div class="contents">  <!-- 전체 콘텐츠를 감싸는 컨테이너 -->
+  <div class="contents">
 
-    <!-- 패치노트 섹션 (동적 데이터) -->
+    <!-- ● 패치노트 -->
     <section class="left-grid-item">
       <p class="section-title">패치노트</p>
     </section>
@@ -17,7 +17,7 @@
       <button class="more-button" @click="goToPatchNotes">더보기</button>
     </section>
 
-    <!-- 업데이트 섹션 (동적 데이터) -->
+    <!-- ● 업데이트 -->
     <section class="left-grid-item">
       <p class="section-title">업데이트</p>
     </section>
@@ -25,31 +25,35 @@
       <div class="post-item" v-for="update in dynamicUpdates.slice(0, 2)" :key="update._id">
         <img src="@/assets/icon_setting.png" alt="업데이트 아이콘" class="patch-icon" />
         <div class="patch-info">
-          <!-- 제목을 router-link로 감싸 클릭 시 상세페이지로 이동 -->
           <router-link :to="{ name: 'UpdateDetail', params: { id: update._id } }" class="patch-title">
             {{ update.title }}
           </router-link>
           <p class="patch-date">{{ formatDate(update.date) }}</p>
-          <!-- 업데이트 내용을 숨기기 위해 주석 처리 -->
-          <!-- <p class="patch-description">{{ update.content }}</p> -->
         </div>
       </div>
       <button class="more-button" @click="goToUpdates">더보기</button>
     </section>
 
-    <!-- 문의내역 섹션 (static 데이터) -->
+    <!-- ● 문의내역 -->
     <section class="left-grid-item">
       <p class="section-title">문의내역</p>
     </section>
     <section class="right-grid-item">
-      <div class="post-item" v-for="inquiry in staticInquiries" :key="inquiry.version">
-        <span class="inquiry-icon">🙋🏻</span>
+      <div
+        class="post-item"
+        v-for="inquiry in userInquiries.slice(0, 2)"
+        :key="inquiry._id"
+        @click="goToInquiry(inquiry._id)"
+        style="cursor: pointer;"
+      >
+        <span class="inquiry-icon">🙋🏻‍</span>
         <div class="patch-info">
-          <p class="patch-title">버전 {{ inquiry.version }} 문의</p>
-          <p class="patch-date">{{ inquiry.date }}</p>
-          <p class="patch-description">{{ inquiry.description }}</p>
+          <p class="patch-title">{{ inquiry.title }}</p>
+          <p class="patch-date">{{ formatDate(inquiry.createdAt) }}</p>
+          <p class="patch-description">{{ inquiry.content.slice(0, 50) + '...' }}</p>
         </div>
       </div>
+      <button class="more-button" @click="$router.push('/inquiries')">더보기</button>
     </section>
 
   </div>
@@ -57,20 +61,19 @@
 
 <script>
 import axios from 'axios';
+
 export default {
   data() {
     return {
-      patchNotes: [],       // 패치노트 데이터 (동적)
-      dynamicUpdates: [],   // 업데이트 데이터 (동적)
-      staticInquiries: [    // 문의내역 (static)
-        { version: '1.5.8', date: '1달 전', description: '- UI 개선' },
-        { version: '1.5.7', date: '2달 전', description: '- 서버 안정성 강화' }
-      ]
+      patchNotes: [],
+      dynamicUpdates: [],
+      userInquiries: []
     };
   },
   mounted() {
     this.fetchPatchNotes();
     this.fetchDynamicUpdates();
+    this.fetchUserInquiries();
   },
   methods: {
     async fetchPatchNotes() {
@@ -97,11 +100,24 @@ export default {
         console.error('Error fetching dynamic updates:', error);
       }
     },
+    async fetchUserInquiries() {
+      try {
+        const res = await axios.get('http://localhost:3000/api/inquiries', {
+          withCredentials: true,
+        });
+        this.userInquiries = res.data.inquiries;
+      } catch (err) {
+        console.error('문의내역 불러오기 실패:', err);
+      }
+    },
     goToPatchNotes() {
       this.$router.push('/patch-notes');
     },
     goToUpdates() {
       this.$router.push('/updates');
+    },
+    goToInquiry(id) {
+      this.$router.push(`/inquiries/${id}`);
     },
     formatDate(date) {
       return new Date(date).toLocaleDateString();
