@@ -102,7 +102,7 @@ export default {
     },
     async fetchUserInquiries() {
       try {
-        const res = await axios.get('http://localhost:3000/api/inquiries', {
+        const res = await axios.get('http://localhost:3000/api/inquiries?limit=2', {
           withCredentials: true,
         });
         this.userInquiries = res.data.inquiries;
