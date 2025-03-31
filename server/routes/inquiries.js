@@ -52,24 +52,17 @@ router.post('/', authenticateJWT, async (req, res) => {
 
 // 문의 목록 조회 (사용자 / 관리자)
 router.get('/', authenticateJWT, async (req, res) => {
+  const user = req.user;
   try {
-    const db = await connectToMongo();
-    const collection = db.collection('inquiries');
-
-    const query = req.user.userid === 'Admin' ? {} : { userid: req.user.userid };
-    const limit = parseInt(req.query.limit) || 100;
-
-    const inquiries = await collection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
-
-    res.json({ inquiries });
-  } catch (err) {
-    console.error('문의 목록 조회 실패:', err);
-    res.status(500).json({ success: false, message: '문의 목록 조회 실패' });
-  }
+    const inquiries =
+       user.userid === 'Admin'
+         ? await getAllInquiries()
+         : await getInquiriesByUser(user.userid);
+     res.json({ success: true, inquiries });
+   } catch (error) {
+     console.error('문의 목록 조회 오류:', error);
+     res.status(500).json({ success: false, message: '문의 목록 조회 실패' });
+   }
 });
 
 // 문의 상세 조회
