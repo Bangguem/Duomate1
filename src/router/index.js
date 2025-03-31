@@ -15,6 +15,9 @@ import axios from 'axios';
 import NoticePage from '../components/NoticePage.vue'; // 공지사항 페이지 컴포넌트
 import UpdatePage from '@/components/UpdatePage.vue'; // 업데이트 페이지 추가
 import UpdateDetail from '@/components/UpdateDetail.vue'; // 상세 페이지 컴포넌트
+import InquiryForm from '@/components/InquiryForm.vue';
+import InquiryList from '@/components/InquiryList.vue';
+import InquiryDetail from '@/components/InquiryDetail.vue';
 
 const routes = [
   {
@@ -71,6 +74,25 @@ const routes = [
       name: 'UpdateDetail',
       component: UpdateDetail,
       props: true,
+  },
+  {
+    path: '/inquiries',
+    name: 'InquiryList',
+    component: InquiryList,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/inquiries/new',
+    name: 'InquiryForm',
+    component: InquiryForm,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/inquiries/:id',
+    name: 'InquiryDetail',
+    component: InquiryDetail,
+    props: true,
+    meta: { requiresAuth: true },
   },
 ];
 

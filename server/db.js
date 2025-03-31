@@ -18,6 +18,7 @@ const COLLECTION_NAME = 'users';
 const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
 const COMMENTS_COLLECTION = 'comments'; // 댓글 컬렉션
 const UPDATES_COLLECTION = 'updates'; // 업데이트 컬렉션
+const INQUIRIES_COLLECTION = 'inquiries';
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -484,6 +485,64 @@ async function deleteUpdate(id) {
     return result.deletedCount > 0;
 }
 
+// 문의 등록
+async function createInquiry(inquiryData) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+
+    const newInquiry = {
+        userId: inquiryData.userId,
+        name: inquiryData.name,
+        title: inquiryData.title,
+        content: inquiryData.content,
+        answer: null,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
+
+    const result = await collection.insertOne(newInquiry);
+    return { id: result.insertedId, ...newInquiry };
+}
+
+// 사용자 ID로 문의 목록 조회
+async function getInquiriesByUser(userId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.find({ userId }).sort({ createdAt: -1 }).toArray();
+}
+
+// 전체 문의 목록 조회 (관리자용)
+async function getAllInquiries() {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.find().sort({ createdAt: -1 }).toArray();
+}
+
+// 문의 상세 조회
+async function getInquiryById(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(id) });
+}
+
+// 관리자 답변 등록
+async function answerInquiry(id, answerText) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    const result = await collection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+            $set: {
+                answer: answerText,
+                status: 'answered',
+                updatedAt: new Date(),
+            },
+        }
+    );
+    return result.modifiedCount > 0;
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -513,4 +572,9 @@ module.exports = {
     fetchUpdateById,
     updateUpdate,
     deleteUpdate,
+    createInquiry,
+    getInquiriesByUser,
+    getAllInquiries,
+    getInquiryById,
+    answerInquiry,
 }
