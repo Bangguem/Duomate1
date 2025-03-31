@@ -125,7 +125,7 @@
 
             <!-- 댓글 보기 모드 -->
             <div v-else>
-              <p>{{ comment.content }}</p>
+              <p v-html="convertNewLinesToBreaks(comment.content)"></p>
               <div class="comment-actions">
                 <!-- 좋아요/싫어요 -->
                 <button @click="likeComment(comment._id)" class="like-btn">
