@@ -2,17 +2,35 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const express = require('express');
 const moment = require('moment-timezone'); // 타임존 처리를 위한 라이브러리 추가
+// 추가: http, https 모듈 불러오기 (Keep-Alive 설정용)
+const http = require('http');
+const https = require('https');
 const router = express.Router();
 
 const ITEMS_PER_PAGE = 12;
 
+// 추가: 캐시 관련 변수 (5분 동안 캐시 유지)
+const CACHE_TTL = 5 * 60 * 1000; // 5분 (밀리초)
+const cache = new Map();
+
+// 추가: Keep-Alive 설정을 적용한 axios 인스턴스 생성
+const axiosInstance = axios.create({
+  httpAgent: new http.Agent({ keepAlive: true }),
+  httpsAgent: new https.Agent({ keepAlive: true })
+});
+
 // 특정 페이지의 __NEXT_DATA__에 있는 patch note 아이템들을 가져오는 함수
 const fetchPageData = async (pageNumber) => {
+  const cacheKey = `pageData-${pageNumber}`;
+  const cached = cache.get(cacheKey);
+  if (cached && (Date.now() - cached.time < CACHE_TTL)) {
+    return cached.data;
+  }
   let pageUrl = 'https://www.leagueoflegends.com/ko-kr/news/tags/patch-notes/';
   if (pageNumber > 1) {
     pageUrl += `?page=${pageNumber}`;
   }
-  const { data } = await axios.get(pageUrl);
+  const { data } = await axiosInstance.get(pageUrl);
   const $ = cheerio.load(data);
   const nextDataScript = $('#__NEXT_DATA__').html();
   if (!nextDataScript) throw new Error('__NEXT_DATA__ not found');
@@ -26,6 +44,7 @@ const fetchPageData = async (pageNumber) => {
       break;
     }
   }
+  cache.set(cacheKey, { data: items, time: Date.now() });
   return items;
 };
 
