@@ -52,8 +52,10 @@ const getPatchNotes = async (req, res) => {
     const searchQuery = req.query.searchQuery ? req.query.searchQuery.toLowerCase() : '';
 
     // 최신 2페이지의 데이터를 가져옴
-    const itemsPage1 = await fetchPageData(1);
-    const itemsPage2 = await fetchPageData(2);
+    const [itemsPage1, itemsPage2] = await Promise.all([
+      fetchPageData(1),  // 페이지 1 데이터 요청
+      fetchPageData(2)   // 페이지 2 데이터 요청
+    ]);
     const allItems = deduplicateItems([...itemsPage1, ...itemsPage2]);
 
     // 데이터를 가공
