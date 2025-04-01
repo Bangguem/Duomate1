@@ -13,14 +13,12 @@ function authenticateJWT(req, res, next) {
   const token = req.cookies.auth_token;
 
   if (!token) {
-    req.user = null;
-    return next();
+    return res.redirect('/');
   }
 
   const decoded = verifyToken(token);
   if (!decoded) {
-    req.user = null;
-    return next();
+    return res.redirect('/');
   }
 
   req.user = decoded;
