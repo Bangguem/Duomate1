@@ -28,6 +28,9 @@
             class="textarea-field"
           ></textarea>
 
+          <!-- 파일 첨부 입력 추가 -->
+          <input type="file" @change="handleEditImageUpload" accept="image/*" />
+
           <div class="form-buttons">
             <button type="submit" class="save-btn">수정 완료</button>
             <button type="button" @click="cancelEdit" class="cancel-btn">취소</button>
@@ -167,6 +170,7 @@ export default {
       editingCommentId: null,// 수정 중인 댓글 ID
       editingContent: '',    // 수정 중인 댓글 내용
       sortOrder: 'latest',   // 댓글 정렬 기준
+      editedImage: null, // 새 이미지 파일 저장 변수 추가
     };
   },
   computed: {
@@ -264,14 +268,27 @@ export default {
     // 게시글 수정 완료
     async updatePost() {
       try {
-        const updatedData = {
-          title: this.editedTitle,
-          content: this.editedContent,
-        };
-        await axios.put(`http://localhost:3000/api/board/${this.id}`, updatedData, {
-          withCredentials: true
-        });
-        // 성공 시 로컬 데이터도 갱신
+        if (this.editedImage) {
+          // 파일 첨부가 있는 경우, FormData로 파일과 텍스트 데이터를 함께 전송
+          const formData = new FormData();
+          formData.append('title', this.editedTitle);
+          formData.append('content', this.editedContent);
+          formData.append('image', this.editedImage);
+          await axios.put(`http://localhost:3000/api/board/${this.id}`, formData, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } else {
+          // 파일이 없으면 기존 방식대로 JSON 데이터 전송
+          await axios.put(
+            `http://localhost:3000/api/board/${this.id}`,
+            { title: this.editedTitle, content: this.editedContent },
+            { withCredentials: true }
+        );
+        }
+        // 로컬 데이터 업데이트 후 편집 모드 종료
         this.post.title = this.editedTitle;
         this.post.content = this.editedContent;
         this.isEditing = false;
@@ -452,6 +469,9 @@ export default {
     // 개행 문자 -> <br> 치환
     convertNewLinesToBreaks(text) {
       return text.replace(/\n/g, '<br>');
+    },
+    handleEditImageUpload(event) {
+      this.editedImage = event.target.files[0];
     },
   },
   created() {

@@ -149,33 +149,52 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
     }
 });
 
-// 게시글 수정
-router.put('/:id', authenticateJWT, async (req, res) => {
+router.put('/:id', authenticateJWT, upload.single('image'), async (req, res) => {
     const postId = req.params.id;
     const { title, content } = req.body;
-
+    const newImageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+  
     if (!ObjectId.isValid(postId)) {
-        return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
+      return res.status(400).json({ message: '잘못된 게시글 ID 형식입니다.' });
     }
-
-    if (!title || !content) {
-        return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
+  
+    if (!title || (!content && !newImageUrl)) {
+      return res.status(400).json({ message: '제목은 필수이며, 내용 또는 이미지가 필요합니다.' });
     }
-
+  
     try {
-        const post = await getPostById(postId);
-        if (!post) {
-            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+      const post = await getPostById(postId);
+      if (!post) {
+        return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+      }
+  
+      if (post.author !== req.user.nickname) {
+        return res.status(403).json({ message: '게시글 작성자만 수정할 수 있습니다.' });
+      }
+  
+      // 새 이미지가 첨부되었을 경우, 기존 이미지가 있다면 삭제
+      if (newImageUrl && post.imageUrl) {
+        try {
+          const oldImagePath = path.join(__dirname, '../../public', post.imageUrl);
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log('✅ 기존 이미지 삭제 완료:', oldImagePath);
+          }
+        } catch (err) {
+          console.error('❌ 기존 이미지 삭제 중 오류:', err.message);
         }
-
-        if (post.author !== req.user.nickname) {
-            return res.status(403).json({ message: '게시글 작성자만 수정할 수 있습니다.' });
-        }
-
-        const updatedPost = await updatePost(postId, { title, content });
-        res.status(200).json(updatedPost);
+      }
+  
+      // 업데이트할 데이터 구성
+      const updateData = { title, content };
+      if (newImageUrl) {
+        updateData.imageUrl = newImageUrl;
+      }
+  
+      const updatedPost = await updatePost(postId, updateData);
+      res.status(200).json(updatedPost);
     } catch (error) {
-        res.status(500).json({ message: '게시글 수정에 실패했습니다.', error });
+      res.status(500).json({ message: '게시글 수정에 실패했습니다.', error });
     }
 });
 
