@@ -550,13 +550,20 @@ button {
 }
 
 .feed-image {
-  margin-top: 10px;
-  text-align: center;
-}
-.feed-image img {
-  max-width: 100%;
-  max-height: 200px;
-  object-fit: contain;
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 비율을 유지 (9/16 * 100%) */
+  overflow: hidden;
   border-radius: 8px;
 }
+
+.feed-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 이미지 비율을 유지하며 전체 영역 채움 */
+}
+
 </style>
