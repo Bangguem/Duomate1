@@ -92,14 +92,14 @@
           required
         />
 
-        <input type="file" @change="handleImageUpload" accept="image/*" />
-
         <textarea
           v-model="content"
           placeholder="내용을 입력하세요"
           class="post-textarea"
           required
         ></textarea>
+
+        <input type="file" @change="handleImageUpload" accept="image/*" />
         
         <div class="post-buttons">
           <button type="submit" class="post-submit">게시글 작성</button>
