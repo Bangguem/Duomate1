@@ -4,12 +4,12 @@
       <p><strong>작성자:</strong> {{ inquiry.name }}</p>
       <p><strong>작성일:</strong> {{ formatDate(inquiry.createdAt) }}</p>
       <p><strong>내용:</strong></p>
-      <p>{{ inquiry.content }}</p>
+      <p class="preserve-newlines">{{ inquiry.content }}</p>
   
       <div v-if="inquiry.answer">
         <hr />
         <h3>💬 관리자 답변</h3>
-        <p>{{ inquiry.answer }}</p>
+        <p class="preserve-newlines">{{ inquiry.answer }}</p>
       </div>
   
       <div v-else-if="isAdmin">
@@ -88,6 +88,9 @@
   </script>
   
   <style scoped>
+  .preserve-newlines {
+    white-space: pre-wrap;
+  }
   .inquiry-detail {
     max-width: 700px;
     margin: 0 auto;
