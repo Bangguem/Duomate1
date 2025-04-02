@@ -55,7 +55,7 @@
 
         <!-- 이미지가 있을 경우 보여주기 -->
         <div v-if="post.imageUrl" class="post-image">
-          <img :src="`http://localhost:3000${post.imageUrl}`" alt="게시글 이미지" />
+          <img :src="`http://localhost:3000${post.imageUrl}?t=${new Date().getTime()}`" alt="게시글 이미지" />
         </div>
 
         <!-- 좋아요/싫어요 -->
@@ -76,7 +76,7 @@
       </div>
 
       <!-- [3] 댓글 섹션 -->
-      <div class="comments-section">
+      <div class="comments-section" v-if="!isEditing">
         <h3>댓글 ({{ comments.length }})</h3>
 
         <!-- 댓글 정렬 옵션 (댓글이 1개 이상일 때만 표시) -->
@@ -94,8 +94,8 @@
           </select>
         </div>
 
-        <!-- 댓글 작성 영역 (로그인 유저만) -->
-        <div v-if="currentUser" class="comment-input">
+        <!-- 댓글 작성 영역 (로그인 유저 & 수정 중 아닐 때만 보임) -->
+        <div v-if="currentUser && !isEditing" class="comment-input">
           <textarea
             v-model="newComment"
             placeholder="댓글을 입력하세요"
@@ -269,7 +269,7 @@ export default {
     async updatePost() {
       try {
         if (this.editedImage) {
-          // 파일 첨부가 있는 경우, FormData로 파일과 텍스트 데이터를 함께 전송
+          // 파일이 첨부된 경우, FormData를 사용하여 전송
           const formData = new FormData();
           formData.append('title', this.editedTitle);
           formData.append('content', this.editedContent);
@@ -277,20 +277,19 @@ export default {
           await axios.put(`http://localhost:3000/api/board/${this.id}`, formData, {
             withCredentials: true,
             headers: {
-              'Content-Type': 'multipart/form-data',
-            },
+              'Content-Type': 'multipart/form-data'
+            }
           });
         } else {
-          // 파일이 없으면 기존 방식대로 JSON 데이터 전송
+          // 파일 없이 텍스트만 수정하는 경우
           await axios.put(
             `http://localhost:3000/api/board/${this.id}`,
             { title: this.editedTitle, content: this.editedContent },
             { withCredentials: true }
-        );
+          );
         }
-        // 로컬 데이터 업데이트 후 편집 모드 종료
-        this.post.title = this.editedTitle;
-        this.post.content = this.editedContent;
+        // 수정이 완료된 후 최신 데이터를 서버에서 다시 불러와 화면 갱신
+        await this.fetchPost();
         this.isEditing = false;
         alert('게시글이 수정되었습니다.');
       } catch (error) {
