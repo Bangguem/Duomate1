@@ -89,8 +89,10 @@ export default {
     }
   },
   created() {
-    this.fetchUpdates();
-    this.checkLogin(); // ✅ 로그인 확인
+    Promise.all([
+      this.fetchUpdates(),
+      this.checkLogin()
+    ]);
   },
   methods: {
     // ✅ 로그인 유저 정보 확인
