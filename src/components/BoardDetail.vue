@@ -567,6 +567,11 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  align-items: center;      /* 내부 요소 수평 가운데 정렬 */
+  justify-content: center;  /* 수직 정렬 (선택) */
+  margin: 0 auto;           /* edit-form 자체를 가운데로 */
+  max-width: 600px;         /* 전체 입력 폼 너비 제한 */
+  width: 100%;
 }
 .input-field,
 .textarea-field {
