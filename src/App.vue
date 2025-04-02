@@ -10,6 +10,18 @@
             <span>안녕하세요, {{ userInfo.nickname }}님!</span>
           </div>
           <nav class="nav-links">
+            <router-link
+              v-if="[
+                '/board',
+                '/notices',
+                '/patch-notes',
+                '/updates',
+                '/inquiries'
+              ].some(p => $route.path.startsWith(p))"
+              to="/"
+            >
+              홈
+            </router-link>
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
             <a @click="mypageopen = true">마이페이지</a>
             <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
