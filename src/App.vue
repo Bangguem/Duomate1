@@ -126,13 +126,12 @@ export default {
 
 
   computed: {
+    isHomePage() {
+      return this.$route.path === '/';
+    },
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board', 
-      '/patch-notes', '/notices','/updates','/inquiries','/inquiries/new'].includes(this.$route.path) || 
-      this.$route.path.startsWith('/board/') ||
-      this.$route.path.startsWith('/inquiries/') ||
-      this.$route.path.startsWith('/updates/');
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', ].includes(this.$route.path) ;
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
@@ -143,7 +142,7 @@ export default {
     },
     // 메인 페이지의 플레이스홀더 표시 여부
     showPlaceholder() {
-      return !this.isAuthPage;
+      return this.isHomePage;
     },
     videoElement() {
       return this.$refs.videoElement;
