@@ -13,15 +13,14 @@ const setupSocketIo = (server) => {
         },
     });
 
-
     const duoRestrictions = {
         IRON: ["IRON", "BRONZE", "SILVER"],
         BRONZE: ["IRON", "BRONZE", "SILVER"],
         SILVER: ["IRON", "BRONZE", "SILVER", "GOLD"],
         GOLD: ["SILVER", "GOLD", "PLATINUM"],
         PLATINUM: ["GOLD", "PLATINUM", "EMERALD IV", "EMERALD III"],
-        "EMERALD IV": ["PLATINUM", "EMERALD III", "EMERALD IV"],
-        "EMERALD III": ["PLATINUM", "EMERALD II", "EMERALD III", "EMERALD IV"],
+        "EMERALD IV": ["PLATINUM IV", "PLATINUM III", "PLATINUM II", "PLATINUM I", "EMERALD III", "EMERALD IV"],
+        "EMERALD III": ["PLATINUM IV", "PLATINUM III", "PLATINUM II", "PLATINUM I", "EMERALD II", "EMERALD III", "EMERALD IV"],
         "EMERALD II": ["EMERALD I", "EMERALD II", "EMERALD III", "DIAMOND IV"],
         "EMERALD I": ["EMERALD I", "EMERALD II", "DIAMOND IV", "DIAMOND III"],
         "DIAMOND IV": ["EMERALD I", "EMERALD II", "DIAMOND III", "DIAMOND IV"],
@@ -84,10 +83,16 @@ const setupSocketIo = (server) => {
                 if (entry.socket.id === player.socket.id || entry.user.userid === player.user.userid) {
                     return false;
                 }
+                // summonerRank의 존재 여부를 먼저 확인
+                if (
+                    !player.user.summonerRank || !Array.isArray(player.user.summonerRank) || player.user.summonerRank.length === 0 ||
+                    !entry.user.summonerRank || !Array.isArray(entry.user.summonerRank) || entry.user.summonerRank.length === 0
+                ) {
+                    return false;
+                }
 
                 const tier1 = player.user.summonerRank[0].tier;
                 const tier2 = entry.user.summonerRank[0].tier;
-
 
                 // 에메랄드나 다이아몬드인 경우
                 if (tier1.includes('EMERALD') || tier1.includes('DIAMOND') ||
@@ -240,7 +245,7 @@ const setupSocketIo = (server) => {
         });
 
         socket.on("chat message", ({ matchId, message, timestamp }) => {
-            console.log(`📨 채팅 메시지 수신:`, { matchId, message, socketId: socket.id });
+            console.log("📨 채팅 메시지 수신:", { matchId, message, socketId: socket.id });
             const match = matchDataStore[matchId];
             if (!match) {
                 console.error(`❌ 매치 ID ${matchId}에 대한 매칭 정보를 찾을 수 없습니다.`);
@@ -251,10 +256,10 @@ const setupSocketIo = (server) => {
             let sender = match.players.find(p => p.socketId === socket.id);
             if (!sender) {
                 console.error(`❌ 소켓 ID ${socket.id}에 대한 플레이어 정보를 찾을 수 없습니다.`);
-                console.log(`📊 현재 플레이어 목록:`, match.players);
+                console.log("📊 현재 플레이어 목록:", match.players);
                 const senderByUserId = match.players.find(p => p.userid === socket.user.userid);
                 if (senderByUserId) {
-                    console.log(`✅ 사용자 ID로 플레이어를 찾았습니다. 소켓 ID 업데이트`);
+                    console.log("✅ 사용자 ID로 플레이어를 찾았습니다. 소켓 ID 업데이트");
                     senderByUserId.socketId = socket.id;
                     sender = senderByUserId;
                 } else {
@@ -269,7 +274,7 @@ const setupSocketIo = (server) => {
                 timestamp: timestamp || new Date().toISOString() // 타임스탬프 포함, 없으면 새로 생성
             };
 
-            console.log(`📤 채팅 메시지 전송:`, {
+            console.log("📤 채팅 메시지 전송:", {
                 roomName: match.roomName,
                 sender: sender.nickname,
                 message: message
@@ -305,7 +310,6 @@ const setupSocketIo = (server) => {
                 socket.emit('matchError', { message: "랭크 매칭 요청 중 오류 발생" });
             }
         });
-
 
         // 매칭 수락 이벤트
         socket.on('acceptMatch', ({ matchId }) => {
@@ -351,7 +355,7 @@ const setupSocketIo = (server) => {
         });
 
         socket.on("leave room", ({ matchId, userId, nickname }) => {
-            console.log(`📢 채팅방 나가기 요청:`, { matchId, userId, nickname });
+            console.log("📢 채팅방 나가기 요청:", { matchId, userId, nickname });
 
             const match = matchDataStore[matchId];
             if (!match) return;
