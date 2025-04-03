@@ -11,8 +11,8 @@
         </div>
         <nav class="nav-links">
           <a href="/" class="nav-links">홈</a>
-          <a href="#" class="nav-links">공지</a>
-          <a href="#" class="nav-links">게시판</a>
+          <a href="/patch-notes" class="nav-links">공지</a>
+          <a href="/board" class="nav-links">게시판</a>
         </nav>
       </header>
 
@@ -53,8 +53,6 @@
             </select>
             <label for="birthdate">생년월일</label>
             <input id="birthdate" type="date" v-model="userInfo.birthdate" />
-            <!-- <input type="text" placeholder="새 비밀번호를 입력하세요" />
-          <input type="text" placeholder="새 비밀번호를 다시 입력하세요" /> -->
             <button type="submit" class="submit-btn">저장</button>
           </form>
         </div>
@@ -69,13 +67,6 @@
         <p v-else>연동이 필요합니다.</p>
 
         <div class="gaming-details">
-          <!-- <div class="detail-item">
-           <img v-if="riotInfo.profileIconId" 
-               :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${riotInfo.profileIconId}.png`" 
-               alt="Summoner Icon" /> 
-          <p>{{ summonerName || "연동이 필요합니다" }} 님</p>
-        </div> -->
-
           <div class="detail-item">
             <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
             <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
@@ -352,8 +343,8 @@ body {
   margin: 0;
   display: flex;
   flex-direction: column;
-  width : 140vw;
-  height : 180vh;
+  width : 140%;
+  height : 180%;
   background-color: #212121;
 }
 
@@ -616,14 +607,6 @@ footer {
   border-radius: 5px;
 }
 
-/* .riot-btn {
-background-color: #006400;
-color: white;
-padding: 10px;
-border-radius: 5px;
-width: 200px;
-height: 40px;
-} */
 /* Most Played Champions 스타일 */
 .most-played-champions {
   display: flex;
