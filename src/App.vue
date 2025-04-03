@@ -10,18 +10,6 @@
             <span>안녕하세요, {{ userInfo.nickname }}님!</span>
           </div>
           <nav class="nav-links">
-            <router-link
-              v-if="[
-                '/board',
-                '/notices',
-                '/patch-notes',
-                '/updates',
-                '/inquiries'
-              ].some(p => $route.path.startsWith(p))"
-              to="/"
-            >
-              홈
-            </router-link>
             <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a>
             <a @click="mypageopen = true">마이페이지</a>
             <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
@@ -138,12 +126,13 @@ export default {
 
 
   computed: {
-    isHomePage() {
-      return this.$route.path === '/';
-    },
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', ].includes(this.$route.path) ;
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board', 
+      '/patch-notes', '/notices','/updates','/inquiries','/inquiries/new'].includes(this.$route.path) || 
+      this.$route.path.startsWith('/board/') ||
+      this.$route.path.startsWith('/inquiries/') ||
+      this.$route.path.startsWith('/updates/');
     },
     // 헤더와 푸터 표시 여부
     showHeader() {
@@ -154,7 +143,7 @@ export default {
     },
     // 메인 페이지의 플레이스홀더 표시 여부
     showPlaceholder() {
-      return this.isHomePage;
+      return !this.isAuthPage;
     },
     videoElement() {
       return this.$refs.videoElement;
