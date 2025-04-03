@@ -67,7 +67,6 @@
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
                           <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
-                          <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
                             <br />
@@ -123,7 +122,6 @@
                 <button class="delete-button" @click="withdraw(), mypageopen = false">회원탈퇴</button>
 
                 <button class="close-button" @click="mypageopen = false">닫기</button>
-              </div>
               </div>
             </div>
             <a href="/mypage-edit">내 정보 변경</a>
@@ -183,6 +181,7 @@
     </footer> -->
   </div>
 </template>
+
 
 <script>
 export default {
@@ -318,7 +317,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 /* 전체 스타일 초기화 */
 * {
   margin: 0;
