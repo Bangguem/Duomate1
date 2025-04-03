@@ -22,7 +22,7 @@
           <div class="profile-picture">
             <!-- <div class="add-icon" @click="triggerFileUpload">+</div> -->
             <img v-if="userInfo.summonerInfo && userInfo.summonerInfo.profileIconId"
-              :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
+              :src="`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
               alt="Summoner Icon" />
           </div>
           <input type="file" id="file-upload" accept="image/*" ref="fileInput" @change="handleFileChange"
@@ -204,8 +204,18 @@ export default {
     this.checkLoginStatus();
     console.log("챔피언 데이터 (초기 로드):", this.userInfo.top5Champions);
     console.log("챔피언 데이터 (초기 로드):", this.riotInfo.top5Champions);
+    this.fetchLatestVersion();
   },
   methods: {
+    async fetchLatestVersion() {
+      try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        const versions = await response.json();
+        this.latestVersion = versions[0]; // 가장 최신 버전 사용
+      } catch (error) {
+        console.error("Failed to fetch Data Dragon version:", error);
+      }
+      },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {

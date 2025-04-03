@@ -81,17 +81,6 @@
             <label for="nickname">닉네임</label>
             <input id="nickname" type="text" placeholder="닉네임을 입력해주세요" v-model="form.nickname" required />
           </div>
-          <!-- 라이엇 연동 폼 -->
-<div class="form-group riot-connect">
-  <label for="riot-id">라이엇 계정 연동</label>
-  <div class="riot-inputs">
-    <input id="riot-id" type="text" placeholder="소환사 이름" v-model="summonerName" required />
-    <span>#</span>
-    <input id="riot-tag" type="text" placeholder="태그" v-model="tag" required />
-  </div>
-  <button type="button" @click="linkRiotAccount">연동하기</button>
-</div>
-<!-- <p v-if="riotInfo.summonerName">{{ userInfo.SummonerName }}#{{ userInfo.Tag }}</p> -->
           <div class="button-group">
             <button type="button" class="cancel-button">Cancel</button>
             <button type="submit" class="signup-button">Sign Up</button>
@@ -99,6 +88,17 @@
           </form>
           </div>
           </main>
+          <div v-if="showRiotModal == true" class="modal">
+        <div class="modal-content">
+          <h2>Riot 연동</h2>
+          <p>회원가입이 완료되었습니다! 라이엇 계정을 연동해주세요.</p>
+          <label for="summoner">소환사 이름</label>
+          <input type="text" v-model="summonerName" placeholder="소환사 이름 입력" />
+          <label for="tag">태그</label>
+          <input type="text" v-model="tag" placeholder="태그 입력 (예: KR1)" />
+          <button type="button" @click="linkRiotAccount">연동하기</button>
+        </div>
+      </div>
       </div>
   </div>
 </template>
@@ -126,6 +126,7 @@ export default {
           passwordCheckVisible: false,
           openIcon: require('@/assets/open.png'), 
       closeIcon: require('@/assets/close.png'),
+      showRiotModal: false,
       };
   },
   methods: {
@@ -161,6 +162,8 @@ export default {
 
         if (result.success) {
           alert("라이엇 연동 완료");
+          this.showRiotModal = false; // 모달 닫기
+            window.location.href = '/login';
           // Riot API 데이터 업데이트
           this.riotInfo = {
             tier: result.tier || "정보 없음",
@@ -237,7 +240,7 @@ export default {
               const result = await response.json();
               if (response.ok) {
                   alert(result.message);
-                  window.location.href = '/login';
+                  this.showRiotModal = true; 
               } else {
                   alert(result.message);
               }
@@ -477,5 +480,47 @@ background-color: #15513775;
   color: green;
   font-size: 12px;
   margin-top: 5px;
+}
+/* Riot 연동 모달 스타일 */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #212121;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  border-radius: 10px;
+  color: #FAFAFA;
+  width: 400px;
+  height: 270px;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content h2 {
+  margin-bottom: 10px;
+}
+
+.modal-content input {
+  margin: 5px 0;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #0064006d;
+  color: #FAFAFA;
+  border-radius: 5px;
 }
 </style>

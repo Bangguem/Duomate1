@@ -21,7 +21,7 @@
                 <!-- 프로필 이미지 -->
                 <div class="profile-image">
                   <img v-if="userInfo.summonerInfo && userInfo.summonerInfo.profileIconId"
-                    :src="`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
+                    :src="`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${userInfo.summonerInfo?.profileIconId}.png`"
                     alt="Summoner Icon" />
                 </div>
 
@@ -191,6 +191,7 @@ export default {
       isLoggedIn: false, // 로그인 상태
       userInfo: {},
       windowWidth: window.innerWidth,
+      lastetVersion: "",
     };
   },
 
@@ -231,6 +232,15 @@ export default {
     pauseVideo() {
       this.videoElement.pause();
     },
+    async fetchLatestVersion() {
+      try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        const versions = await response.json();
+        this.latestVersion = versions[0]; // 가장 최신 버전 사용
+      } catch (error) {
+        console.error("Failed to fetch Data Dragon version:", error);
+      }
+      },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -298,6 +308,7 @@ export default {
   mounted() {
     window.addEventListener('resize', this.handleResize); // 창 크기 변화 리스너 추가
     this.checkLoginStatus(); // 컴포넌트가 마운트될 때 로그인 상태 확인
+    this.fetchLatestVersion();
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.handleResize); // 리스너 제거
