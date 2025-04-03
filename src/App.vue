@@ -602,7 +602,6 @@ body {
   background-color: #15513775;
 }
 
-
 .champion-list {
   display: flex;
   gap: 5px;
