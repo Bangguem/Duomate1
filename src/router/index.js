@@ -12,6 +12,12 @@ import patchNotesDisplay from '@/components/patchNotesDisplay.vue'; // 새 컴�
 import MatchQueue from '@/components/MatchQueue.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import axios from 'axios';
+import NoticePage from '../components/NoticePage.vue'; // 공지사항 페이지 컴포넌트
+import UpdatePage from '@/components/UpdatePage.vue'; // 업데이트 페이지 추가
+import UpdateDetail from '@/components/UpdateDetail.vue'; // 상세 페이지 컴포넌트
+import InquiryForm from '@/components/InquiryForm.vue';
+import InquiryList from '@/components/InquiryList.vue';
+import InquiryDetail from '@/components/InquiryDetail.vue';
 
 const routes = [
   {
@@ -52,7 +58,42 @@ const routes = [
     name: 'PatchNotesDisplay',
     component: patchNotesDisplay,  // 새로운 컴포넌트 등록
   },
-
+  {
+    path: '/notices',
+    name: 'Notices',
+    component: NoticePage, // 공지사항 페이지 컴포넌트
+  },
+  {
+    path: '/updates', // 업데이트 페이지 라우트 추가
+    name: 'UpdatePage',
+    component: UpdatePage,
+  },
+   // 업데이트 상세 페이지
+  {
+      path: '/updates/:id',
+      name: 'UpdateDetail',
+      component: UpdateDetail,
+      props: true,
+  },
+  {
+    path: '/inquiries',
+    name: 'InquiryList',
+    component: InquiryList,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/inquiries/new',
+    name: 'InquiryForm',
+    component: InquiryForm,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/inquiries/:id',
+    name: 'InquiryDetail',
+    component: InquiryDetail,
+    props: true,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

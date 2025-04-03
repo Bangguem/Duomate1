@@ -21,7 +21,10 @@ const { generateToken, verifyToken } = require('./auth');
 // 라우터 불러오기
 const boardRouter = require('./routes/board');
 const patchNotesFetcherRouter = require('./routes/patchNotesFetcher');
-
+const noticesRoutes = require('./routes/notices'); // notices 라우트 불러오기
+const updateRouter = require('./routes/updateFetcher'); // 업데이트 라우터 추가
+const inquiriesRouter = require('./routes/inquiries');
+const path = require('path');
 // ─────────────────────────────────────────────
 //  Middleware 설정
 // ─────────────────────────────────────────────
@@ -41,7 +44,10 @@ app.options('*', cors());
 // ─────────────────────────────────────────────
 app.use('/api/board', boardRouter);
 app.use('/api/patch-notes', patchNotesFetcherRouter);
-
+app.use('/api/notices', noticesRoutes);
+app.use('/api/updates', updateRouter); // 업데이트 API 추가
+app.use('/api/inquiries', inquiriesRouter);
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 // ─────────────────────────────────────────────
 //  HTTP 서버 및 Socket.IO 초기화
 // ─────────────────────────────────────────────

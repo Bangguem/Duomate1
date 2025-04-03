@@ -17,6 +17,8 @@ const DB_NAME = 'userDB';
 const COLLECTION_NAME = 'users';
 const POSTS_COLLECTION = 'posts'; // 게시글 컬렉션 추가
 const COMMENTS_COLLECTION = 'comments'; // 댓글 컬렉션
+const UPDATES_COLLECTION = 'updates'; // 업데이트 컬렉션
+const INQUIRIES_COLLECTION = 'inquiries';
 
 // MongoDB에 연결하는 비동기 함수입니다.
 async function connectToMongo() {
@@ -244,7 +246,8 @@ async function createPost(postData) {
         createdAt: new Date(),
         likes: 0, // 추가
         dislikes: 0, // 추가
-        views: 0 // 조회수 초기화
+        views: 0, // 조회수 초기화
+        imageUrl: postData.imageUrl || null  // ✅ 이미지 경로 저장
     };
     const result = await collection.insertOne(newPost);
     return { id: result.insertedId, ...newPost };
@@ -431,6 +434,119 @@ async function incrementPostViews(postId) {
     return result.modifiedCount > 0; // 성공 여부 반환
 }
 
+// 업데이트 목록 조회 함수
+async function fetchUpdates(sortOption = { date: -1 }) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    return await collection.find().sort(sortOption).toArray();
+}
+  
+// 업데이트 생성 함수
+async function createUpdate(newUpdate) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.insertOne(newUpdate);
+    return { _id: result.insertedId, ...newUpdate };
+}
+  
+// 업데이트 ID로 조회 함수
+async function fetchUpdateById(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(id) });
+}
+  
+// 업데이트 수정 함수 (date 필드 보존 처리 포함)
+async function updateUpdate(id, updatedFields) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updatedFields },
+      { returnDocument: 'after' }  // MongoDB Node.js 드라이버 v4.x 이상
+    );
+  
+    // 만약 수정된 문서가 반환되지 않으면 원본 문서를 반환
+    if (!result.value) {
+      return await fetchUpdateById(id);
+    }
+  
+    // 반환된 문서에 date 필드가 없거나 유효하지 않다면, 원본 문서에서 date 값을 보존
+    if (!result.value.date || isNaN(new Date(result.value.date))) {
+      const original = await fetchUpdateById(id);
+      if (original && original.date) {
+        result.value.date = original.date;
+      }
+    }
+    return result.value;
+}
+  
+// 업데이트 삭제 함수
+async function deleteUpdate(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(UPDATES_COLLECTION);
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+}
+
+// 문의 등록
+async function createInquiry(inquiryData) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+
+    const newInquiry = {
+        userId: inquiryData.userId,
+        name: inquiryData.name,
+        title: inquiryData.title,
+        content: inquiryData.content,
+        answer: null,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    };
+
+    const result = await collection.insertOne(newInquiry);
+    return { id: result.insertedId, ...newInquiry };
+}
+
+// 사용자 ID로 문의 목록 조회
+async function getInquiriesByUser(userId) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.find({ userId }).sort({ createdAt: -1 }).toArray();
+}
+
+// 전체 문의 목록 조회 (관리자용)
+async function getAllInquiries() {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.find().sort({ createdAt: -1 }).toArray();
+}
+
+// 문의 상세 조회
+async function getInquiryById(id) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    return await collection.findOne({ _id: new ObjectId(id) });
+}
+
+// 관리자 답변 등록
+async function answerInquiry(id, answerText) {
+    const db = client.db(DB_NAME);
+    const collection = db.collection(INQUIRIES_COLLECTION);
+    const result = await collection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+            $set: {
+                answer: answerText,
+                status: 'answered',
+                updatedAt: new Date(),
+            },
+        }
+    );
+    return result.modifiedCount > 0;
+}
+
 module.exports = {
     connectToMongo,
     fetchUser,
@@ -455,4 +571,14 @@ module.exports = {
     updateCommentLikes,
     ChangeUserprofile,
     incrementPostViews,
+    fetchUpdates,
+    createUpdate,
+    fetchUpdateById,
+    updateUpdate,
+    deleteUpdate,
+    createInquiry,
+    getInquiriesByUser,
+    getAllInquiries,
+    getInquiryById,
+    answerInquiry,
 }

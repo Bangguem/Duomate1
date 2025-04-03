@@ -1,5 +1,5 @@
 <template>
-  <div class="contents">  <!-- 전체 콘텐츠 컨테이너 -->
+  <div class="contents">
       <section class="contents-header">
           <div class="header-right">
               <div class="search-box">
@@ -13,11 +13,12 @@
           <div v-if="patchNotes.length === 0">
               <p>패치 노트를 불러오는 중...</p>
           </div>
-          <div class="patch-item" v-for="(patch, index) in filteredPatchNotes" :key="index">
+          <div class="patch-item" v-for="(patch, index) in patchNotes" :key="index">
               <img src="@/assets/icon_lol.png" alt="패치 아이콘" class="patch-icon" />
               <div class="patch-info">
                   <a :href="patch.link" target="_blank" class="patch-title">{{ patch.title }}</a>
-                  <p class="patch-date">{{ patch.date }}</p>
+                  <p class="patch-review" v-if="patch.review">{{ patch.review }}</p>
+                  <p class="patch-date">{{ patch.date || '날짜 없음' }}</p>
               </div>
           </div>
       </section>
@@ -35,29 +36,38 @@ export default {
           limit: 12,
           canLoadMore: true,
           searchQuery: '',
+          searchTimeout: null,
       };
   },
-  computed: {
-      filteredPatchNotes() {
-          return this.patchNotes.filter(patch =>
-              patch.title.toLowerCase().includes(this.searchQuery.toLowerCase())
-          );
+  watch: {
+      searchQuery() {
+          clearTimeout(this.searchTimeout);
+          this.searchTimeout = setTimeout(() => {
+              this.fetchPatchNotes(true);
+          }, 500); // 500ms 동안 입력 없으면 API 요청
       }
   },
   mounted() {
       this.fetchPatchNotes();
   },
   methods: {
-      async fetchPatchNotes() {
+      async fetchPatchNotes(reset = false) {
+          if (reset) {
+              this.skip = 0;
+              this.canLoadMore = true;
+          }
+
           try {
-              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}`, {
+              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
                   method: 'GET',
                   credentials: 'include',
               });
 
               if (response.ok) {
                   const data = await response.json();
-                  this.patchNotes = data;
+                  this.patchNotes = reset ? data : [...this.patchNotes, ...data];
+                  this.skip = reset ? this.limit : this.skip + this.limit;
+                  this.canLoadMore = data.length === this.limit;
               } else {
                   console.error('Error fetching patch notes');
               }
@@ -66,8 +76,10 @@ export default {
           }
       },
       async loadMore() {
+          if (!this.canLoadMore) return;
+
           try {
-              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}`, {
+              const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
                   method: 'GET',
                   credentials: 'include',
               });
@@ -75,22 +87,13 @@ export default {
               if (response.ok) {
                   const data = await response.json();
                   this.patchNotes = [...this.patchNotes, ...data];
-                  if (data.length < this.limit) {
-                      this.canLoadMore = false;
-                  }
                   this.skip += this.limit;
+                  this.canLoadMore = data.length === this.limit;
               } else {
                   console.error('Error fetching patch notes');
               }
           } catch (error) {
               console.error('Error fetching patch notes:', error);
-          }
-      },
-      sortBy(type) {
-          if (type === 'latest') {
-              this.patchNotes.sort((a, b) => new Date(b.date) - new Date(a.date));
-          } else if (type === 'popular') {
-              // 인기순 정렬 (예: 좋아요 개수 기준, 데이터 형식에 맞게 수정 필요)
           }
       }
   }
@@ -169,7 +172,7 @@ export default {
 
 .patch-info {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   width: 100%;
   color: white;
 }
@@ -183,6 +186,12 @@ export default {
 
 .patch-title:hover {
   text-decoration: underline;
+}
+
+.patch-review {
+  font-size: 14px;
+  color: lightgray;
+  margin: 4px 0;
 }
 
 .patch-date {
