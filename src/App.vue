@@ -118,7 +118,7 @@
                 </div>
 
                 <!-- 회원 탈퇴 버튼 -->
-                 <br />
+                <br />
                 <button class="delete-button" @click="withdraw(), mypageopen = false">회원탈퇴</button>
 
                 <button class="close-button" @click="mypageopen = false">닫기</button>
@@ -200,11 +200,11 @@ export default {
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board', 
-      '/patch-notes', '/notices','/updates','/inquiries','/inquiries/new'].includes(this.$route.path) || 
-      this.$route.path.startsWith('/board/') ||
-      this.$route.path.startsWith('/inquiries/') ||
-      this.$route.path.startsWith('/updates/');
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board',
+        '/patch-notes', '/notices', '/updates', '/inquiries', '/inquiries/new'].includes(this.$route.path) ||
+        this.$route.path.startsWith('/board/') ||
+        this.$route.path.startsWith('/inquiries/') ||
+        this.$route.path.startsWith('/updates/');
     },
     // 헤더와 푸터 표시 여부
     isMobile() {
@@ -245,7 +245,7 @@ export default {
       } catch (error) {
         console.error("Failed to fetch Data Dragon version:", error);
       }
-      },
+    },
     async checkLoginStatus() {
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
@@ -321,7 +321,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 /* 전체 스타일 초기화 */
 * {
   margin: 0;
@@ -653,6 +653,7 @@ body {
   height: 20px;
   z-index: 2;
 }
+
 .most-champions .champion-item .mastery-wrapper {
   position: absolute;
   bottom: -10px;
@@ -664,7 +665,7 @@ body {
 }
 
 .most-champions .champion-item .high-mastery-icon {
-  bottom:-2px;
+  bottom: -2px;
   width: 15px;
   height: 8px;
   position: absolute;
@@ -681,5 +682,4 @@ body {
   color: #212121;
   z-index: 4;
 }
-
 </style>
