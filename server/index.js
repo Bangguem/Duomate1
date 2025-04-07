@@ -88,6 +88,12 @@ app.post('/signup', async (req, res) => {
     if (password !== passwordcheck) {
         return res.status(400).json({ success: false, message: '비밀번호가 일치하지 않습니다.' });
     }
+
+     // 비밀번호 길이 검사: 8자 이상인지 확인
+     if (password.length < 8) {
+        return res.status(400).json({ success: false, message: '비밀번호는 8자 이상이어야 합니다.' });
+    }
+    
     const user = await fetchUser(userid);
     if (user) {
         return res.status(400).json({ success: false, message: `이미 존재하는 아이디입니다: ${userid}` });
@@ -183,8 +189,8 @@ app.post('/change-userprofile', authenticateJWT, async (req, res) => {
     if (userData) {
         const { nickname, birthdate, gender, email, introduction } = req.body;
         
-        if (introduction && introduction.length > 500) {
-            return res.status(400).json({ success: false, message: '자기소개는 최대 500자까지 입력 가능합니다.' });
+        if (introduction && introduction.length > 40) {
+            return res.status(400).json({ success: false, message: '자기소개는 최대 40자까지 입력 가능합니다.' });
         }
         
         try {
