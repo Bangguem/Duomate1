@@ -155,6 +155,7 @@ app.get('/auth/check-login', authenticateJWT, async (req, res) => {
         return res.status(401).json({ loggedIn: false, message: '로그인 상태가 아닙니다.' });
     } else {
         const user = await fetchUser(req.user.userid);
+        delete user.password;
         return res.status(200).json({ loggedIn: true, message: '로그인 상태입니다.', user });
     }
 });
