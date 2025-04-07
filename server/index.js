@@ -167,7 +167,7 @@ app.get('/auth/check-login', authenticateJWT, async (req, res) => {
 });
 
 // 회원 탈퇴
-app.get('/withdraw', authenticateJWT, async (req, res) => {
+app.post('/withdraw', authenticateJWT, async (req, res) => {
     const user = req.user;
     try {
         const isDeleted = await removeUser(user.userid);

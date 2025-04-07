@@ -293,7 +293,7 @@ export default {
 
       try {
         const response = await fetch('http://localhost:3000/withdraw', {
-          method: 'GET', // DELETE 메서드 사용 (백엔드 구현에 맞게 조정)
+          method: 'POST',
           credentials: 'include',
         });
 
