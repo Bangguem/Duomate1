@@ -100,6 +100,7 @@ app.post('/signup', async (req, res) => {
         nickname,
         birthdate: birthdate || null,
         gender: gender || 'other',
+        introduction: "안녕하세요."
     };
     await createUser(newUser);
     const token = generateToken({ userid: newUser.userid });
@@ -179,7 +180,12 @@ app.get('/withdraw', authenticateJWT, async (req, res) => {
 app.post('/change-userprofile', authenticateJWT, async (req, res) => {
     const userData = req.user;
     if (userData) {
-        const { nickname, birthdate, gender, email } = req.body;
+        const { nickname, birthdate, gender, email, introduction } = req.body;
+        
+        if (introduction && introduction.length > 500) {
+            return res.status(400).json({ success: false, message: '자기소개는 최대 500자까지 입력 가능합니다.' });
+        }
+        
         try {
             const userprofile = {
                 userid: userData.userid,
@@ -187,6 +193,7 @@ app.post('/change-userprofile', authenticateJWT, async (req, res) => {
                 birthdate,
                 gender,
                 email,
+                introduction
             };
             await ChangeUserprofile(userprofile);
             return res.status(200).json({ success: true, message: '내 정보 변경 성공' });

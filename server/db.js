@@ -57,6 +57,7 @@ async function removeUser(userid) {
     return result.deletedCount > 0;
 }
 
+/*
 async function createUserprofile(userprofile) {
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION_NAME);
@@ -68,10 +69,11 @@ async function createUserprofile(userprofile) {
                 nickname: userprofile.nickname,
                 birthdate: userprofile.birthdate,
                 gender: userprofile.gender
+                
             }
         }
     );
-}
+}*/
 
 async function updatePassword(email, hashedPassword) {
     const db = client.db(DB_NAME);
@@ -231,6 +233,7 @@ async function ChangeUserprofile(userprofile) {
                 birthdate: userprofile.birthdate,
                 gender: userprofile.gender,
                 email: userprofile.email,
+                introduction: userprofile.introdution
             }
         }
     );
@@ -553,7 +556,6 @@ module.exports = {
     createUser,
     removeUser,
     closeMongoConnection,
-    createUserprofile,
     createSummoner,
     fetchUserByemail,
     updatePassword,
