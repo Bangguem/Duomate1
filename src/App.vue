@@ -42,12 +42,11 @@
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
-                      <img v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo" src="@/assets/Rank/unranked.png"
-                        alt="">
-                      <p v-if="!userInfo.summonerRank[0] && userInfo.summonerInfo">랭크 정보 없음</p>
-                      <img v-if="userInfo.summonerRank[0] && userInfo.summonerRank[0].tier"
-                        :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0].tier}.png`)" alt="" />
-                      <p v-if="userInfo.summonerRank && userInfo.summonerRank.tier">Game Tier</p>
+                      <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+                      <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
+                     <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+                      <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
+                      
                       <p>{{ userInfo.summonerRank?.[0].tier || "" }} {{ userInfo.summonerRank?.[0].rank || "" }}</p>
                     </div>
                     <div class="most-champions">
@@ -181,7 +180,6 @@
     </footer> -->
   </div>
 </template>
-
 
 <script>
 export default {
