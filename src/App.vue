@@ -15,7 +15,7 @@
             <!-- <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a> -->
             <a @click="mypageopen = true">마이페이지</a>
             <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
-            <router-link to="/notices">공지사항</router-link> <!-- 공지사항 링크 추가 -->
+            <router-link to="/patch-notes">패치 노트</router-link> <!-- 새로운 패치 노트 링크 추가 -->
             <div class="modal-overlay" v-if="mypageopen == true">
               <div class="modal-content">
                 <!-- 프로필 이미지 -->
@@ -29,8 +29,7 @@
                 <div class="user-info-display">
                   <p v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</p>
                   <p v-if="userInfo.email"><strong>이메일:</strong> {{ userInfo.email }}</p>
-                  <p v-if="userInfo.birthdate"><strong>생년월일:</strong> {{ userInfo.birthdate }}</p>
-                  <p v-if="userInfo.gender"><strong>성별:</strong> {{ userInfo.gender }}</p>
+                  <p v-if="userInfo.introduction"><strong>자기소개:</strong> {{ userInfo.introduction }}</p>
                 </div>
 
                 <!-- 수정 버튼 -->
@@ -42,12 +41,11 @@
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
-                      <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
-                      <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
-                     <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+                      <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+                      <p v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo">랭크 정보 없음</p>
+                      <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
                       <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
-                      
-                      <p>{{ userInfo.summonerRank?.[0].tier || "" }} {{ userInfo.summonerRank?.[0].rank || "" }}</p>
+                      <p>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</p>
                     </div>
                     <div class="most-champions">
                       <p v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl">
@@ -68,9 +66,9 @@
                           <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
-                            <br />
-                            <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
                           </div>
+                          <br />
+                            <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
                         </div>
                         <div class="champion-item">
                           <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -87,9 +85,9 @@
                           <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[0]?.masteryLevel }}</p>
-                            <br />
-                            <p>{{ (userInfo.top5Champions || [])[0]?.championName || "" }}</p>
                           </div>
+                          <br />
+                          <p>{{ (userInfo.top5Champions || [])[0]?.championName || "" }}</p>
                         </div>
                         <div class="champion-item">
                           <img v-if="(userInfo.top5Champions || [])[2]?.iconUrl"
@@ -106,9 +104,9 @@
                           <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10" class="mastery-wrapper">
                             <img src="@/assets/Mastery/level.webp" class="high-mastery-icon" alt="High Mastery" />
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[2]?.masteryLevel }}</p>
-                            <br />
-                            <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
                           </div>
+                          <br />
+                            <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
                         </div>
                       </div>
                       <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
@@ -198,11 +196,7 @@ export default {
   computed: {
     // 로그인, 회원가입 페이지 여부 확인
     isAuthPage() {
-      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board',
-        '/patch-notes', '/notices', '/updates', '/inquiries', '/inquiries/new'].includes(this.$route.path) ||
-        this.$route.path.startsWith('/board/') ||
-        this.$route.path.startsWith('/inquiries/') ||
-        this.$route.path.startsWith('/updates/');
+      return ['/login', '/signup', '/find-password', '/find-id', '/mypage-edit', '/matchqueue', '/chatroom', '/board', '/patch-notes'].includes(this.$route.path);
     },
     // 헤더와 푸터 표시 여부
     isMobile() {
@@ -245,6 +239,7 @@ export default {
       }
     },
     async checkLoginStatus() {
+
       try {
         const response = await fetch('http://localhost:3000/auth/check-login', {
           method: 'GET',
@@ -255,6 +250,7 @@ export default {
           const data = await response.json();
           this.isLoggedIn = data.loggedIn;
           if (data.loggedIn) {
+            console.log("받아온 유저 정보:", data.user);
             this.userInfo = data.user || {}; // 사용자 정보를 객체로 저장
           }
         } else {
@@ -291,7 +287,7 @@ export default {
 
       try {
         const response = await fetch('http://localhost:3000/withdraw', {
-          method: 'POST',
+          method: 'GET', // DELETE 메서드 사용 (백엔드 구현에 맞게 조정)
           credentials: 'include',
         });
 
@@ -630,6 +626,8 @@ body {
   font-size: 10px;
   /* 기존 20px → 12px */
   font-weight: bold;
+  white-space: normal; /* 줄바꿈 허용 */
+  word-break: keep-all; /* 단어 단위 줄바꿈 */
 }
 
 .most-champions-title {
@@ -644,7 +642,7 @@ body {
 
 .champion-item .mastery-icon {
   position: absolute;
-  bottom: -10px;
+  bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
   width: 30px;
@@ -663,7 +661,7 @@ body {
 }
 
 .most-champions .champion-item .high-mastery-icon {
-  bottom: -2px;
+  bottom: 32px;
   width: 15px;
   height: 8px;
   position: absolute;
@@ -671,7 +669,7 @@ body {
 }
 
 .most-champions .champion-item .high-mastery-level {
-  bottom: -8px;
+  bottom: 26px;
   position: absolute;
   left: 50%;
   transform: translate(-50%, -50%);

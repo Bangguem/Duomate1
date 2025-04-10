@@ -19,12 +19,18 @@
         <h2>계정 생성</h2>
         <p>계정 생성에 필요한 정보를 입력해주세요. </p>
         <form @submit.prevent="handleSubmit">
-          <div class="form-group">
+          <transition name="fade-slide">
+          <div class="form-group" v-if="formStep >= 1">
             <label for="userid">아이디</label>
+            <div class="input-with-icon">
             <input id="userid" type="text" placeholder="아이디를 입력해주세요" v-model="form.userid" @input="checkDuplicateUserId" required />
-            <div :style="{ color: duplicateCheck.color }">{{ duplicateCheck.message }}</div>
+            <span v-if="duplicateCheck.color === 'green'" class="check-icon">✅</span>
+            </div>
+            <div :style="{ color: duplicateCheck.color, display: 'flex', gap: '6px', fontSize: '14px' }">{{ duplicateCheck.message }}</div>
           </div>
-          <div class="form-group password-field">
+        </transition>
+        <transition name="fade-slide">
+          <div class="form-group password-field" v-if="formStep >= 2">
   <label for="password">비밀번호</label>
   <div class="password-container">
     <input
@@ -32,6 +38,7 @@
       :type="passwordVisible ? 'text' : 'password'"
       placeholder="비밀번호를 입력해주세요"
       v-model="form.password"
+      @input="handleStepProgress(3)"
       minlength="8"
       required
     />
@@ -46,7 +53,9 @@
     비밀번호는 최소 8자리 이상이어야 합니다.
   </div>
 </div>
-          <div class="form-group password-field">
+</transition>
+<transition name="fade-slide">
+          <div class="form-group password-field" v-if="formStep >= 3">
             <label for="passwordcheck">비밀번호 확인</label>
             <div class="password-container">
               <input
@@ -54,6 +63,7 @@
       :type="passwordCheckVisible ? 'text' : 'password'"
       placeholder="비밀번호를 다시 입력해주세요"
       v-model="form.passwordcheck"
+      @input="handleStepProgress(4)"
       minlength="8"
       required
     />
@@ -73,18 +83,25 @@
   </div>
 </div>
           </div>
-          <div class="form-group">
+        </transition>
+        <transition name="fade-slide">
+          <div class="form-group" v-if="formStep >= 4">
             <label for="email">이메일</label>
-            <input id="email" type="email" v-model="form.email" placeholder="이메일을 입력해주세요(비밀번호 또는 아이디 찾기에 사용)" />
+            <input id="email" type="email" v-model="form.email" @input="handleStepProgress(5)" placeholder="이메일을 입력해주세요(비밀번호 또는 아이디 찾기에 사용)" />
           </div>
-          <div class="form-group">
+          </transition>
+          <transition name="fade-slide">
+          <div class="form-group" v-if="formStep >= 5">
             <label for="nickname">닉네임</label>
             <input id="nickname" type="text" placeholder="닉네임을 입력해주세요" v-model="form.nickname" required />
           </div>
-          <div class="button-group">
+          </transition>
+          <transition name="fade-slide">
+          <div class="button-group" v-if="formStep >= 5">
             <button type="button" class="cancel-button">Cancel</button>
             <button type="submit" class="signup-button">Sign Up</button>
           </div>
+          </transition>
           </form>
           </div>
           </main>
@@ -118,6 +135,7 @@ export default {
               birthdate: '',
               gender: 'other',
           },
+          formStep: 1,
           duplicateCheck: {
               message: '',
               color: '',
@@ -130,6 +148,18 @@ export default {
       };
   },
   methods: {
+    handleStepProgress(nextStep) {
+    // 조건 만족 시 단계 증가
+    if (nextStep === 2 && this.form.userid.trim() !== '') {
+      this.formStep = Math.max(this.formStep, 2);
+    } else if (nextStep === 3 && this.form.password.length >= 8) {
+      this.formStep = Math.max(this.formStep, 3);
+    } else if (nextStep === 4 && this.form.passwordcheck.length >= 8 && this.form.password === this.form.passwordcheck) {
+      this.formStep = Math.max(this.formStep, 4);
+    } else if (nextStep === 5 && this.form.email.includes('@')) {
+      this.formStep = Math.max(this.formStep, 5);
+    }
+  },
     async linkRiotAccount() {
       console.log("연동하기 버튼 클릭됨"); // 디버깅 로그
 
@@ -208,9 +238,11 @@ export default {
               if (response.ok) {
                   this.duplicateCheck.message = result.message;
                   this.duplicateCheck.color = 'green';
+                  this.formStep = Math.max(this.formStep, 2);
               } else {
                   this.duplicateCheck.message = result.message;
                   this.duplicateCheck.color = 'red';
+                  this.formStep = 1;
               }
           } catch (error) {
               console.error('Error checking duplicate:', error);
@@ -472,11 +504,13 @@ background-color: #15513775;
   border-radius: 5px;
 }
 .error-message {
+  gap: 10px;
   color: red;
   font-size: 12px;
   margin-top: 5px;
 }
 .correct-message {
+  gap:10px;
   color: green;
   font-size: 12px;
   margin-top: 5px;
@@ -522,5 +556,28 @@ background-color: #15513775;
   background-color: #0064006d;
   color: #FAFAFA;
   border-radius: 5px;
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 1.5s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px); /* 여기! 위에서 아래로 */
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+.input-with-icon {
+  position: relative;
+}
+.check-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>

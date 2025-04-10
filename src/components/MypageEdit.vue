@@ -44,15 +44,16 @@
               v-model="userInfo.nickname" />
             <label for="birthdate">이메일</label>
             <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" v-model="userInfo.email" />
-            <label for="birthdate">성별</label>
-            <select id="gender" v-model="userInfo.gender">
+            <label for="introductin">자기소개</label>
+            <input type="text" :placeholer="userInfo.introduction || '자기소개를 입력하세요(40자 이내)'" v-model="userInfo.introduction" />
+            <!-- <select id="gender" v-model="userInfo.gender">
               <option value="" disabled>성별을 선택하세요</option>
               <option value="male">남성</option>
               <option value="female">여성</option>
               <option value="other">기타</option>
-            </select>
-            <label for="birthdate">생년월일</label>
-            <input id="birthdate" type="date" v-model="userInfo.birthdate" />
+            </select> -->
+            <!-- <label for="birthdate">생년월일</label>
+            <input id="birthdate" type="date" v-model="userInfo.birthdate" /> -->
             <button type="submit" class="submit-btn">저장</button>
           </form>
         </div>
@@ -68,10 +69,9 @@
 
         <div class="gaming-details">
           <div class="detail-item">
-            <img v-if="!userInfo.summonerRank && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
-            <p v-if="!userInfo.summonerRank && userInfo.summonerInfo">랭크 정보 없음</p>
-            <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier"
-              :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+            <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+            <p v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo">랭크 정보 없음</p>
+            <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
             <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
             <h3>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</h3>
           </div>
@@ -172,6 +172,7 @@ export default {
         gender: '',
         birthdate: '',
         top5Champions: [],
+        introduction: '',
       },
       riotInfo: {
         summonerRank: [],
@@ -241,6 +242,7 @@ export default {
             birthdate: this.userInfo.birthdate,
             gender: this.userInfo.gender,
             email: this.userInfo.email,
+            introduction: this.userInfo.introduction
           }),
         });
 
@@ -645,6 +647,8 @@ footer {
   font-size: 20px;
   font-weight: bold;
   /* 글씨 두껍게 */
+  white-space: normal; /* 줄바꿈 허용 */
+  word-break: keep-all; /* 단어 단위 줄바꿈 */
 
 }
 
