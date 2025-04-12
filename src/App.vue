@@ -41,9 +41,11 @@
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
-                      <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+                      <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo"
+                        src="@/assets/Rank/unranked.png" alt="">
                       <p v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo">랭크 정보 없음</p>
-                      <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+                      <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier"
+                        :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
                       <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
                       <p>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</p>
                     </div>
@@ -68,7 +70,7 @@
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
                           </div>
                           <br />
-                            <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
+                          <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
                         </div>
                         <div class="champion-item">
                           <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -106,7 +108,7 @@
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[2]?.masteryLevel }}</p>
                           </div>
                           <br />
-                            <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
+                          <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
                         </div>
                       </div>
                       <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
@@ -317,6 +319,14 @@ export default {
 
 <style scoped>
 /* 전체 스타일 초기화 */
+
+@font-face {
+  font-family: 'Cafe24Ssurround';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -333,7 +343,7 @@ body {
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Cafe24Ssurround', sans-serif;
   background-color: #f4f4f4;
 }
 
@@ -626,8 +636,10 @@ body {
   font-size: 10px;
   /* 기존 20px → 12px */
   font-weight: bold;
-  white-space: normal; /* 줄바꿈 허용 */
-  word-break: keep-all; /* 단어 단위 줄바꿈 */
+  white-space: normal;
+  /* 줄바꿈 허용 */
+  word-break: keep-all;
+  /* 단어 단위 줄바꿈 */
 }
 
 .most-champions-title {
