@@ -216,6 +216,15 @@ app.post('/change-userprofile', authenticateJWT, async (req, res) => {
 // ─────────────────────────────────────────────
 //  비밀번호 및 아이디 관련 API
 // ─────────────────────────────────────────────
+// 전송 이메일 설정
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASSWORD,
+    },
+});
+
 // 비밀번호 재설정 요청
 app.post('/request-password-reset', async (req, res) => {
     const { email } = req.body;
