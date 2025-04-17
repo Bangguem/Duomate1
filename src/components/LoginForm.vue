@@ -405,7 +405,7 @@ margin-top: 10px;
     border: 1px solid #555;
     border-radius: 4px;
     background-color: #FFFFFF;
-    color: #fff;
+    color: #000000;
     width: 90%; /* 인풋 박스 너비를 늘림 */
     max-width: 300px; /* 최대 너비 제한 */
   }
