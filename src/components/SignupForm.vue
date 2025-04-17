@@ -367,6 +367,7 @@ font-size: 16px;
   align-items: center;
   justify-content: center;
   height: 50px;
+  width: 80px;
   padding: 0 16px;
   background-color: transparent;
   color: #FAFAFA;
