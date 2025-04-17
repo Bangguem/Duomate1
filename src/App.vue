@@ -9,13 +9,13 @@
             <div class="circle">
               <img src="/favicon.ico" class="circle" @click="$router.push('/')" style="cursor: pointer;" alt="" />
             </div>
-            <span>{{ userInfo.nickname }} 님</span>
+            <span>{{ userInfo.nickname }} ({{ userInfo.SummonerName }}#{{ userInfo.Tag }})</span>
           </div>
           <nav class="nav-links">
             <!-- <a v-if="userInfo.nickname"><strong>닉네임:</strong> {{ userInfo.nickname }}</a> -->
-            <a @click="mypageopen = true">마이페이지</a>
-            <router-link to="/board">게시판</router-link> <!-- 게시판 링크 추가 -->
-            <router-link to="/patch-notes">패치 노트</router-link> <!-- 새로운 패치 노트 링크 추가 -->
+            <div class="nav-button" @click="mypageopen = true">마이페이지</div>
+            <div class="nav-button" @click="$router.push('/board')">게시판</div>
+            <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div> 
             <div class="modal-overlay" v-if="mypageopen == true">
               <div class="modal-content">
                 <!-- 프로필 이미지 -->
@@ -41,17 +41,15 @@
                   <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
                   <div class="game-stats">
                     <div class="game-tier">
-                      <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo"
-                        src="@/assets/Rank/unranked.png" alt="">
+                      <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
                       <p v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo">랭크 정보 없음</p>
-                      <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier"
-                        :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+                      <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
                       <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
                       <p>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</p>
                     </div>
                     <div class="most-champions">
-                      <p v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl">
-                        Most Champion Top 3</p>
+                      <p v-if="(userInfo.top5Champions || [])[0]?.iconUrl" :src="userInfo.top5Champions[0]?.iconUrl">숙련도</p>
+                      <br />
                       <div class="champion-list">
                         <div class="champion-item">
                           <img v-if="(userInfo.top5Champions || [])[1]?.iconUrl"
@@ -62,7 +60,7 @@
                             class="mastery-icon" alt="Mastery Level" />
                           <img
                             v-if="(userInfo.top5Champions || [])[1]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
-                            src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                            src="@/assets/Mastery/10.webp" class="high-mastery-img" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
                           <div v-if="(userInfo.top5Champions || [])[1]?.masteryLevel >= 10" class="mastery-wrapper">
@@ -70,7 +68,7 @@
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[1]?.masteryLevel }}</p>
                           </div>
                           <br />
-                          <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
+                            <p>{{ (userInfo.top5Champions || [])[1]?.championName || "" }}</p>
                         </div>
                         <div class="champion-item">
                           <img v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
@@ -81,7 +79,7 @@
                             class="mastery-icon" alt="Mastery Level" />
                           <img
                             v-if="(userInfo.top5Champions || [])[0]?.iconUrl && (userInfo.top5Champions || [])[0]?.masteryLevel >= 10"
-                            src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                            src="@/assets/Mastery/10.webp" class="high-mastery-img" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
                           <div v-if="(userInfo.top5Champions || [])[0]?.masteryLevel >= 10" class="mastery-wrapper">
@@ -100,7 +98,7 @@
                             class="mastery-icon" alt="Mastery Level" />
                           <img
                             v-if="(userInfo.top5Champions || [])[2]?.iconUrl && (userInfo.top5Champions || [])[1]?.masteryLevel >= 10"
-                            src="@/assets/Mastery/10.webp" class="mastery-icon" alt="Mastery Level" />
+                            src="@/assets/Mastery/10.webp" class="high-mastery-img" alt="Mastery Level" />
 
                           <!-- 숙련도 레벨이 10 이상이면 추가 이미지 + 숙련도 레벨 표시 -->
                           <div v-if="(userInfo.top5Champions || [])[2]?.masteryLevel >= 10" class="mastery-wrapper">
@@ -108,7 +106,7 @@
                             <p class="high-mastery-level">{{ (userInfo.top5Champions || [])[2]?.masteryLevel }}</p>
                           </div>
                           <br />
-                          <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
+                            <p>{{ (userInfo.top5Champions || [])[2]?.championName || "" }}</p>
                         </div>
                       </div>
                       <!-- <p>{{ userInfo.topChampions.map(c => c.name).join(', ') }}</p> -->
@@ -123,8 +121,8 @@
                 <button class="close-button" @click="mypageopen = false">닫기</button>
               </div>
             </div>
-            <a href="/mypage-edit">내 정보 변경</a>
-            <a @click="logout()">로그아웃</a>
+              <div class="nav-button" @click="$router.push('/mypage-edit')">내 정보 변경</div>
+              <div class="nav-button" @click="logout()">로그아웃</div>
           </nav>
         </div>
       </template>
@@ -138,9 +136,9 @@
             <span>Welcome</span>
           </div>
           <nav class="nav-links">
-            <a href="#">공지</a>
-            <router-link to="/signup">회원가입</router-link>
-            <router-link to="/login">로그인</router-link>
+            <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div>
+            <div class="nav-button" @click="$router.push('/signup')">회원가입</div>
+            <div class="nav-button" @click="$router.push('/login')">로그인</div>
           </nav>
         </div>
       </template>
@@ -159,12 +157,10 @@
             <strong>Your browser does not support the video tag.</strong>
           </video>
           <div class="overlay-text">
-            <h1>Find your Duo Mate!</h1>
-            <p>Connect with gamers and build lasting friendships in our real-time chat platform designed for gamers!!!!
-            </p>
-            <button class="match-button" @click="enterMatchQueue">ENTER MATCH QUEUE</button>
+            <h1>듀오를 찾아보세요</h1>
+            <p>같이 할 듀오가 필요할 때, DuoMate!</p>
+            <button class="match-button" @click="enterMatchQueue">매칭 시작</button>
           </div>
-
         </div>
       </div>
     </main>
@@ -319,14 +315,6 @@ export default {
 
 <style scoped>
 /* 전체 스타일 초기화 */
-
-@font-face {
-  font-family: 'Cafe24Ssurround';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -339,12 +327,17 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  background: #000 url('./assets//212121.png');
+  -webkit-overflow-scrolling: touch; /* 스크롤 부드럽게 처리 */
+  
 }
 
 body {
   margin: 0;
-  font-family: 'Cafe24Ssurround', sans-serif;
-  background-color: #f4f4f4;
+  font-family: Arial, sans-serif;
+  background-color: #212121;
+  background: #000 url('./assets//212121.png');
+  -webkit-overflow-scrolling: touch; /* 스크롤 부드럽게 처리 */
 }
 
 #app {
@@ -352,6 +345,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #212121
 }
 
 /* 헤더 스타일 */
@@ -362,6 +356,7 @@ body {
   padding: 15px 20px;
   background-color: #424242;
   color: #FAFAFA;
+  height: 50px;
 }
 
 .logo {
@@ -375,6 +370,30 @@ body {
   height: 20px;
   border-radius: 50%;
   background-color: #15513775;
+}
+
+.nav-links {
+  display: flex;
+  align-items: stretch;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 100px;
+  padding: 0 16px;
+  background-color: transparent;
+  color: #FAFAFA;
+  border-radius: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #212121;
 }
 
 .nav-links a,
@@ -444,7 +463,7 @@ body {
 .modal-content {
   background-color: #2a2a2a;
   color: white;
-  width: 80%;
+  width: 90%;
   max-width: 500px;
   padding: 20px;
   border-radius: 8px;
@@ -617,6 +636,7 @@ body {
 }
 
 .champion-item {
+  width: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -636,10 +656,8 @@ body {
   font-size: 10px;
   /* 기존 20px → 12px */
   font-weight: bold;
-  white-space: normal;
-  /* 줄바꿈 허용 */
-  word-break: keep-all;
-  /* 단어 단위 줄바꿈 */
+  white-space: normal; /* 줄바꿈 허용 */
+  word-break: keep-all; /* 단어 단위 줄바꿈 */
 }
 
 .most-champions-title {
@@ -654,6 +672,15 @@ body {
 
 .champion-item .mastery-icon {
   position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 20px;
+  z-index: 2;
+}
+.champion-item .high-mastery-img {
+  position: absolute;
   bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
@@ -662,9 +689,10 @@ body {
   z-index: 2;
 }
 
+
 .most-champions .champion-item .mastery-wrapper {
   position: absolute;
-  bottom: -10px;
+  bottom:-6px;
   left: 50%;
   transform: translateX(-50%);
   width: 30px;
@@ -672,8 +700,9 @@ body {
   z-index: 3;
 }
 
+
 .most-champions .champion-item .high-mastery-icon {
-  bottom: 32px;
+  bottom: 28px;
   width: 15px;
   height: 8px;
   position: absolute;
@@ -681,7 +710,7 @@ body {
 }
 
 .most-champions .champion-item .high-mastery-level {
-  bottom: 26px;
+  bottom: 22px;
   position: absolute;
   left: 50%;
   transform: translate(-50%, -50%);

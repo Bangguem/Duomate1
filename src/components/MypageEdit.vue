@@ -10,9 +10,9 @@
           내 정보 변경
         </div>
         <nav class="nav-links">
-          <a href="/" class="nav-links">홈</a>
-          <a href="/patch-notes" class="nav-links">공지</a>
-          <a href="/board" class="nav-links">게시판</a>
+          <div class="nav-button" @click="$router.push('/')">홈</div>
+          <div class="nav-button" @click="$router.push('/board')">게시판</div>
+          <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div> 
         </nav>
       </header>
 
@@ -28,7 +28,7 @@
           <input type="file" id="file-upload" accept="image/*" ref="fileInput" @change="handleFileChange"
             style="display: none;" />
           <div class="profile-info">
-            <h2>{{ userInfo.nickname }} 님</h2>
+            <h2>{{ userInfo.nickname }}({{ userInfo.SummonerName }}#{{ userInfo.Tag }})</h2>
           </div>
         </div>
       </section>
@@ -64,8 +64,7 @@
       <section class="gaming-info">
         <h2>소환사 정보</h2>
         <br />
-        <p v-if="userInfo.SummonerName">{{ userInfo.SummonerName }}#{{ userInfo.Tag }} 님</p>
-        <p v-else>연동이 필요합니다.</p>
+        <p v-if="!userInfo.SummonerName">연동이 필요합니다.</p>
 
         <div class="gaming-details">
           <div class="detail-item">
@@ -76,8 +75,7 @@
             <h3>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</h3>
           </div>
           <div class="most-played-champions">
-            <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl"
-              :src="userInfo.top5Champions[0]?.iconUrl">Most Champions</h2> <!-- 리스트 밖으로 이동 -->
+            <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl">Most Champions</h2> <!-- 리스트 밖으로 이동 -->
             <br />
             <div class="champion-list">
               <div class="champion-item">
@@ -332,12 +330,13 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  background-color: #212121
 }
 
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+  background-color: #212121;
 }
 
 #app {
@@ -358,6 +357,7 @@ body {
   padding: 10px 20px;
   background-color: #424242;
   color: #FAFAFA;
+  height: 50px;
 }
 
 .logo {
@@ -373,25 +373,38 @@ body {
   background-color: #15513775;
 }
 
-.nav-links a,
-.nav-links router-link {
-  margin-left: 20px;
-  color: #FAFAFA;
-  text-decoration: none;
-  font-size: 10px;
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
 }
 
-.nav-links a:hover,
-.nav-links router-link:hover {
-  text-decoration: underline;
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 80px;
+  padding: 0 16px;
+  background-color: transparent;
+  color: #FAFAFA;
+  border-radius: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
+
+.nav-button:hover {
+  background-color: #212121;
+}
+
 
 /* Profile Section */
 .profile-section {
   display: flex;
   align-items: center;
   padding: 20px 0;
-  background-color: #757575;
+  background-color: #212121;
 }
 
 .profile-header {
@@ -439,7 +452,7 @@ body {
 .profile-info data {
   margin: 0;
   font-size: 24px;
-  color: #212121;
+  color: #FAFAFA;
 }
 
 .membership {

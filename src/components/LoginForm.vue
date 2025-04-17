@@ -9,8 +9,8 @@
       <span>로그인</span>
       </div>
       <nav class="nav-links">
-        <router-link to ="/">홈</router-link>
-        <router-link to ="/signup">회원가입</router-link>
+        <div class="nav-button" @click="$router.push('/')">홈</div>
+            <div class="nav-button" @click="$router.push('/signup')">회원가입</div>
       </nav>
     </header>
 
@@ -27,36 +27,37 @@
           <button type="submit" class="login-button">로그인</button>
           <p class="error-message" v-if="errorMessage">{{ errorMessage }}</p>
         </form>
+        <br />
         <div class="actions-link">
-          <a @click="rqid=true">아이디 찾기</a>
+          <a @click="openFindIdModal">아이디 찾기</a>
           <div class="modal-overlay" v-if="rqid==true">
           <div class="modal-content">
             <h1>아이디 찾기</h1>
             <form @submit.prevent="requestUserId">
             <div>
                 <label for="email">이메일: </label>
-                <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
+                <input type="email" id="email" v-model="emailForId" placeholder="이메일을 입력하세요" required />
             </div>
             <button class="submit-button" type="submit" :disabled="isButtonDisabledId">{{ isButtonDisabledId ? `${timerId}초 후 다시 요청` : '아이디 보내기' }}</button>
             <button class="cancel-button" @click="rqid=false">닫기</button>
         </form>
-        <br /><p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
+        <br /><p v-if="messageId" :class="successId ? 'success' : 'error'">{{ messageId }}</p>
           </div>
 
           </div>
-          <a @click="rqpassword=true">비밀번호 재설정</a>
+          <a @click="openPasswordResetModal">비밀번호 재설정</a>
           <div class="modal-overlay" v-if="rqpassword==true">
           <div class="modal-content">
             <h1>비밀번호 재설정 요청</h1>
         <form @submit.prevent="requestResetLink">
             <div>
                 <label for="email">이메일: </label>
-                <input type="email" id="email" v-model="email" placeholder="이메일을 입력하세요" required />
+                <input type="email" id="email" v-model="emailForPassword" placeholder="이메일을 입력하세요" required />
             </div>
             <button class="submit-button" type="submit" :disabled="isButtonDisabledPassword">{{ isButtonDisabledPassword ? `${timerPassword}초 후 다시 요청` : '비밀번호 재설정 링크 전송' }}</button>
             <button class="cancel-button" @click="rqpassword=false">닫기</button>
         </form>
-       <br /> <p v-if="message" :class="success ? 'success' : 'error'">{{ message }}</p>
+       <br /> <p v-if="messagePassword" :class="successPassword ? 'success' : 'error'">{{ messagePassword }}</p>
           </div>
           </div>        
           </div>
@@ -75,15 +76,37 @@ export default {
               password: '',
           },
           errorMessage: '',
-          rqpassword: false,
+
+          // 아이디 찾기용
           rqid: false,
-          isButtonDisabledId: false, // 아이디 찾기 버튼 비활성화 여부
-          isButtonDisabledPassword: false, // 비밀번호 재설정 버튼 비활성화 여부
-          timerId: 0, // 아이디 찾기 타이머
-          timerPassword: 0, // 비밀번호 재설정 타이머
-      };
+          emailForId: '',
+          isButtonDisabledId: false,
+          timerId: 0,
+          messageId: '',
+          successId: false,
+
+          // 비밀번호 재설정용
+          rqpassword: false,
+          emailForPassword: '',
+          isButtonDisabledPassword: false,
+          timerPassword: 0,
+          messagePassword: '',
+          successPassword: false,
+          };
   },
   methods: {
+          openFindIdModal() {
+          this.rqid = true;
+          this.messageId = '';
+          this.successId = false;
+          this.emailForId = '';
+        },
+        openPasswordResetModal() {
+          this.rqpassword = true;
+          this.messagePassword = '';
+          this.successPassword = false;
+          this.emailForPassword = '';
+        },
       async handleLogin() {
           try {
               const response = await fetch('http://localhost:3000/login', {
@@ -111,47 +134,48 @@ export default {
       async requestUserId() {
         if (this.isButtonDisabledId) return;
 
-this.isButtonDisabledId = true;
-this.timerId = 180;
+          this.isButtonDisabledId = true;
+          this.timerId = 60;
 
-const countdownId = setInterval(() => {
-    this.timerId -= 1;
-    if (this.timerId <= 0) {
+      const countdownId = setInterval(() => {
+          this.timerId--;
+        if (this.timerId <= 0) {
         clearInterval(countdownId);
         this.isButtonDisabledId = false;
-    }
-}, 1000);
+        }
+    }, 1000);
 
 try {
     const response = await fetch('http://localhost:3000/request-userid', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: this.email }),
+        body: JSON.stringify({ email: this.emailForId }),
     });
 
     const result = await response.json();
 
     if (result.success) {
-        this.success = true;
-        this.message = '아이디가 이메일로 전송되었습니다.';
+        this.successId = true;
+        this.messageId = '아이디가 이메일로 전송되었습니다.';
     } else {
-        this.success = false;
-        this.message = result.message;
+        this.successId = false;
+        this.messageId = result.message;
     }
 } catch (error) {
     console.error('Error requesting user ID:', error);
-    this.success = false;
-    this.message = '아이디 요청 중 오류가 발생했습니다.';
+    this.successId = false;
+    this.messageId = '아이디 요청 중 오류가 발생했습니다.';
 }
   },
       async requestResetLink() {
         if (this.isButtonDisabledPassword) return; // 버튼이 비활성화된 상태면 요청 막기
 
           this.isButtonDisabledPassword = true; // 버튼 비활성화
-          this.timerPassword = 180; // 10초 대기 시간 설정
+          this.timerPassword = 60; // 10초 대기 시간 설정
+          this.messagePassword = '';
 
           const countdown = setInterval(() => {
-          this.timerPassword -= 1;
+          this.timerPassword--;
         if (this.timerPassword <= 0) {
           clearInterval(countdown);
           this.isButtonDisabledPassword = false; // 대기 시간 종료 시 버튼 활성화
@@ -161,16 +185,16 @@ try {
                 const response = await fetch('http://localhost:3000/request-password-reset', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: this.email }),
+                    body: JSON.stringify({ email: this.emailForPassword }),
                 });
 
                 const result = await response.json();
-                this.success = result.success;
-                this.message = result.message;
+                this.successPassword = result.success;
+                this.messagePassword = result.message;
             } catch (error) {
                 console.error('Error requesting password reset:', error);
-                this.success = false;
-                this.message = '비밀번호 재설정 요청 중 오류가 발생했습니다.';
+                this.successPassword = false;
+                this.messagePassword = '비밀번호 재설정 요청 중 오류가 발생했습니다.';
             }
         },
   },
@@ -221,6 +245,7 @@ font-family: 'Arial', sans-serif;
   padding: 10px 20px;
   background-color: #424242;
   color: #FAFAFA;
+  height: 50px;
 }
 
 .logo {
@@ -233,6 +258,31 @@ width: 20px;
 height: 20px;
 border-radius: 50%;
 background-color: #15513775;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 80px;
+  padding: 0 16px;
+  background-color: transparent;
+  color: #FAFAFA;
+  border-radius: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #212121;
 }
 
 .nav-links a,
@@ -305,10 +355,11 @@ background-color: #15513775;
   text-decoration: none;
   font-size: 12px;
   margin: 0px 10px 0px 10px;
+  cursor: pointer;
 }
 
-.action-link a:hover,
-.action-link router-link:hover {
+.actions-link a:hover,
+.actions-link router-link:hover {
 text-decoration: underline;
 }
 .error-message{

@@ -8,10 +8,10 @@
       </div>
       <span>회원가입</span>
       </div>
-      <nav>
-        <a href="/">홈 화면</a>
-        <a href="/login">로그인</a>
-        <a href="/contact">Contact</a>
+      <nav class="nav-links">
+        <div class="nav-button" @click="$router.push('/')">홈</div>
+            <div class="nav-button" @click="$router.push('/login')">로그인</div>
+            <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div> 
       </nav>
     </header>
     <main>
@@ -105,6 +105,14 @@
           </form>
           </div>
           </main>
+          <div v-if="signupSuccessModal" class="sign-modal">
+            <div class="sign-modal-content">
+              <h2>회원가입 완료!</h2>
+              <p>라이엇 계정 연동을 진행해주세요.</p>
+              <br />
+              <button @click="handleGoToRiotLink">연동하러 가기</button>
+            </div>
+          </div>
           <div v-if="showRiotModal == true" class="modal">
         <div class="modal-content">
           <h2>Riot 연동</h2>
@@ -145,6 +153,7 @@ export default {
           openIcon: require('@/assets/open.png'), 
       closeIcon: require('@/assets/close.png'),
       showRiotModal: false,
+      signupSuccessModal: false,
       };
   },
   methods: {
@@ -160,6 +169,11 @@ export default {
       this.formStep = Math.max(this.formStep, 5);
     }
   },
+    handleGoToRiotLink() {
+      this.signupSuccessModal = false;
+      this.showRiotModal = true;
+    },
+
     async linkRiotAccount() {
       console.log("연동하기 버튼 클릭됨"); // 디버깅 로그
 
@@ -271,8 +285,8 @@ export default {
 
               const result = await response.json();
               if (response.ok) {
-                  alert(result.message);
-                  this.showRiotModal = true; 
+                this.signupSuccessModal = true; // 모달 표시
+                // this.showRiotModal = true; → 이건 모달 닫을 때 띄우도록 
               } else {
                   alert(result.message);
               }
@@ -334,11 +348,36 @@ display: flex;
 justify-content: space-between;
 align-items: center;
 background-color: #424242;
+height: 50px;
 }
 
 .header h1 {
 margin: 0;
 font-size: 16px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  padding: 0 16px;
+  background-color: transparent;
+  color: #FAFAFA;
+  border-radius: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #212121;
 }
 
 .header nav a {
@@ -557,6 +596,41 @@ background-color: #15513775;
   color: #FAFAFA;
   border-radius: 5px;
 }
+
+.sign-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #212121;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  border-radius: 10px;
+  color: #FAFAFA;
+  width: 400px;
+  height: 150px;
+}
+
+.sign-modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.sign-modal-content h2 {
+  margin-bottom: 10px;
+}
+
+.sign-modal-content button {
+  margin-top: 10px;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: #0064006d;
+  color: #FAFAFA;
+  border-radius: 5px;
+}
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: all 1.5s ease;
