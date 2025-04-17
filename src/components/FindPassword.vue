@@ -9,9 +9,9 @@
             </div>
             비밀번호 찾기</div>
         <nav class="nav-links">
-          <a href="/">홈 화면</a>
-          <a href="/login">로그인</a>
-          <a href="/contact" >Contact</a>
+          <div class="nav-button" @click="$router.push('/')">홈</div>
+          <div class="nav-button" @click="$router.push('/login')">로그인</div>
+          <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div> 
         </nav>
       </header>
   
@@ -144,6 +144,7 @@ body {
   padding: 10px 20px;
   background-color: #424242;
   color: #FAFAFA;
+  height: 50px;
 }
 
 .logo {
@@ -157,6 +158,25 @@ body {
   height: 20px;
   border-radius: 50%;
   background-color: #15513775;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 80px;
+  padding: 0 16px;
+  background-color: transparent;
+  color: #FAFAFA;
+  border-radius: 0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-button:hover {
+  background-color: #212121;
 }
 
 .nav-links a,
