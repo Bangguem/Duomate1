@@ -29,7 +29,7 @@ const path = require('path');
 //  Middleware 설정
 // ─────────────────────────────────────────────
 app.use(cors({
-    origin: ['http://localhost:8080', 'https://bangguem.github.io'],
+    origin: [process.env.CLIENT_URL, 'https://bangguem.github.io'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
