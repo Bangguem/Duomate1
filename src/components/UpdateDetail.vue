@@ -67,7 +67,7 @@ export default {
       this.loading = true;
       this.error = false;
       try {
-        const response = await axios.get(`http://localhost:3000/api/updates/${this.id}`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates/${this.id}`);
         this.update = response.data;
         this.editedTitle = response.data.title;
         this.editedContent = response.data.content;
@@ -81,7 +81,7 @@ export default {
 
     async checkLogin() {
       try {
-        const res = await axios.get('http://localhost:3000/auth/check-login', {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
           withCredentials: true
         });
         if (res.data.loggedIn) {
@@ -114,7 +114,7 @@ export default {
     async updateUpdate() {
       try {
         const response = await axios.put(
-          `http://localhost:3000/api/updates/${this.id}`,
+          `${process.env.VUE_APP_API_URL}/api/updates/${this.id}`,
           {
             title: this.editedTitle,
             content: this.editedContent
@@ -133,7 +133,7 @@ export default {
     async deleteUpdate() {
       if (confirm('정말 삭제하시겠습니까?')) {
         try {
-          await axios.delete(`http://localhost:3000/api/updates/${this.id}`, {
+          await axios.delete(`${process.env.VUE_APP_API_URL}/api/updates/${this.id}`, {
             withCredentials: true
           });
           alert('업데이트가 삭제되었습니다.');
@@ -161,33 +161,40 @@ export default {
   border-radius: 8px;
   color: white;
 }
+
 .loading,
 .error {
   text-align: center;
 }
+
 .update-detail-card {
   background: #333;
   padding: 20px;
   border-radius: 10px;
   position: relative;
 }
+
 .update-header h1 {
   margin: 0;
 }
+
 .update-meta {
   font-size: 14px;
   color: #bbb;
   margin-bottom: 10px;
 }
+
 .update-content {
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 20px;
 }
+
 .action-buttons {
   display: flex;
   gap: 10px;
 }
+
 .edit-btn,
 .delete-btn {
   padding: 8px 12px;
@@ -195,19 +202,23 @@ export default {
   border-radius: 5px;
   cursor: pointer;
 }
+
 .edit-btn {
   background-color: #42b983;
   color: white;
 }
+
 .delete-btn {
   background-color: #d9534f;
   color: white;
 }
+
 .form-buttons {
   display: flex;
   gap: 10px;
   margin-top: 10px;
 }
+
 .save-btn,
 .cancel-btn {
   padding: 8px 12px;
@@ -215,14 +226,17 @@ export default {
   border-radius: 5px;
   cursor: pointer;
 }
+
 .save-btn {
   background-color: #42b983;
   color: white;
 }
+
 .cancel-btn {
   background-color: gray;
   color: white;
 }
+
 .input-field,
 .textarea-field {
   width: 100%;

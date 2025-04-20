@@ -110,90 +110,97 @@ const setupSocketIo = (server) => {
         processBatch() {
             this.queue.sort((a, b) => a.joinTime - b.joinTime);
             const processed = new Set();
-
+          
             for (let i = 0; i < this.queue.length; i++) {
-                if (processed.has(i)) continue;
-
-                const player1 = this.queue[i];
-                if (!player1) continue;
-
-                // 매칭 가능한 플레이어 풀 찾기
-                const matchablePlayers = this.findMatchablePlayers(player1);
-                if (matchablePlayers.length === 0) continue;
-
-                // 매칭 가능한 플레이어들 중 랜덤 선택 (자기 자신 제외)
-                const validPlayers = matchablePlayers.filter(p =>
-                    p.socket.id !== player1.socket.id &&
-                    p.user.userid !== player1.user.userid
-                );
-
-                if (validPlayers.length === 0) continue;
-
-                const randomIndex = Math.floor(Math.random() * validPlayers.length);
-                const player2 = validPlayers[randomIndex];
-
-                // 매칭 성공한 플레이어들 제거
-                this.queue = this.queue.filter(p =>
-                    p.socket.id !== player1.socket.id &&
-                    p.socket.id !== player2.socket.id &&
-                    p.user.userid !== player1.user.userid &&
-                    p.user.userid !== player2.user.userid
-                );
-
-                // 매칭 데이터 생성 및 처리 로직
-                const matchId = uuidv4();
-                const roomName = `${this.queueType}_room_${matchId}`;
-
-                const matchData = {
-                    matchId,
-                    roomName,
-                    queueType: this.queueType,
-                    players: [
-                        {
-                            userid: player1.user.userid,
-                            nickname: player1.user.nickname,
-                            position: player1.user.position,
-                            microphone: player1.user.microphone,
-                            SummonerName: player1.user.SummonerName,
-                            Tag: player1.user.Tag,
-                            socketId: player1.socket.id,
-                            accepted: false,
-                            tier: player1.user.summonerRank[0].tier,
-                            summonerRank: player1.user.summonerRank[0],
-                            summonerInfo: player1.user.summonerInfo,
-                            top5Champions: player1.user.top5Champions,
-                            introduction: player1.user.introduction
-                        },
-                        {
-                            userid: player2.user.userid,
-                            nickname: player2.user.nickname,
-                            position: player2.user.position,
-                            microphone: player2.user.microphone,
-                            SummonerName: player2.user.SummonerName,
-                            Tag: player2.user.Tag,
-                            socketId: player2.socket.id,
-                            accepted: false,
-                            tier: player2.user.summonerRank[0].tier,
-                            summonerRank: player2.user.summonerRank[0],
-                            summonerInfo: player2.user.summonerInfo,
-                            top5Champions: player2.user.top5Champions,
-                            introduction: player2.user.introduction
-                        }
-                    ]
-                };
-
-                matchDataStore[matchId] = matchData;
-                pendingMatches.set(matchId, matchData);
-
-                player1.socket.emit('matchSuccess', { matchId });
-                player2.socket.emit('matchSuccess', { matchId });
-
-                console.log(`✅ 매칭 성공: ${player1.user.nickname}(${player1.user.summonerRank[0].tier}) - ${player2.user.nickname}(${player2.user.summonerRank[0].tier})`);
-
-                processed.add(i);
-                processed.add(this.queue.indexOf(player2));
+              if (processed.has(i)) continue;
+              const player1 = this.queue[i];
+              if (!player1) continue;
+          
+              // --- 여기에 summonerRank 안전 처리 추가 ---
+              const sr1 = Array.isArray(player1.user.summonerRank) && player1.user.summonerRank.length > 0
+                ? player1.user.summonerRank[0]
+                : null;
+              const tier1 = sr1?.tier || 'unranked';
+          
+              // 매칭 가능한 플레이어 풀 찾기
+              const matchablePlayers = this.findMatchablePlayers(player1);
+              if (matchablePlayers.length === 0) continue;
+          
+              // 자기 자신 제외 및 랜덤 선택
+              const validPlayers = matchablePlayers.filter(p =>
+                p.socket.id !== player1.socket.id &&
+                p.user.userid !== player1.user.userid
+              );
+              if (validPlayers.length === 0) continue;
+              const randomIndex = Math.floor(Math.random() * validPlayers.length);
+              const player2 = validPlayers[randomIndex];
+          
+              // --- player2 summonerRank 안전 처리 ---
+              const sr2 = Array.isArray(player2.user.summonerRank) && player2.user.summonerRank.length > 0
+                ? player2.user.summonerRank[0]
+                : null;
+              const tier2 = sr2?.tier || 'unranked';
+          
+              // 큐에서 제거
+              this.queue = this.queue.filter(p =>
+                p.socket.id !== player1.socket.id &&
+                p.socket.id !== player2.socket.id &&
+                p.user.userid !== player1.user.userid &&
+                p.user.userid !== player2.user.userid
+              );
+          
+              // 매칭 데이터 생성
+              const matchId = uuidv4();
+              const roomName = `${this.queueType}_room_${matchId}`;
+              const matchData = {
+                matchId,
+                roomName,
+                queueType: this.queueType,
+                players: [
+                  {
+                    userid: player1.user.userid,
+                    nickname: player1.user.nickname,
+                    position: player1.user.position,
+                    microphone: player1.user.microphone,
+                    SummonerName: player1.user.SummonerName,
+                    Tag: player1.user.Tag,
+                    socketId: player1.socket.id,
+                    accepted: false,
+                    tier: tier1,
+                    summonerRank: sr1,
+                    summonerInfo: player1.user.summonerInfo,
+                    top5Champions: player1.user.top5Champions,
+                    introduction: player1.user.introduction
+                  },
+                  {
+                    userid: player2.user.userid,
+                    nickname: player2.user.nickname,
+                    position: player2.user.position,
+                    microphone: player2.user.microphone,
+                    SummonerName: player2.user.SummonerName,
+                    Tag: player2.user.Tag,
+                    socketId: player2.socket.id,
+                    accepted: false,
+                    tier: tier2,
+                    summonerRank: sr2,
+                    summonerInfo: player2.user.summonerInfo,
+                    top5Champions: player2.user.top5Champions,
+                    introduction: player2.user.introduction
+                  }
+                ]
+              };
+          
+              matchDataStore[matchId] = matchData;
+              pendingMatches.set(matchId, matchData);
+          
+              player1.socket.emit('matchSuccess', { matchId });
+              player2.socket.emit('matchSuccess', { matchId });
+          
+              console.log(`✅ 매칭 성공: ${player1.user.nickname}(${tier1}) - ${player2.user.nickname}(${tier2})`);
+              processed.add(i);
+              processed.add(this.queue.indexOf(player2));
             }
-        }
+          }
 
         startProcessing() {
             if (!this.processingInterval) {
@@ -210,6 +217,18 @@ const setupSocketIo = (server) => {
             }
         }
     }
+
+    MatchQueue.prototype.startProcessing = function() {
+        if (!this.processingInterval) {
+          this.processingInterval = setInterval(() => {
+            try {
+              this.processBatch();
+            } catch (err) {
+              console.error("❌ processBatch 중 예기치 못한 에러:", err);
+            }
+          }, this.BATCH_INTERVAL);
+        }
+      };
 
     const normalQueue = new MatchQueue('normal');
     const rankQueue = new MatchQueue('rank');
@@ -285,33 +304,52 @@ const setupSocketIo = (server) => {
             io.to(match.roomName).emit("chat message", chatData);
         });
 
-        socket.on('request normalmatch', async ({ position, microphone }) => {
+        socket.on("request normalmatch", async ({ position, microphone }) => {
             try {
-                const user = await fetchUser(socket.user.userid);
-                user.position = position;
-                user.microphone = microphone;
-
-                console.log(`📢 일반 매칭 요청: ${user.nickname}`);
-                normalQueue.addToQueue({ user, socket });
+              const user = await fetchUser(socket.user.userid);
+      
+              // summonerInfo가 꼭 있어야 매칭 참여 가능
+              if (!user.summonerInfo) {
+                return socket.emit("matchError", { message: "매칭을 위해 소환사 정보를 등록해주세요." });
+              }
+      
+              // 일반 매칭은 summonerRank 없어도 OK
+              user.position   = position;
+              user.microphone = microphone;
+      
+              console.log(`📢 일반 매칭 요청: ${user.nickname}`);
+              normalQueue.addToQueue({ user, socket });
             } catch (error) {
-                console.error("❌ 일반 매칭 오류:", error);
-                socket.emit('matchError', { message: "일반 매칭 요청 중 오류 발생" });
+              console.error("❌ 일반 매칭 오류:", error);
+              socket.emit("matchError", { message: "일반 매칭 요청 중 오류 발생" });
             }
-        });
-
-        socket.on('request rankmatch', async ({ position, microphone }) => {
+          });
+      
+          // 랭크 매칭 요청
+          socket.on("request rankmatch", async ({ position, microphone }) => {
             try {
-                const user = await fetchUser(socket.user.userid);
-                user.position = position;
-                user.microphone = microphone;
-
-                console.log(`📢 랭크 매칭 요청: ${user.nickname}`);
-                rankQueue.addToQueue({ user, socket });
+              const user = await fetchUser(socket.user.userid);
+      
+              // summonerInfo가 없으면 매칭 불가
+              if (!user.summonerInfo) {
+                return socket.emit("matchError", { message: "랭크 매칭을 위해 소환사 정보를 등록해주세요." });
+              }
+      
+              // summonerRank가 없으면 랭크 매칭 불가
+              if (!user.summonerRank || !Array.isArray(user.summonerRank) || user.summonerRank.length === 0) {
+                return socket.emit("matchError", { message: "랭크 매칭을 위해 랭크 정보가 필요합니다." });
+              }
+      
+              user.position   = position;
+              user.microphone = microphone;
+      
+              console.log(`📢 랭크 매칭 요청: ${user.nickname}`);
+              rankQueue.addToQueue({ user, socket });
             } catch (error) {
-                console.error("❌ 랭크 매칭 오류:", error);
-                socket.emit('matchError', { message: "랭크 매칭 요청 중 오류 발생" });
+              console.error("❌ 랭크 매칭 오류:", error);
+              socket.emit("matchError", { message: "랭크 매칭 요청 중 오류 발생" });
             }
-        });
+          });
 
         // 매칭 수락 이벤트
         socket.on('acceptMatch', ({ matchId }) => {

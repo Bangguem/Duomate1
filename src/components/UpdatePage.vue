@@ -98,7 +98,7 @@ export default {
     // ✅ 로그인 유저 정보 확인
     async checkLogin() {
       try {
-        const res = await axios.get('http://localhost:3000/auth/check-login', {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
           withCredentials: true
         });
         if (res.data.loggedIn) {
@@ -113,7 +113,7 @@ export default {
       this.loading = true;
       this.error = false;
       try {
-        const response = await axios.get(`http://localhost:3000/api/updates?sort=${this.sortOrder}`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates?sort=${this.sortOrder}`);
         this.updates = response.data;
       } catch (err) {
         console.error('업데이트를 가져오는 중 오류:', err);
@@ -131,7 +131,7 @@ export default {
     },
     async submitUpdate() {
       try {
-        await axios.post('http://localhost:3000/api/updates', {
+        await axios.post(`${process.env.VUE_APP_API_URL}/api/updates`, {
           title: this.title,
           content: this.content
         }, { withCredentials: true }); // ✅ 쿠키 인증 필요
@@ -173,6 +173,7 @@ export default {
   margin: 0 auto;
   padding: 20px 50px;
 }
+
 .contents-header {
   display: flex;
   justify-content: space-between;
@@ -182,10 +183,13 @@ export default {
   border-radius: 10px;
   margin-bottom: 10px;
 }
-.header-left, .header-right {
+
+.header-left,
+.header-right {
   display: flex;
   align-items: center;
 }
+
 .filter-button {
   background-color: #333;
   color: white;
@@ -195,6 +199,7 @@ export default {
   cursor: pointer;
   margin-right: 10px;
 }
+
 .search-box {
   display: flex;
   align-items: center;
@@ -202,20 +207,24 @@ export default {
   border-radius: 20px;
   padding: 5px 10px;
 }
+
 .search-input {
   background: none;
   border: none;
   color: white;
   outline: none;
 }
+
 .search-icon {
   color: gray;
   cursor: pointer;
 }
+
 .write-button-container {
   text-align: center;
   margin-bottom: 10px;
 }
+
 .write-button {
   background-color: transparent;
   border: 1px solid #42b983;
@@ -224,11 +233,13 @@ export default {
   border-radius: 20px;
   cursor: pointer;
 }
+
 .feed-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .feed-list {
   width: 100%;
   max-width: 600px;
@@ -236,44 +247,55 @@ export default {
   flex-direction: column;
   gap: 20px;
 }
+
 .feed-card {
   background-color: #333;
   padding: 15px;
   border-radius: 12px;
   color: white;
 }
+
 .feed-header {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .patch-icon {
   width: 40px;
   height: 40px;
 }
+
 .patch-info {
   display: flex;
   flex-direction: column;
   margin-left: 20px;
   flex: 1;
 }
+
 .patch-title {
   font-size: 16px;
   font-weight: bold;
   color: white;
   text-decoration: none;
 }
+
 .patch-title:hover {
   text-decoration: underline;
 }
+
 .patch-date {
   font-size: 14px;
   color: #bbb !important;
 }
-.no-updates, .loading, .error {
+
+.no-updates,
+.loading,
+.error {
   color: white;
   text-align: center;
 }
+
 .update-form {
   background-color: #424242;
   padding: 20px;
@@ -281,11 +303,14 @@ export default {
   max-width: 500px;
   margin: 0 auto;
 }
+
 .update-form h2 {
   color: white;
   margin-bottom: 15px;
 }
-.update-form input, .update-form textarea {
+
+.update-form input,
+.update-form textarea {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
@@ -294,10 +319,12 @@ export default {
   background-color: #222;
   color: white;
 }
+
 .form-buttons {
   display: flex;
   justify-content: space-between;
 }
+
 .submit-button {
   background-color: #42b983;
   border: none;
@@ -306,6 +333,7 @@ export default {
   border-radius: 8px;
   cursor: pointer;
 }
+
 .cancel-button {
   background-color: gray;
   border: none;

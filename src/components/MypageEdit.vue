@@ -12,7 +12,7 @@
         <nav class="nav-links">
           <div class="nav-button" @click="$router.push('/')">홈</div>
           <div class="nav-button" @click="$router.push('/board')">게시판</div>
-          <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div> 
+          <div class="nav-button" @click="$router.push('/patch-notes')">패치 노트</div>
         </nav>
       </header>
 
@@ -45,7 +45,8 @@
             <label for="birthdate">이메일</label>
             <input type="email" :placeholder="userInfo.email || '메일을 입력하세요'" v-model="userInfo.email" />
             <label for="introductin">자기소개</label>
-            <input type="text" :placeholer="userInfo.introduction || '자기소개를 입력하세요(40자 이내)'" v-model="userInfo.introduction" />
+            <input type="text" :placeholer="userInfo.introduction || '자기소개를 입력하세요(40자 이내)'"
+              v-model="userInfo.introduction" />
             <!-- <select id="gender" v-model="userInfo.gender">
               <option value="" disabled>성별을 선택하세요</option>
               <option value="male">남성</option>
@@ -68,14 +69,17 @@
 
         <div class="gaming-details">
           <div class="detail-item">
-            <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png" alt="">
+            <img v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo" src="@/assets/Rank/unranked.png"
+              alt="">
             <p v-if="!userInfo.summonerRank?.[0]?.tier && userInfo.summonerInfo">랭크 정보 없음</p>
-            <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier" :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
+            <img v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier"
+              :src="require(`@/assets/Rank/Rank=${userInfo.summonerRank?.[0]?.tier}.png`)" alt="" />
             <p v-if="userInfo.summonerRank && userInfo.summonerRank?.[0]?.tier">Game Tier</p>
             <h3>{{ userInfo.summonerRank?.[0]?.tier || "" }} {{ userInfo.summonerRank?.[0]?.rank || "" }}</h3>
           </div>
           <div class="most-played-champions">
-            <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl">Most Champions</h2> <!-- 리스트 밖으로 이동 -->
+            <h2 class="most-champions-title" v-if="(userInfo.top5Champions || [])[0]?.iconUrl">Most Champions</h2>
+            <!-- 리스트 밖으로 이동 -->
             <br />
             <div class="champion-list">
               <div class="champion-item">
@@ -207,7 +211,7 @@ export default {
     },
     async checkLoginStatus() {
       try {
-        const response = await fetch('http://localhost:3000/auth/check-login', {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
           method: 'GET',
           credentials: 'include', // 쿠키 포함
         });
@@ -229,7 +233,7 @@ export default {
 
     async updateUserProfile() {
       try {
-        const response = await fetch('http://localhost:3000/change-userprofile', {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/change-userprofile`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -276,7 +280,7 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch("http://localhost:3000/summonerInfo", {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/summonerInfo`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -660,8 +664,10 @@ footer {
   font-size: 20px;
   font-weight: bold;
   /* 글씨 두껍게 */
-  white-space: normal; /* 줄바꿈 허용 */
-  word-break: keep-all; /* 단어 단위 줄바꿈 */
+  white-space: normal;
+  /* 줄바꿈 허용 */
+  word-break: keep-all;
+  /* 단어 단위 줄바꿈 */
 
 }
 

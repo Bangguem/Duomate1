@@ -14,19 +14,8 @@
       <div v-if="isEditing">
         <h2>게시글 수정</h2>
         <form @submit.prevent="updatePost" class="edit-form">
-          <input
-            v-model="editedTitle"
-            type="text"
-            placeholder="제목을 입력하세요"
-            required
-            class="input-field"
-          />
-          <textarea
-            v-model="editedContent"
-            placeholder="내용을 입력하세요"
-            required
-            class="textarea-field"
-          ></textarea>
+          <input v-model="editedTitle" type="text" placeholder="제목을 입력하세요" required class="input-field" />
+          <textarea v-model="editedContent" placeholder="내용을 입력하세요" required class="textarea-field"></textarea>
 
           <!-- 파일 첨부 입력 추가 -->
           <input type="file" @change="handleEditImageUpload" accept="image/*" />
@@ -55,7 +44,7 @@
 
         <!-- 이미지가 있을 경우 보여주기 -->
         <div v-if="post.imageUrl" class="post-image">
-          <img :src="`http://localhost:3000${post.imageUrl}?t=${new Date().getTime()}`" alt="게시글 이미지" />
+          <img :src="`${process.env.VUE_APP_API_URL}${post.imageUrl}?t=${new Date().getTime()}`" alt="게시글 이미지" />
         </div>
 
         <!-- 좋아요/싫어요 -->
@@ -82,12 +71,8 @@
         <!-- 댓글 정렬 옵션 (댓글이 1개 이상일 때만 표시) -->
         <div v-if="comments.length > 0" style="margin-bottom: 15px;">
           <label for="comment-sort" style="margin-right:6px;">정렬 기준:</label>
-          <select
-            id="comment-sort"
-            v-model="sortOrder"
-            @change="sortComments"
-            style="border-radius:5px; background:#444; color:white; border:none; padding:4px 8px;"
-          >
+          <select id="comment-sort" v-model="sortOrder" @change="sortComments"
+            style="border-radius:5px; background:#444; color:white; border:none; padding:4px 8px;">
             <option value="latest">최신순</option>
             <option value="oldest">오래된순</option>
             <option value="likes">좋아요순</option>
@@ -96,20 +81,13 @@
 
         <!-- 댓글 작성 영역 (로그인 유저 & 수정 중 아닐 때만 보임) -->
         <div v-if="currentUser && !isEditing" class="comment-input">
-          <textarea
-            v-model="newComment"
-            placeholder="댓글을 입력하세요"
-          ></textarea>
+          <textarea v-model="newComment" placeholder="댓글을 입력하세요"></textarea>
           <button @click="submitComment" class="comment-submit">댓글 작성</button>
         </div>
 
         <!-- 댓글 리스트 -->
         <ul class="comment-list">
-          <li
-            v-for="comment in sortedComments"
-            :key="comment._id"
-            class="comment-item"
-          >
+          <li v-for="comment in sortedComments" :key="comment._id" class="comment-item">
             <div class="comment-header">
               <strong>{{ comment.nickname }}</strong>
               <span> | {{ formatDate(comment.createdAt) }}</span>
@@ -207,7 +185,7 @@ export default {
     // 게시글 가져오기
     async fetchPost() {
       try {
-        const response = await axios.get(`http://localhost:3000/api/board/${this.id}`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, {
           withCredentials: true
         });
         this.post = response.data;
@@ -221,7 +199,7 @@ export default {
     // 댓글 가져오기
     async fetchComments() {
       try {
-        const response = await axios.get(`http://localhost:3000/api/board/${this.id}/comments`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board/${this.id}/comments`, {
           withCredentials: true
         });
         this.comments = response.data;
@@ -232,7 +210,7 @@ export default {
     // 현재 로그인 유저 가져오기
     async fetchCurrentUser() {
       try {
-        const response = await axios.get('http://localhost:3000/auth/check-login', {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
           withCredentials: true
         });
         if (response.data.loggedIn) {
@@ -274,7 +252,7 @@ export default {
           formData.append('title', this.editedTitle);
           formData.append('content', this.editedContent);
           formData.append('image', this.editedImage);
-          await axios.put(`http://localhost:3000/api/board/${this.id}`, formData, {
+          await axios.put(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, formData, {
             withCredentials: true,
             headers: {
               'Content-Type': 'multipart/form-data'
@@ -283,7 +261,7 @@ export default {
         } else {
           // 파일 없이 텍스트만 수정하는 경우
           await axios.put(
-            `http://localhost:3000/api/board/${this.id}`,
+            `${process.env.VUE_APP_API_URL}/api/board/${this.id}`,
             { title: this.editedTitle, content: this.editedContent },
             { withCredentials: true }
           );
@@ -300,7 +278,7 @@ export default {
     // 게시글 삭제
     async deletePost() {
       try {
-        await axios.delete(`http://localhost:3000/api/board/${this.id}`, {
+        await axios.delete(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, {
           withCredentials: true
         });
         alert('게시글이 삭제되었습니다.');
@@ -317,7 +295,7 @@ export default {
       }
       try {
         const response = await axios.put(
-          `http://localhost:3000/api/board/${this.id}/like`,
+          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/like`,
           { action: 'like' },
           { withCredentials: true }
         );
@@ -336,7 +314,7 @@ export default {
       }
       try {
         const response = await axios.put(
-          `http://localhost:3000/api/board/${this.id}/like`,
+          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/like`,
           { action: 'dislike' },
           { withCredentials: true }
         );
@@ -355,7 +333,7 @@ export default {
       }
       try {
         const response = await axios.post(
-          `http://localhost:3000/api/board/${this.id}/comments`,
+          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/comments`,
           { content: this.newComment },
           { withCredentials: true }
         );
@@ -384,7 +362,7 @@ export default {
       }
       try {
         await axios.put(
-          `http://localhost:3000/api/board/comments/${commentId}`,
+          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}`,
           { content: this.editingContent },
           { withCredentials: true }
         );
@@ -402,7 +380,7 @@ export default {
     // 댓글 삭제
     async deleteComment(commentId) {
       try {
-        await axios.delete(`http://localhost:3000/api/board/comments/${commentId}`, {
+        await axios.delete(`${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}`, {
           withCredentials: true
         });
         this.comments = this.comments.filter(comment => comment._id !== commentId);
@@ -420,7 +398,7 @@ export default {
       }
       try {
         await axios.put(
-          `http://localhost:3000/api/board/comments/${commentId}/like`,
+          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}/like`,
           { action: 'like' },
           { withCredentials: true }
         );
@@ -437,7 +415,7 @@ export default {
       }
       try {
         await axios.put(
-          `http://localhost:3000/api/board/comments/${commentId}/like`,
+          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}/like`,
           { action: 'dislike' },
           { withCredentials: true }
         );
@@ -454,7 +432,7 @@ export default {
     async incrementViews() {
       try {
         const response = await axios.post(
-          `http://localhost:3000/api/board/${this.id}/views`,
+          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/views`,
           {},
           { withCredentials: true }
         );
@@ -558,6 +536,7 @@ export default {
   cursor: pointer;
   font-size: 14px;
 }
+
 .like-btn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
@@ -567,12 +546,17 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  align-items: center;      /* 내부 요소 수평 가운데 정렬 */
-  justify-content: center;  /* 수직 정렬 (선택) */
-  margin: 0 auto;           /* edit-form 자체를 가운데로 */
-  max-width: 600px;         /* 전체 입력 폼 너비 제한 */
+  align-items: center;
+  /* 내부 요소 수평 가운데 정렬 */
+  justify-content: center;
+  /* 수직 정렬 (선택) */
+  margin: 0 auto;
+  /* edit-form 자체를 가운데로 */
+  max-width: 600px;
+  /* 전체 입력 폼 너비 제한 */
   width: 100%;
 }
+
 .input-field,
 .textarea-field {
   width: 100%;
@@ -582,6 +566,7 @@ export default {
   color: white;
   border-radius: 5px;
 }
+
 .textarea-field {
   height: 120px;
   resize: none;
@@ -602,6 +587,7 @@ export default {
   border-radius: 5px;
   cursor: pointer;
 }
+
 .save-btn:hover,
 .cancel-btn:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -611,9 +597,11 @@ export default {
 .comments-section {
   margin-top: 35px;
 }
+
 .comment-input {
   margin-bottom: 15px;
 }
+
 .comment-input textarea {
   width: 100%;
   padding: 8px;
@@ -624,6 +612,7 @@ export default {
   height: 60px;
   margin-bottom: 8px;
 }
+
 .comment-submit {
   background: transparent;
   border: 1px solid gray;
@@ -633,6 +622,7 @@ export default {
   cursor: pointer;
   font-size: 14px;
 }
+
 .comment-submit:hover {
   background: rgba(255, 255, 255, 0.1);
 }
@@ -642,6 +632,7 @@ export default {
   list-style: none;
   padding: 0;
 }
+
 .comment-item {
   padding: 8px 12px;
   background: #444;
@@ -650,20 +641,24 @@ export default {
   font-size: 13px;
   border: 1px solid #666;
 }
+
 .comment-header {
   font-weight: bold;
   margin-bottom: 4px;
 }
+
 .comment-header span {
   color: #bbb;
   margin-left: 4px;
 }
+
 .comment-actions {
   margin-top: 8px;
 }
 
 /* 로딩/에러 상태 */
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   color: white;
 }
@@ -672,6 +667,7 @@ export default {
   margin: 20px 0;
   text-align: center;
 }
+
 .post-image img {
   max-width: 100%;
   height: auto;

@@ -39,13 +39,8 @@
       <p class="section-title">문의내역</p>
     </section>
     <section class="right-grid-item">
-      <div
-        class="post-item"
-        v-for="inquiry in userInquiries.slice(0, 2)"
-        :key="inquiry._id"
-        @click="goToInquiry(inquiry._id)"
-        style="cursor: pointer;"
-      >
+      <div class="post-item" v-for="inquiry in userInquiries.slice(0, 2)" :key="inquiry._id"
+        @click="goToInquiry(inquiry._id)" style="cursor: pointer;">
         <span class="inquiry-icon">🙋🏻‍</span>
         <div class="patch-info">
           <p class="patch-title">{{ inquiry.title }}</p>
@@ -79,7 +74,7 @@ export default {
     async fetchPatchNotes() {
       try {
         const response = await fetch(
-          'http://localhost:3000/api/patch-notes/patch-notes?skip=0&limit=12',
+          `${process.env.VUE_APP_API_URL}/api/patch-notes/patch-notes?skip=0&limit=12`,
           { method: 'GET', credentials: 'include' }
         );
         if (response.ok) {
@@ -94,7 +89,7 @@ export default {
     },
     async fetchDynamicUpdates() {
       try {
-        const response = await axios.get('http://localhost:3000/api/updates?sort=latest');
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates?sort=latest`);
         this.dynamicUpdates = response.data;
       } catch (error) {
         console.error('Error fetching dynamic updates:', error);
@@ -102,7 +97,7 @@ export default {
     },
     async fetchUserInquiries() {
       try {
-        const res = await axios.get('http://localhost:3000/api/inquiries?limit=2', {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}/api/inquiries?limit=2`, {
           withCredentials: true,
         });
         this.userInquiries = res.data.inquiries;
@@ -136,12 +131,14 @@ export default {
   gap: 20px;
   padding: 20px 10px;
 }
+
 .left-grid-item {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
 }
+
 .right-grid-item {
   display: flex;
   flex-direction: column;
@@ -149,11 +146,13 @@ export default {
   align-items: center;
   gap: 10px;
 }
+
 .section-title {
   font-size: 30px;
   font-weight: bold;
   color: white;
 }
+
 .post-item {
   display: flex;
   align-items: center;
@@ -163,11 +162,13 @@ export default {
   gap: 15px;
   width: 100%;
 }
+
 .patch-icon {
   width: 40px;
   height: 40px;
   margin-left: 20px;
 }
+
 .patch-info {
   display: flex;
   flex-direction: column;
@@ -175,27 +176,33 @@ export default {
   margin-left: 20px;
   color: white;
 }
+
 .patch-title {
   font-size: 16px;
   font-weight: bold;
   color: white;
   text-decoration: none;
 }
+
 .patch-title:hover {
   text-decoration: underline;
 }
+
 .patch-date {
   font-size: 14px;
   color: gray;
 }
+
 .patch-description {
   font-size: 14px;
   color: lightgray;
 }
+
 .inquiry-icon {
   font-size: 24px;
   margin-right: 8px;
 }
+
 .more-button {
   background-color: #555;
   color: white;
@@ -206,6 +213,7 @@ export default {
   cursor: pointer;
   margin-top: 10px;
 }
+
 .more-button:hover {
   background-color: #777;
 }

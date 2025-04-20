@@ -29,13 +29,8 @@
       <div class="header-right">
         <!-- 검색 박스 -->
         <div class="search-box">
-          <input
-            v-model="searchQuery"
-            @keyup.enter="filterPosts"
-            type="text"
-            placeholder="검색어를 입력하세요"
-            class="search-input"
-          />
+          <input v-model="searchQuery" @keyup.enter="filterPosts" type="text" placeholder="검색어를 입력하세요"
+            class="search-input" />
           <span class="search-icon" @click="filterPosts">🔍</span>
         </div>
       </div>
@@ -51,13 +46,9 @@
       <!-- 로딩/에러/게시글 목록 상태 표시 -->
       <div v-if="loading" class="loading">로딩 중...</div>
       <div v-else-if="error" class="error">게시글을 불러오는 데 실패했습니다.</div>
-      
+
       <div v-else-if="sortedPosts.length" class="feed-list">
-        <div
-          v-for="post in sortedPosts"
-          :key="post._id"
-          class="feed-card"
-        >
+        <div v-for="post in sortedPosts" :key="post._id" class="feed-card">
           <div class="feed-header">
             <strong>{{ post.author || '작성자 없음' }}</strong>
             <div>{{ formatDate(post.createdAt) }}</div>
@@ -76,7 +67,7 @@
           </div>
         </div>
       </div>
-      
+
       <div v-else class="no-posts">게시글이 없습니다.</div>
     </div>
 
@@ -84,23 +75,12 @@
     <div v-if="currentPage === 'write'" class="post-form">
       <h2 class="post-title">게시글 작성</h2>
       <form @submit.prevent="submitPost">
-        <input
-          v-model="title"
-          type="text"
-          placeholder="제목을 입력하세요"
-          class="post-input"
-          required
-        />
+        <input v-model="title" type="text" placeholder="제목을 입력하세요" class="post-input" required />
 
-        <textarea
-          v-model="content"
-          placeholder="내용을 입력하세요"
-          class="post-textarea"
-          required
-        ></textarea>
+        <textarea v-model="content" placeholder="내용을 입력하세요" class="post-textarea" required></textarea>
 
         <input type="file" @change="handleImageUpload" accept="image/*" />
-        
+
         <div class="post-buttons">
           <button type="submit" class="post-submit">게시글 작성</button>
           <button type="button" @click="goToBoardPage" class="post-cancel">취소</button>
@@ -158,7 +138,7 @@ export default {
     // 로그인 상태 확인
     async checkLoginStatus() {
       try {
-        const response = await axios.get('http://localhost:3000/auth/check-login', {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
           withCredentials: true
         });
         this.currentUser = response.data.user || null; // 로그인 사용자 정보
@@ -185,7 +165,7 @@ export default {
     // 게시글 목록 가져오기
     async fetchPosts() {
       try {
-        const response = await axios.get('http://localhost:3000/api/board', {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board`, {
           withCredentials: true
         });
         this.posts = response.data;
@@ -232,7 +212,7 @@ export default {
       }
 
       try {
-        await axios.post('http://localhost:3000/api/board', formData, {
+        await axios.post(`${process.env.VUE_APP_API_URL}/api/board`, formData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -552,7 +532,8 @@ button {
 .feed-image {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 비율을 유지 (9/16 * 100%) */
+  padding-top: 56.25%;
+  /* 16:9 비율을 유지 (9/16 * 100%) */
   overflow: hidden;
   border-radius: 8px;
 }
@@ -563,7 +544,7 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 이미지 비율을 유지하며 전체 영역 채움 */
+  object-fit: cover;
+  /* 이미지 비율을 유지하며 전체 영역 채움 */
 }
-
 </style>

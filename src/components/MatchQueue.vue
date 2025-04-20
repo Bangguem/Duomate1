@@ -159,7 +159,7 @@ export default {
     methods: {
         async fetchLatestMatchData() {
             try {
-                const response = await fetch("http://localhost:3000/updateSummonerInfo", {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/updateSummonerInfo`, {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" }
@@ -179,7 +179,7 @@ export default {
 
         async checkLoginStatus() {
             try {
-                const response = await fetch("http://localhost:3000/auth/check-login", {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
                     method: "GET",
                     credentials: "include",
                 });
@@ -213,7 +213,7 @@ export default {
         },
 
         initializeSocket() {
-            this.socket = io("http://localhost:3000", { withCredentials: true });
+            this.socket = io(`${process.env.VUE_APP_API_URL}`, { withCredentials: true });
 
             this.socket.on("disconnect", () => {
                 console.log("❌ 서버 연결 해제됨. 대기열에서 제거");
@@ -260,6 +260,16 @@ export default {
                 console.log("❌ 매칭 취소됨");
                 this.matchFound = false;
                 this.isMatching = false;
+                this.waitingForOpponent = false;
+                this.opponentAccepted = false;
+                if (this.timer) clearInterval(this.timer);
+                this.clearAcceptCountdown();
+            });
+
+            this.socket.on('matchError', ({ message }) => {
+                alert(`⚠️ 매칭 오류: ${message}`);
+                this.isMatching = false;
+                this.matchFound = false;
                 this.waitingForOpponent = false;
                 this.opponentAccepted = false;
                 if (this.timer) clearInterval(this.timer);
@@ -348,9 +358,10 @@ export default {
         formattedTime() {
             const minutes = Math.floor(this.waitingTime / 60);
             const seconds = this.waitingTime % 60;
-            return `${minutes.toString().padStart(2, "0")}:${seconds
+            return `${minutes.toString().padStart(2, "0")}: ${seconds
                 .toString()
-                .padStart(2, "0")}`;
+                .padStart(2, "0")
+                }`;
         }
     },
 

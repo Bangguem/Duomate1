@@ -6,12 +6,7 @@
       <button @click="goToForm" class="write-btn">문의 작성</button>
       <div v-if="inquiries.length === 0">문의 내역이 없습니다.</div>
       <div v-else class="feed-list">
-        <div
-          v-for="inquiry in inquiries"
-          :key="inquiry._id"
-          class="feed-card"
-          @click="goToDetail(inquiry._id)"
-        >
+        <div v-for="inquiry in inquiries" :key="inquiry._id" class="feed-card" @click="goToDetail(inquiry._id)">
           <h3>{{ inquiry.title }}</h3>
           <p>작성자: {{ inquiry.name }}</p>
           <p>상태: {{ inquiry.status === 'answered' ? '답변완료' : '대기중' }}</p>
@@ -38,7 +33,7 @@ export default {
   methods: {
     async fetchInquiries() {
       try {
-        const res = await axios.get('http://localhost:3000/api/inquiries', {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}/api/inquiries`, {
           withCredentials: true,
         });
         this.inquiries = res.data.inquiries;

@@ -101,123 +101,100 @@ export default {
     },
     computed: {
         getOpponent() {
-            if (!this.match || !this.match.players || !this.userInfo) return {};
-            return this.match.players.find(player => player.userid !== this.userInfo.userid) || {};
+            if (!this.match?.players || !this.userInfo) return {};
+            return (
+                this.match.players.find((p) => p.userid !== this.userInfo.userid) || {}
+            );
         },
         getOpponentProfileImage() {
-            return this.getOpponent?.profileImage ||
+            return (
+                this.getOpponent?.profileImage ||
                 (this.getOpponent?.summonerInfo?.profileIconId
-                    ? `http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${this.getOpponent.summonerInfo.profileIconId}.png`
-                    : "/icons/default-profile.png");
+                    ? `http://ddragon.leagueoflegends.com/cdn/14.22.1/img/profileicon/${this.getOpponent.summonerInfo.profileIconId
+                    }.png`
+                    : "/icons/default-profile.png")
+            );
         },
         opponentPositions() {
-            if (!this.getOpponent?.position) return ["없음"];
-            return Array.isArray(this.getOpponent.position)
-                ? this.getOpponent.position.slice(0, 2)
-                : String(this.getOpponent.position).split(",").slice(0, 2);
+            const pos = this.getOpponent.position;
+            if (!pos) return ["없음"];
+            return Array.isArray(pos) ? pos.slice(0, 2) : String(pos).split(",").slice(0, 2);
         },
         getOpponentChampions() {
             return this.getOpponent?.top5Champions?.slice(0, 3) || [];
         },
         getPositionIcon() {
-            return position => ({
-                "탑": "/icons/top.png",
-                "정글": "/icons/jungle.png",
-                "미드": "/icons/mid.png",
-                "원딜": "/icons/adc.png",
-                "서포터": "/icons/support.png",
-                "없음": "/icons/none.png"
+            return (position) =>
+            ({
+                탑: "/icons/top.png",
+                정글: "/icons/jungle.png",
+                미드: "/icons/mid.png",
+                원딜: "/icons/adc.png",
+                서포터: "/icons/support.png",
+                없음: "/icons/none.png",
             }[position] || "/icons/none.png");
         },
         opponentMicrophoneIcon() {
-            if (!this.getOpponent || !this.getOpponent.microphone) {
-                console.log("❌ 상대방 데이터가 없거나 마이크 상태가 정의되지 않음");
-                return "/icons/mic-off.png"; // 기본값
-            }
-
-            let micStatus = String(this.getOpponent.microphone).trim().toLowerCase();
-            console.log("🎤 상대방 마이크 상태:", micStatus);
-
-            if (micStatus === "가능" || micStatus === "사용") {
-                return "/icons/mic-on.png"; // 마이크 사용 가능
-            } else if (micStatus === "불가능" || micStatus === "끄기" || micStatus === "off") {
-                return "/icons/mic-off.png"; // 마이크 사용 불가능
-            } else {
-                console.log("⚠️ 알 수 없는 마이크 상태 값, 기본값으로 설정:", micStatus);
-                return "/icons/mic-off.png"; // 기본값
-            }
-        },
-
-    },
-    watch: {
-        messages: {
-            handler() {
-                this.$nextTick(() => this.scrollToBottom());
-            },
-            deep: true,
-        },
-        match: {
-            handler(newMatch) {
-                if (newMatch?.roomName && !this.socket) {
-                    this.setupSocket();
-                }
-            },
-            deep: true,
+            const mic = String(this.getOpponent.microphone || "").trim().toLowerCase();
+            if (mic === "가능" || mic === "사용") return "/icons/mic-on.png";
+            return "/icons/mic-off.png";
         },
     },
     methods: {
         setupSocket() {
-            if (this.socket || !this.matchId) return;
+            // 이미 연결되었거나, 매칭 정보(roomName)이 없으면 초기화 중단
+            if (this.socket || !this.match?.roomName) return;
 
-            console.log("📢 소켓 연결 시도");
-            this.socket = io("http://localhost:3000", { withCredentials: true });
+            this.socket = io(`${process.env.VUE_APP_API_URL}`, {
+                withCredentials: true,
+            });
 
             this.socket.on("connect", () => {
-                console.log("✅ 소켓 연결됨:", this.socket.id);
-                if (this.match?.roomName) {
+                if (this.match.roomName) {
                     this.socket.emit("join room", { roomName: this.match.roomName });
                 }
             });
 
-            this.socket.on("chat message", data => {
-                console.log("💬 메시지 수신:", data);
+            this.socket.on("chat message", (data) => {
                 this.messages.push(data);
             });
 
-            this.socket.on("user disconnected", data => {
-                console.log("📢 상대방 접속 종료:", data);
+            this.socket.on("user disconnected", (data) => {
                 this.opponentDisconnected = true;
                 this.messages.push({
                     type: "system",
                     message: `${data.nickname}님이 채팅방을 나갔습니다.`,
                 });
-                setTimeout(() => {
-                    this.$router.push("/match");
-                }, 2000);
+                setTimeout(() => this.$router.push("/match"), 2000);
             });
 
-            this.socket.on("connect_error", error => {
-                console.error("❌ 소켓 연결 에러:", error);
+            // ◀ 서버에서 발생한 매칭 에러 처리
+            this.socket.on("matchError", ({ message }) => {
+                alert(`⚠️ 매칭 오류: ${message}`);
+                this.$router.push("/match");
+            });
+
+            this.socket.on("connect_error", (err) => {
+                console.error("❌ 소켓 연결 에러:", err);
             });
         },
+
         leaveRoom() {
-            if (this.socket && this.matchId) {
-                this.socket.emit("leave room", {
-                    matchId: this.matchId,
-                    userId: this.userInfo?.userid,
-                    nickname: this.userInfo?.nickname,
-                });
+            if (this.socket) {
+                if (!this.opponentDisconnected) {
+                    this.socket.emit("leave room", {
+                        matchId: this.matchId,
+                        userId: this.userInfo?.userid,
+                        nickname: this.userInfo?.nickname,
+                    });
+                }
                 this.socket.disconnect();
             }
             this.$router.push("/match");
         },
-        formatTime(timestamp) {
-            return timestamp
-                ? new Date(timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
-                : "";
-        },
+
         sendMessage() {
-            if (this.newMessage.trim() && this.socket && this.matchId) {
+            if (this.newMessage.trim() && this.socket) {
                 this.socket.emit("chat message", {
                     matchId: this.matchId,
                     message: this.newMessage,
@@ -226,53 +203,55 @@ export default {
                 this.newMessage = "";
             }
         },
-        scrollToBottom() {
-            this.$refs.chatWindow?.scrollTo({ top: this.$refs.chatWindow.scrollHeight, behavior: "smooth" });
+
+        formatTime(ts) {
+            return ts
+                ? new Date(ts).toLocaleTimeString("ko-KR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })
+                : "";
         },
+
         async fetchUserInfo() {
             try {
-                const response = await fetch("http://localhost:3000/auth/check-login", {
-                    credentials: "include",
-                });
-                const data = await response.json();
-                if (data.loggedIn) {
-                    this.userInfo = data.user;
-                    console.log("✅ 사용자 정보 로드됨:", this.userInfo);
-                } else {
-                    console.error("❌ 사용자 정보를 가져올 수 없습니다.");
-                }
-            } catch (error) {
-                console.error("❌ 사용자 정보 조회 오류:", error);
+                const res = await fetch(
+                    `${process.env.VUE_APP_API_URL}/auth/check-login`,
+                    {
+                        credentials: "include",
+                    }
+                );
+                const data = await res.json();
+                if (data.loggedIn) this.userInfo = data.user;
+            } catch (e) {
+                console.error("❌ 사용자 정보 조회 오류:", e);
             }
         },
+
         async fetchMatchInfo() {
-            if (!this.matchId) {
-                console.error("❌ matchId가 없음!");
-                return;
-            }
+            if (!this.matchId) return;
             try {
-                const response = await fetch(`http://localhost:3000/match/get/${this.matchId}`, {
-                    method: "GET",
-                    credentials: "include",
-                });
-                const data = await response.json();
+                const res = await fetch(
+                    `${process.env.VUE_APP_API_URL}/match/get/${this.matchId}`,
+                    { credentials: "include" }
+                );
+                const data = await res.json();
                 if (data.success) {
                     this.match = data.match;
                     this.setupSocket();
-                } else {
-                    console.error("❌ 매칭 정보를 찾을 수 없습니다.");
                 }
-            } catch (error) {
-                console.error("❌ 매칭 정보 가져오기 오류:", error);
+            } catch (e) {
+                console.error("❌ 매칭 정보 가져오기 오류:", e);
             }
-        }
+        },
     },
+
     async mounted() {
         this.matchId = this.$route.query.matchId;
-        console.log("📢 ChatRoom에서 받은 matchId:", this.matchId);
         await this.fetchUserInfo();
         await this.fetchMatchInfo();
     },
+
     beforeUnmount() {
         if (this.socket) {
             if (!this.opponentDisconnected) {
@@ -282,11 +261,10 @@ export default {
                     nickname: this.userInfo?.nickname,
                 });
             }
-            console.log("📢 소켓 연결 종료");
             this.socket.disconnect();
             this.socket = null;
         }
-    }
+    },
 };
 </script>
 

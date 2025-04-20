@@ -103,7 +103,7 @@ const router = createRouter({
 
 async function isLoggedIn() {
   try {
-    const response = await axios.get('http://localhost:3000/auth/check-login', {
+    const response = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
       withCredentials: true, // 쿠키 포함 요청
     });
     return response.data.loggedIn;
