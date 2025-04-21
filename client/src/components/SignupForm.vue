@@ -170,7 +170,7 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/summonerInfo`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}summonerInfo`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -223,7 +223,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/check-duplicate`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}check-duplicate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include', // 쿠키를 포함한 요청
@@ -259,7 +259,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/signup`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(this.form),

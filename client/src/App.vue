@@ -242,7 +242,7 @@ export default {
     async checkLoginStatus() {
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           method: 'GET',
           credentials: 'include', // 쿠키 포함
         });
@@ -268,7 +268,7 @@ export default {
     },
     async logout() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/logout`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}logout`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -287,7 +287,7 @@ export default {
       if (!confirmation) return;
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/withdraw`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}withdraw`, {
           method: 'POST',
           credentials: 'include',
         });
