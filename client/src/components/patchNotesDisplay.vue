@@ -58,7 +58,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:3000/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -79,7 +79,7 @@ export default {
       if (!this.canLoadMore) return;
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}api/patch-notes/patch-notes?skip=${this.skip}&limit=${this.limit}&searchQuery=${encodeURIComponent(this.searchQuery)}`, {
           method: 'GET',
           credentials: 'include',
         });

@@ -113,7 +113,7 @@ export default {
     },
     async handleLogin() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/login`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export default {
       }, 1000);
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/request-userid`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}request-userid`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: this.emailForId }),
@@ -186,7 +186,7 @@ export default {
         }
       }, 1000);
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/request-password-reset`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}request-password-reset`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: this.emailForPassword }),

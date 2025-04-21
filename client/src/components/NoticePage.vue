@@ -74,7 +74,7 @@ export default {
     async fetchPatchNotes() {
       try {
         const response = await fetch(
-          `${process.env.VUE_APP_API_URL}/api/patch-notes/patch-notes?skip=0&limit=12`,
+          `${process.env.VUE_APP_API_URL}api/patch-notes/patch-notes?skip=0&limit=12`,
           { method: 'GET', credentials: 'include' }
         );
         if (response.ok) {
@@ -89,7 +89,7 @@ export default {
     },
     async fetchDynamicUpdates() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates?sort=latest`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/updates?sort=latest`);
         this.dynamicUpdates = response.data;
       } catch (error) {
         console.error('Error fetching dynamic updates:', error);
@@ -97,7 +97,7 @@ export default {
     },
     async fetchUserInquiries() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/api/inquiries?limit=2`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}api/inquiries?limit=2`, {
           withCredentials: true,
         });
         this.userInquiries = res.data.inquiries;

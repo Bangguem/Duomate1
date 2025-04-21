@@ -159,7 +159,7 @@ export default {
     methods: {
         async fetchLatestMatchData() {
             try {
-                const response = await fetch(`${process.env.VUE_APP_API_URL}/updateSummonerInfo`, {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}updateSummonerInfo`, {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" }
@@ -179,7 +179,7 @@ export default {
 
         async checkLoginStatus() {
             try {
-                const response = await fetch(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}auth/check-login`, {
                     method: "GET",
                     credentials: "include",
                 });

@@ -211,7 +211,7 @@ export default {
     },
     async checkLoginStatus() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           method: 'GET',
           credentials: 'include', // 쿠키 포함
         });
@@ -233,7 +233,7 @@ export default {
 
     async updateUserProfile() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/change-userprofile`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}change-userprofile`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ export default {
         console.log("태그:", this.tag);
 
         console.log("연동 요청 보냄:", this.summonerName, this.tag);  // 요청 전 콘솔 로그 추가
-        const response = await fetch(`${process.env.VUE_APP_API_URL}/summonerInfo`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}summonerInfo`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

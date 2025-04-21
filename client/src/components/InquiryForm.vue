@@ -33,7 +33,7 @@ export default {
     async submitInquiry() {
       try {
         await axios.post(
-          `${process.env.VUE_APP_API_URL}/api/inquiries`,
+          `${process.env.VUE_APP_API_URL}api/inquiries`,
           {
             title: this.title,
             content: this.content,

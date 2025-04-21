@@ -67,7 +67,7 @@ export default {
       this.loading = true;
       this.error = false;
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates/${this.id}`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/updates/${this.id}`);
         this.update = response.data;
         this.editedTitle = response.data.title;
         this.editedContent = response.data.content;
@@ -81,7 +81,7 @@ export default {
 
     async checkLogin() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           withCredentials: true
         });
         if (res.data.loggedIn) {
@@ -114,7 +114,7 @@ export default {
     async updateUpdate() {
       try {
         const response = await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/updates/${this.id}`,
+          `${process.env.VUE_APP_API_URL}api/updates/${this.id}`,
           {
             title: this.editedTitle,
             content: this.editedContent
@@ -133,7 +133,7 @@ export default {
     async deleteUpdate() {
       if (confirm('정말 삭제하시겠습니까?')) {
         try {
-          await axios.delete(`${process.env.VUE_APP_API_URL}/api/updates/${this.id}`, {
+          await axios.delete(`${process.env.VUE_APP_API_URL}api/updates/${this.id}`, {
             withCredentials: true
           });
           alert('업데이트가 삭제되었습니다.');

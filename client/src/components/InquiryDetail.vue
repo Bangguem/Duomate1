@@ -46,7 +46,7 @@ export default {
   methods: {
     async fetchUser() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           withCredentials: true,
         });
         this.user = res.data.user;
@@ -56,7 +56,7 @@ export default {
     },
     async fetchInquiry() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/api/inquiries/${this.id}`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}api/inquiries/${this.id}`, {
           withCredentials: true,
         });
         this.inquiry = res.data.inquiry;
@@ -67,7 +67,7 @@ export default {
     async submitAnswer() {
       try {
         await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/inquiries/${this.id}/answer`,
+          `${process.env.VUE_APP_API_URL}api/inquiries/${this.id}/answer`,
           { answer: this.answer },
           { withCredentials: true }
         );

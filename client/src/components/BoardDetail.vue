@@ -185,7 +185,7 @@ export default {
     // 게시글 가져오기
     async fetchPost() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/board/${this.id}`, {
           withCredentials: true
         });
         this.post = response.data;
@@ -199,7 +199,7 @@ export default {
     // 댓글 가져오기
     async fetchComments() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board/${this.id}/comments`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/board/${this.id}/comments`, {
           withCredentials: true
         });
         this.comments = response.data;
@@ -210,7 +210,7 @@ export default {
     // 현재 로그인 유저 가져오기
     async fetchCurrentUser() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           withCredentials: true
         });
         if (response.data.loggedIn) {
@@ -252,7 +252,7 @@ export default {
           formData.append('title', this.editedTitle);
           formData.append('content', this.editedContent);
           formData.append('image', this.editedImage);
-          await axios.put(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, formData, {
+          await axios.put(`${process.env.VUE_APP_API_URL}api/board/${this.id}`, formData, {
             withCredentials: true,
             headers: {
               'Content-Type': 'multipart/form-data'
@@ -261,7 +261,7 @@ export default {
         } else {
           // 파일 없이 텍스트만 수정하는 경우
           await axios.put(
-            `${process.env.VUE_APP_API_URL}/api/board/${this.id}`,
+            `${process.env.VUE_APP_API_URL}api/board/${this.id}`,
             { title: this.editedTitle, content: this.editedContent },
             { withCredentials: true }
           );
@@ -278,7 +278,7 @@ export default {
     // 게시글 삭제
     async deletePost() {
       try {
-        await axios.delete(`${process.env.VUE_APP_API_URL}/api/board/${this.id}`, {
+        await axios.delete(`${process.env.VUE_APP_API_URL}api/board/${this.id}`, {
           withCredentials: true
         });
         alert('게시글이 삭제되었습니다.');
@@ -295,7 +295,7 @@ export default {
       }
       try {
         const response = await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/like`,
+          `${process.env.VUE_APP_API_URL}api/board/${this.id}/like`,
           { action: 'like' },
           { withCredentials: true }
         );
@@ -314,7 +314,7 @@ export default {
       }
       try {
         const response = await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/like`,
+          `${process.env.VUE_APP_API_URL}api/board/${this.id}/like`,
           { action: 'dislike' },
           { withCredentials: true }
         );
@@ -333,7 +333,7 @@ export default {
       }
       try {
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/comments`,
+          `${process.env.VUE_APP_API_URL}api/board/${this.id}/comments`,
           { content: this.newComment },
           { withCredentials: true }
         );
@@ -362,7 +362,7 @@ export default {
       }
       try {
         await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}`,
+          `${process.env.VUE_APP_API_URL}api/board/comments/${commentId}`,
           { content: this.editingContent },
           { withCredentials: true }
         );
@@ -380,7 +380,7 @@ export default {
     // 댓글 삭제
     async deleteComment(commentId) {
       try {
-        await axios.delete(`${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}`, {
+        await axios.delete(`${process.env.VUE_APP_API_URL}api/board/comments/${commentId}`, {
           withCredentials: true
         });
         this.comments = this.comments.filter(comment => comment._id !== commentId);
@@ -398,7 +398,7 @@ export default {
       }
       try {
         await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}/like`,
+          `${process.env.VUE_APP_API_URL}api/board/comments/${commentId}/like`,
           { action: 'like' },
           { withCredentials: true }
         );
@@ -415,7 +415,7 @@ export default {
       }
       try {
         await axios.put(
-          `${process.env.VUE_APP_API_URL}/api/board/comments/${commentId}/like`,
+          `${process.env.VUE_APP_API_URL}api/board/comments/${commentId}/like`,
           { action: 'dislike' },
           { withCredentials: true }
         );
@@ -432,7 +432,7 @@ export default {
     async incrementViews() {
       try {
         const response = await axios.post(
-          `${process.env.VUE_APP_API_URL}/api/board/${this.id}/views`,
+          `${process.env.VUE_APP_API_URL}api/board/${this.id}/views`,
           {},
           { withCredentials: true }
         );

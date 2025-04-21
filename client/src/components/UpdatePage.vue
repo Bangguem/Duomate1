@@ -98,7 +98,7 @@ export default {
     // ✅ 로그인 유저 정보 확인
     async checkLogin() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           withCredentials: true
         });
         if (res.data.loggedIn) {
@@ -113,7 +113,7 @@ export default {
       this.loading = true;
       this.error = false;
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/updates?sort=${this.sortOrder}`);
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/updates?sort=${this.sortOrder}`);
         this.updates = response.data;
       } catch (err) {
         console.error('업데이트를 가져오는 중 오류:', err);
@@ -131,7 +131,7 @@ export default {
     },
     async submitUpdate() {
       try {
-        await axios.post(`${process.env.VUE_APP_API_URL}/api/updates`, {
+        await axios.post(`${process.env.VUE_APP_API_URL}api/updates`, {
           title: this.title,
           content: this.content
         }, { withCredentials: true }); // ✅ 쿠키 인증 필요

@@ -33,7 +33,7 @@ export default {
   methods: {
     async fetchInquiries() {
       try {
-        const res = await axios.get(`${process.env.VUE_APP_API_URL}/api/inquiries`, {
+        const res = await axios.get(`${process.env.VUE_APP_API_URL}api/inquiries`, {
           withCredentials: true,
         });
         this.inquiries = res.data.inquiries;

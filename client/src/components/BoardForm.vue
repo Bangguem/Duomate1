@@ -138,7 +138,7 @@ export default {
     // 로그인 상태 확인
     async checkLoginStatus() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/auth/check-login`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}auth/check-login`, {
           withCredentials: true
         });
         this.currentUser = response.data.user || null; // 로그인 사용자 정보
@@ -165,7 +165,7 @@ export default {
     // 게시글 목록 가져오기
     async fetchPosts() {
       try {
-        const response = await axios.get(`${process.env.VUE_APP_API_URL}/api/board`, {
+        const response = await axios.get(`${process.env.VUE_APP_API_URL}api/board`, {
           withCredentials: true
         });
         this.posts = response.data;
@@ -212,7 +212,7 @@ export default {
       }
 
       try {
-        await axios.post(`${process.env.VUE_APP_API_URL}/api/board`, formData, {
+        await axios.post(`${process.env.VUE_APP_API_URL}api/board`, formData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',

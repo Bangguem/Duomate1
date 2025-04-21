@@ -216,7 +216,7 @@ export default {
         async fetchUserInfo() {
             try {
                 const res = await fetch(
-                    `${process.env.VUE_APP_API_URL}/auth/check-login`,
+                    `${process.env.VUE_APP_API_URL}auth/check-login`,
                     {
                         credentials: "include",
                     }
@@ -232,7 +232,7 @@ export default {
             if (!this.matchId) return;
             try {
                 const res = await fetch(
-                    `${process.env.VUE_APP_API_URL}/match/get/${this.matchId}`,
+                    `${process.env.VUE_APP_API_URL}match/get/${this.matchId}`,
                     { credentials: "include" }
                 );
                 const data = await res.json();
