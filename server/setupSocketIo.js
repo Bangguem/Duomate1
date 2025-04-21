@@ -7,7 +7,7 @@ const matchDataStore = {};
 const setupSocketIo = (server) => {
     const io = socketIo(server, {
         cors: {
-            origin: process.env.CLIENT_URL,
+            origin: [process.env.CLIENT_URL, process.env.PRODUCT_URL],
             methods: ["GET", "POST"],
             credentials: true,
         },
