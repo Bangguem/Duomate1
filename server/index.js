@@ -29,7 +29,7 @@ const path = require('path');
 //  Middleware 설정
 // ─────────────────────────────────────────────
 app.use(cors({
-    origin: [process.env.CLIENT_URL, process.env.PRODUCT_URL],
+    origin: [process.env.CLIENT_URL, process.env.PRODUCT_URL, 'https://port-0-duomate-server-m9qbin9n81976e73.sel4.cloudtype.app/'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
